@@ -9,6 +9,7 @@
 * Supabase: Postgres, **Auth enabled**, **Storage** (`files`, `images optional`), **RLS** single-owner.
 * Shared DB: `tag`, `note` (+FTS), `tag_map`, `import_run`, `import_error`, `file`, `import_mapping_preset`.
 * **Row defaults**: all real tables have `owner_id default auth.uid()` (views excluded; expected).
+* **Tags**: `tag_map` extended to support cross-module tagging (entity types include `note`, `media_item`, `book`, `vehicle`, `trip`, `habit`, `food_item`, `shopping_item`, `inventory_item`, `wishlist_item`).
 
 **Next steps**
 
@@ -134,7 +135,36 @@
 
 ---
 
-## Phase 3 — Car & Travel (Weeks 7–8)
+## Phase 2.5 — Lists (Shopping & Wishlist)
+
+**Status**
+
+* **SQL provided; pending apply**
+
+  * Tables: `shopping_list`, `shopping_list_item`, `inventory_item`, `wishlist_item`
+  * Views: `v_shopping_open_items`, `v_inventory_summary`, `v_wishlist_active`
+  * Tagging enabled via extended `tag_map` (`shopping_item`, `inventory_item`, `wishlist_item`)
+
+**Next steps**
+
+* Import CSVs for lists/inventory/wishlist.
+* Pages:
+
+  * `/shopping`: lists + open items; mark done; quick add.
+  * `/inventory`: inventory table with location filter + totals (`v_inventory_summary`).
+  * `/wishlist`: active wishlist with sort by priority/status.
+* Optional: allow tags and global tag filters across these modules.
+
+**CSV headers**
+
+* **Shopping Lists**: `name,notes`
+* **Shopping List Items**: `list,itemName,quantity,unit,neededBy,priority,notes,tags`
+* **Inventory Items**: `name,quantity,unit,location,acquiredAt,notes,tags`
+* **Wishlist Items**: `title,category,status,url,notes,priority,tags`
+
+---
+
+## Phase 3 — Car, House & Travel (Weeks 7–8)
 
 ### Week 7 — Car
 
@@ -156,6 +186,35 @@
 * **Maintenance Templates**: `name,intervalMiles,intervalMonths,notes`
 * **Maintenance Records**: `vehicle,item,serviceDate,mileage,cost,vendor,notes`
 * **Fuel Logs**: `vehicle,fillDate,odometer,gallons,total`
+
+---
+
+### Week 7 (parallel/optional) — House Tracker
+
+**Status**
+
+* **SQL provided; pending apply**
+
+  * Tables: `home_property`, `home_area`, `home_appliance`, `home_maintenance_template`, `home_maintenance_record`, `home_supply_item`, `home_supply_stock`, `home_supply_purchase`, `home_supply_usage`
+  * Views: `v_home_maintenance_next_due`, `v_home_supply_low_stock`, `v_home_supply_usage_month`
+
+**Next steps**
+
+* Import areas/appliances/templates/records/supplies.
+* `/house`: next-due maintenance, low-stock supplies, areas/rooms.
+* Optional: extend `tag_map` later to also tag house entities (e.g., `home_appliance`, `home_supply_item`).
+
+**CSV headers**
+
+* **Properties**: `name,address1,address2,city,state,postalCode,country,notes`
+* **Areas/Rooms**: `property,name,type,notes`
+* **Appliances**: `property,area,name,manufacturer,model,serialNumber,purchaseDate,warrantyMonths,notes`
+* **Maintenance Templates**: `property,name,intervalMonths,intervalDays,notes`
+* **Maintenance Records**: `property,area,appliance,item,template,serviceDate,cost,vendor,notes`
+* **Supply Items**: `name,unit,notes`
+* **Supply Stock**: `property,area,supply,quantity,minQuantity`
+* **Supply Purchases**: `property,area,supply,purchaseDate,quantity,unitCost,vendor,notes`
+* **Supply Usage**: `property,area,supply,useDate,quantity,notes`
 
 ---
 
@@ -204,12 +263,12 @@
 
 ---
 
-### Week 10 — Cross-Module UX & QA
+# Cross-Module (Week 10)
 
 **Next steps**
 
-* Dashboard page: cards (spend, renewals, continue watching, pace, habits, next-due, countdown, macros).
-* Read-only calendar: renewals, maintenance due, goal deadlines, trip days.
+* Dashboard page: cards (spend, renewals, continue watching, pace, habits, next-due, house maintenance/supplies, countdown, macros, lists/wishlist).
+* Read-only calendar: renewals, maintenance due (car/house), goal deadlines, trip days.
 * Import tooling: rollback by `import_run_id`, duplicate handling (hash + conflict strategies).
 * Performance pass: confirm indexes; paginate heavy pages.
 * Per-module CSV export endpoints.
@@ -217,10 +276,10 @@
 
 ---
 
-# Data Model Summary (entity + log pattern)
+## Data Model Summary (entity + log pattern)
 
 **Shared**
-✅ `Tag`, `TagMap`, `Note`, `File`, `ImportRun`, `ImportError`, `ImportMappingPreset`
+✅ `Tag`, `TagMap` (extended types), `Note`, `File`, `ImportRun`, `ImportError`, `ImportMappingPreset`
 
 **Finance**
 ✅ `Account`, `Category`, `Transaction`, `Subscription`
@@ -234,6 +293,9 @@
 **Car**
 ✅ `Vehicle`, `OdometerLog`, `MaintenanceTemplate`, `MaintenanceRecord`, `FuelLog`
 
+**House**
+🆕 `HomeProperty`, `HomeArea`, `HomeAppliance`, `HomeMaintenanceTemplate`, `HomeMaintenanceRecord`, `HomeSupplyItem`, `HomeSupplyStock`, `HomeSupplyPurchase`, `HomeSupplyUsage`
+
 **Travel**
 ✅ `Trip`, `ItineraryItem`, `TripEntry`
 
@@ -243,9 +305,12 @@
 **Nutrition**
 ✅ `FoodItem`, `Meal`, `MealEntry`, `NutritionTarget`
 
+**Lists**
+🆕 `ShoppingList`, `ShoppingListItem`, `InventoryItem`, `WishlistItem`
+
 ---
 
-# Import UX (consistent across modules)
+## Import UX (consistent across modules)
 
 1. **Upload** (CSV/JSON) → 2) **Auto-detect delimiter & header** →
 2. **Field mapping** (save mapping presets per source, e.g., “Capital One Checking”) →
@@ -258,22 +323,16 @@
 * Dates normalized to ISO.
 * Amounts normalized to signed integers (cents) where relevant.
 * Optional “de-dupe by hash” (e.g., `accountId + date + amount + merchant`).
+* Lookups by name → IDs (create-on-missing optional) across modules.
+* `tags` column supported for `note`, `media_item`, `book`, `shopping_item`, `inventory_item`, `wishlist_item` (and optionally house later).
 
 ---
 
-# Risks & Mitigations
+## Success Criteria (end of Week 10)
 
-* **Free tier pauses (Supabase Free):** acceptable for personal use; upgrade to **Pro** (\~\$25) if it annoys you.
-* **Large imports:** chunked inserts + background processing (still fine on Hobby).
-* **Data correctness:** keep all imports immutable with an `import_run_id` so you can roll back a bad import in one click.
-
----
-
-# Success Criteria (end of Week 10)
-
-* One dashboard with **live cards from all 8 modules**.
-* **Global search** across all entities with tag filters.
-* **Calendar** of renewals, maintenance, goals, trips.
+* One dashboard with **live cards from all modules**.
+* **Global search** across entities with tag filters.
+* **Calendar** of renewals/maintenance/goals/trips.
 * **Import** flows working for each module with saved mapping presets.
 * **Export All** (JSON) and **per-module CSV export**.
 * Clear **Import history** and **rollback**.
