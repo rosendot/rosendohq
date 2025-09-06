@@ -3,6 +3,30 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* Green and Purple Theme Colors */
+  --primary-green: #10b981;
+  /* emerald-500 */
+  --primary-green-hover: #059669;
+  /* emerald-600 */
+  --primary-green-light: #d1fae5;
+  /* emerald-100 */
+  --primary-green-dark: #047857;
+  /* emerald-700 */
+
+  --primary-purple: #8b5cf6;
+  /* violet-500 */
+  --primary-purple-hover: #7c3aed;
+  /* violet-600 */
+  --primary-purple-light: #ede9fe;
+  /* violet-100 */
+  --primary-purple-dark: #6d28d9;
+  /* violet-700 */
+
+  --accent-teal: #14b8a6;
+  /* teal-500 */
+  --accent-indigo: #6366f1;
+  /* indigo-500 */
 }
 
 @theme inline {
@@ -10,6 +34,20 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Custom colors */
+  --color-primary-green: var(--primary-green);
+  --color-primary-green-hover: var(--primary-green-hover);
+  --color-primary-green-light: var(--primary-green-light);
+  --color-primary-green-dark: var(--primary-green-dark);
+
+  --color-primary-purple: var(--primary-purple);
+  --color-primary-purple-hover: var(--primary-purple-hover);
+  --color-primary-purple-light: var(--primary-purple-light);
+  --color-primary-purple-dark: var(--primary-purple-dark);
+
+  --color-accent-teal: var(--accent-teal);
+  --color-accent-indigo: var(--accent-indigo);
 }
 
 @media (prefers-color-scheme: dark) {

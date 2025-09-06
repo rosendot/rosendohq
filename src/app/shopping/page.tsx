@@ -146,23 +146,25 @@ export default function ShoppingPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-violet-50">
             <div className="max-w-4xl mx-auto px-4 py-8">
                 {/* Header */}
                 <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Shopping Lists</h1>
+                    <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-violet-600 bg-clip-text text-transparent mb-2">
+                        Shopping Lists
+                    </h1>
                     <p className="text-gray-600">Manage your shopping lists and track items</p>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Lists Sidebar */}
                     <div className="lg:col-span-1">
-                        <div className="bg-white rounded-lg shadow-sm border p-6">
+                        <div className="bg-white rounded-xl shadow-lg border border-emerald-100 p-6">
                             <div className="flex items-center justify-between mb-4">
-                                <h2 className="text-lg font-semibold">Your Lists</h2>
+                                <h2 className="text-lg font-semibold text-gray-900">Your Lists</h2>
                                 <button
                                     onClick={createNewList}
-                                    className="text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+                                    className="text-sm bg-gradient-to-r from-emerald-500 to-emerald-600 text-white px-3 py-1 rounded-lg hover:from-emerald-600 hover:to-emerald-700 transition-all duration-200 shadow-md"
                                 >
                                     New List
                                 </button>
@@ -173,9 +175,9 @@ export default function ShoppingPage() {
                                     <button
                                         key={list.id}
                                         onClick={() => setSelectedListId(list.id)}
-                                        className={`w-full text-left p-3 rounded-lg border transition-colors ${selectedListId === list.id
-                                            ? 'bg-blue-50 border-blue-200 text-blue-900'
-                                            : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+                                        className={`w-full text-left p-3 rounded-lg border transition-all duration-200 ${selectedListId === list.id
+                                            ? 'bg-gradient-to-r from-emerald-50 to-violet-50 border-emerald-200 text-emerald-900 shadow-md'
+                                            : 'bg-gray-50 border-gray-200 hover:bg-gradient-to-r hover:from-emerald-25 hover:to-violet-25 hover:border-emerald-100'
                                             }`}
                                     >
                                         <div className="font-medium">{list.name}</div>
@@ -191,9 +193,9 @@ export default function ShoppingPage() {
                     {/* Main Content */}
                     <div className="lg:col-span-2">
                         {selectedList ? (
-                            <div className="bg-white rounded-lg shadow-sm border">
+                            <div className="bg-white rounded-xl shadow-lg border border-violet-100">
                                 {/* List Header */}
-                                <div className="p-6 border-b">
+                                <div className="p-6 border-b border-violet-100 bg-gradient-to-r from-emerald-25 to-violet-25">
                                     <h2 className="text-xl font-semibold text-gray-900">{selectedList.name}</h2>
                                     {selectedList.notes && (
                                         <p className="text-gray-600 mt-1">{selectedList.notes}</p>
@@ -201,7 +203,7 @@ export default function ShoppingPage() {
                                 </div>
 
                                 {/* Add New Item */}
-                                <div className="p-6 border-b bg-gray-50">
+                                <div className="p-6 border-b border-violet-100 bg-gradient-to-r from-emerald-50 to-violet-50">
                                     <div className="flex gap-2">
                                         <input
                                             type="text"
@@ -209,14 +211,14 @@ export default function ShoppingPage() {
                                             value={newItemName}
                                             onChange={(e) => setNewItemName(e.target.value)}
                                             onKeyPress={(e) => e.key === 'Enter' && addNewItem()}
-                                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="flex-1 px-3 py-2 border border-emerald-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                                         />
                                         <input
                                             type="number"
                                             placeholder="Qty"
                                             value={newItemQuantity}
                                             onChange={(e) => setNewItemQuantity(Number(e.target.value))}
-                                            className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="w-20 px-3 py-2 border border-emerald-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                                             min="1"
                                         />
                                         <input
@@ -224,12 +226,12 @@ export default function ShoppingPage() {
                                             placeholder="Unit"
                                             value={newItemUnit}
                                             onChange={(e) => setNewItemUnit(e.target.value)}
-                                            className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="w-24 px-3 py-2 border border-emerald-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                                         />
                                         <button
                                             onClick={addNewItem}
                                             disabled={!newItemName.trim()}
-                                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                            className="px-4 py-2 bg-gradient-to-r from-violet-500 to-violet-600 text-white rounded-lg hover:from-violet-600 hover:to-violet-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md"
                                         >
                                             Add
                                         </button>
@@ -246,15 +248,15 @@ export default function ShoppingPage() {
                                             </h3>
                                             <div className="space-y-2">
                                                 {openItems.map(item => (
-                                                    <div key={item.id} className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg">
+                                                    <div key={item.id} className="flex items-center gap-3 p-3 border border-emerald-200 rounded-lg bg-gradient-to-r from-emerald-25 to-emerald-50 hover:from-emerald-50 hover:to-emerald-100 transition-all duration-200">
                                                         <input
                                                             type="checkbox"
                                                             checked={false}
                                                             onChange={() => toggleItemDone(item.id)}
-                                                            className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                                                            className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500"
                                                         />
                                                         <div className="flex-1">
-                                                            <div className="font-medium">{item.item_name}</div>
+                                                            <div className="font-medium text-gray-900">{item.item_name}</div>
                                                             {(item.quantity || item.unit) && (
                                                                 <div className="text-sm text-gray-600">
                                                                     {item.quantity} {item.unit}
@@ -266,7 +268,7 @@ export default function ShoppingPage() {
                                                         </div>
                                                         <button
                                                             onClick={() => deleteItem(item.id)}
-                                                            className="text-red-600 hover:text-red-700 text-sm"
+                                                            className="text-red-500 hover:text-red-700 text-sm transition-colors"
                                                         >
                                                             Delete
                                                         </button>
@@ -284,12 +286,12 @@ export default function ShoppingPage() {
                                             </h3>
                                             <div className="space-y-2">
                                                 {doneItems.map(item => (
-                                                    <div key={item.id} className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg bg-gray-50">
+                                                    <div key={item.id} className="flex items-center gap-3 p-3 border border-violet-200 rounded-lg bg-gradient-to-r from-violet-25 to-violet-50">
                                                         <input
                                                             type="checkbox"
                                                             checked={true}
                                                             onChange={() => toggleItemDone(item.id)}
-                                                            className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                                                            className="w-4 h-4 text-violet-600 rounded focus:ring-violet-500"
                                                         />
                                                         <div className="flex-1">
                                                             <div className="font-medium line-through text-gray-500">{item.item_name}</div>
@@ -301,7 +303,7 @@ export default function ShoppingPage() {
                                                         </div>
                                                         <button
                                                             onClick={() => deleteItem(item.id)}
-                                                            className="text-red-600 hover:text-red-700 text-sm"
+                                                            className="text-red-500 hover:text-red-700 text-sm transition-colors"
                                                         >
                                                             Delete
                                                         </button>
@@ -320,7 +322,7 @@ export default function ShoppingPage() {
                                 </div>
                             </div>
                         ) : (
-                            <div className="bg-white rounded-lg shadow-sm border p-8 text-center text-gray-500">
+                            <div className="bg-white rounded-xl shadow-lg border border-violet-100 p-8 text-center text-gray-500">
                                 <p>Select a shopping list to view items</p>
                             </div>
                         )}
