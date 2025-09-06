@@ -5,6 +5,7 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  deployment_status:
 
 jobs:
   notify-start:
@@ -83,78 +84,88 @@ jobs:
           username: "GitHub PR Bot"
           avatar_url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
 
-  check-deployment:
+  # This job listens to Vercel deployment status changes
+  vercel-deployment-status:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
-    needs: notify-start
+    if: github.event_name == 'deployment_status'
     steps:
-      - name: Wait and check Vercel deployment
-        id: deployment_check
-        run: |
-          echo "Waiting for Vercel deployment..."
-          sleep 45
-
-          # Check if site is responding
-          response=$(curl -s -o /dev/null -w "%{http_code}" https://rosendohq.vercel.app || echo "000")
-          echo "status_code=$response" >> $GITHUB_OUTPUT
-
-          if [ "$response" = "200" ]; then
-            echo "deployment_status=✅ Success" >> $GITHUB_OUTPUT
-            echo "status_color=0x00ff00" >> $GITHUB_OUTPUT
-          else
-            echo "deployment_status=⚠️ Check Required (HTTP $response)" >> $GITHUB_OUTPUT
-            echo "status_color=0xff9900" >> $GITHUB_OUTPUT
-          fi
-
       - name: Get deployment time
         id: timing
         run: |
           echo "deployed_at=$(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_OUTPUT
 
-      - name: Notify Deployment Result
+      - name: Notify Deployment Success
+        if: github.event.deployment_status.state == 'success'
         uses: sarisia/actions-status-discord@v1
         with:
           webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          title: "${{ steps.deployment_check.outputs.deployment_status }}"
+          title: "✅ Deployment Successful"
           description: |
             **Project:** rosendohq
-            **Environment:** 🌍 Production
-            **Live URL:** [rosendohq.vercel.app](https://rosendohq.vercel.app)
+            **Environment:** 🌍 ${{ github.event.deployment.environment }}
+            **Live URL:** [${{ github.event.deployment.payload.web_url || 'rosendohq.vercel.app' }}](${{ github.event.deployment.payload.web_url || 'https://rosendohq.vercel.app' }})
             **Deployed at:** ${{ steps.timing.outputs.deployed_at }}
 
             **🔗 Quick Links:**
-            • [View Site](https://rosendohq.vercel.app)
+            • [View Site](${{ github.event.deployment.payload.web_url || 'https://rosendohq.vercel.app' }})
             • [Vercel Dashboard](https://vercel.com/dashboard)
             • [Commit Details](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
 
             **📱 Test your deployment:**
-            • Desktop: [rosendohq.vercel.app](https://rosendohq.vercel.app)
+            • Desktop: [${{ github.event.deployment.payload.web_url || 'rosendohq.vercel.app' }}](${{ github.event.deployment.payload.web_url || 'https://rosendohq.vercel.app' }})
             • Mobile view: Check responsive design
-          color: ${{ steps.deployment_check.outputs.status_color }}
+          color: 0x00ff00
           username: "Vercel Deploy Bot"
           avatar_url: "https://assets.vercel.com/image/upload/front/favicon/vercel/favicon.ico"
 
-  deployment-failure:
-    runs-on: ubuntu-latest
-    if: failure() && github.event_name == 'push'
-    needs: [notify-start, check-deployment]
-    steps:
       - name: Notify Deployment Failure
+        if: github.event.deployment_status.state == 'failure'
         uses: sarisia/actions-status-discord@v1
         with:
           webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
           title: "❌ Deployment Failed"
           description: |
             **Project:** rosendohq
-            **Branch:** `${{ github.ref_name }}`
+            **Environment:** 🔴 ${{ github.event.deployment.environment }}
             **Author:** ${{ github.actor }}
             **Commit:** [`${{ github.sha }}`](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
 
             **🔍 Debug Links:**
             • [GitHub Actions Log](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
             • [Vercel Dashboard](https://vercel.com/dashboard)
+            • [Deployment Details](${{ github.event.deployment_status.target_url }})
 
-            **⚠️ Action Required:** Check the logs above to diagnose the issue.
+            **⚠️ Action Required:** Check the Vercel deployment logs to diagnose the issue.
+
+            **Error Details:**
+            • **Status:** ${{ github.event.deployment_status.state }}
+            • **Description:** ${{ github.event.deployment_status.description }}
           color: 0xff0000
-          username: "GitHub Deploy Bot"
-          avatar_url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
+          username: "Vercel Deploy Bot"
+          avatar_url: "https://assets.vercel.com/image/upload/front/favicon/vercel/favicon.ico"
+
+      - name: Notify Deployment Error
+        if: github.event.deployment_status.state == 'error'
+        uses: sarisia/actions-status-discord@v1
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          title: "🚨 Deployment Error"
+          description: |
+            **Project:** rosendohq
+            **Environment:** ⚠️ ${{ github.event.deployment.environment }}
+            **Author:** ${{ github.actor }}
+            **Commit:** [`${{ github.sha }}`](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
+
+            **🔍 Debug Links:**
+            • [GitHub Actions Log](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            • [Vercel Dashboard](https://vercel.com/dashboard)
+            • [Deployment Details](${{ github.event.deployment_status.target_url }})
+
+            **💥 Critical Error:** The deployment encountered a system error.
+
+            **Error Details:**
+            • **Status:** ${{ github.event.deployment_status.state }}
+            • **Description:** ${{ github.event.deployment_status.description }}
+          color: 0x800000
+          username: "Vercel Deploy Bot"
+          avatar_url: "https://assets.vercel.com/image/upload/front/favicon/vercel/favicon.ico"
