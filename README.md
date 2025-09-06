@@ -5,7 +5,7 @@
 **Status (done)**
 
 * Next.js scaffold (TS, ESLint, Prettier, Tailwind v4, Turbopack), GitHub, local dev.
-* Vercel project + envs (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`).
+* Vercel project + envs (`SUPABASE_URL`, `SUPABASE_ANON_KEY`).
 * Supabase: Postgres, **Auth enabled**, **Storage** (`files`, `images optional`), **RLS** single-owner.
 * Shared DB: `tag`, `note` (+FTS), `tag_map`, `import_run`, `import_error`, `file`, `import_mapping_preset`.
 * **Row defaults**: all real tables have `owner_id default auth.uid()` (views excluded; expected).
