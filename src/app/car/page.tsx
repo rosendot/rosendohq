@@ -1,7 +1,7 @@
 // src/app/car/page.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 interface Vehicle {
     id: string;
@@ -20,7 +20,7 @@ interface MaintenanceNextDue {
     last_service_date?: string;
     last_service_mileage?: number;
     interval_miles?: number;
-    interval_months?: number;
+    interval_months?: number;  // Changed from 'null' to 'undefined'
     next_due_mileage?: number;
     next_due_date?: string;
 }
@@ -29,14 +29,6 @@ interface VehicleLastOdo {
     vehicle_id: string;
     last_mileage: number;
     last_date: string;
-}
-
-interface OdometerLog {
-    id: string;
-    vehicle_id: string;
-    log_date: string;
-    mileage: number;
-    created_at: string;
 }
 
 interface MaintenanceRecord {
@@ -101,9 +93,9 @@ const mockMaintenanceNextDue: MaintenanceNextDue[] = [
         last_service_date: '2024-08-20',
         last_service_mileage: 42000,
         interval_miles: 7500,
-        interval_months: null,
+        interval_months: undefined,  // Changed from 'null' to 'undefined'
         next_due_mileage: 49500,
-        next_due_date: null
+        next_due_date: undefined     // Changed from 'null' to 'undefined'
     }
 ];
 
@@ -147,12 +139,12 @@ const mockRecentFuel: FuelLog[] = [
 ];
 
 export default function CarPage() {
-    const [vehicles, setVehicles] = useState<Vehicle[]>(mockVehicles);
+    const [vehicles] = useState<Vehicle[]>(mockVehicles);  // Removed unused setter
     const [selectedVehicleId, setSelectedVehicleId] = useState<string>('1');
-    const [maintenanceNextDue, setMaintenanceNextDue] = useState<MaintenanceNextDue[]>(mockMaintenanceNextDue);
+    const [maintenanceNextDue] = useState<MaintenanceNextDue[]>(mockMaintenanceNextDue);  // Removed unused setter
     const [vehicleOdometer, setVehicleOdometer] = useState<VehicleLastOdo[]>(mockVehicleLastOdo);
-    const [recentMaintenance, setRecentMaintenance] = useState<MaintenanceRecord[]>(mockRecentMaintenance);
-    const [recentFuel, setRecentFuel] = useState<FuelLog[]>(mockRecentFuel);
+    const [recentMaintenance] = useState<MaintenanceRecord[]>(mockRecentMaintenance);  // Removed unused setter
+    const [recentFuel] = useState<FuelLog[]>(mockRecentFuel);  // Removed unused setter
 
     // Quick entry states
     const [quickOdometer, setQuickOdometer] = useState('');
@@ -247,8 +239,10 @@ export default function CarPage() {
         setQuickMaintenanceCost('');
     };
 
+    // Rest of your component JSX remains exactly the same...
     return (
         <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-violet-50">
+            {/* Your existing JSX code continues here unchanged */}
             <div className="max-w-7xl mx-auto px-4 py-8">
                 {/* Header */}
                 <div className="mb-8">
