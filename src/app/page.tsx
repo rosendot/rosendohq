@@ -145,7 +145,7 @@ export default function Home() {
             </p>
             <p>
               Use the wishlist to track items you want to buy someday - perfect for gift ideas,
-              future purchases, or things you're considering. You can organize by priority,
+              future purchases, or things you&apos;re considering. You can organize by priority,
               category, and status to keep everything organized.
             </p>
             <p>
