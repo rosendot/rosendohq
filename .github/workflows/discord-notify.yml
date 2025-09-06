@@ -1,0 +1,64 @@
+name: Discord Deployment Notifications
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  notify-start:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+      - name: Notify Deployment Started
+        uses: sarisia/actions-status-discord@v1
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          title: "🚀 Deployment Started"
+          description: |
+            **Project:** rosendohq
+            **Branch:** `${{ github.ref_name }}`
+            **Commit:** `${{ github.sha | substr:0:7 }}`
+            **Author:** ${{ github.actor }}
+            **Message:** ${{ github.event.head_commit.message }}
+          color: 0xffa500
+          username: "GitHub Actions"
+
+  notify-pr:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Notify Pull Request
+        uses: sarisia/actions-status-discord@v1
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          title: "📝 New Pull Request"
+          description: |
+            **PR:** ${{ github.event.pull_request.title }}
+            **Author:** ${{ github.actor }}
+            **Branch:** `${{ github.head_ref }}` → `${{ github.base_ref }}`
+          color: 0x00aaff
+          username: "GitHub Actions"
+          url: ${{ github.event.pull_request.html_url }}
+
+  notify-success:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    needs: notify-start
+    steps:
+      - name: Wait for Vercel deployment
+        run: sleep 30 # Wait 30 seconds for Vercel to deploy
+
+      - name: Notify Deployment Success
+        uses: sarisia/actions-status-discord@v1
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          title: "✅ Deployment Complete"
+          description: |
+            **Project:** rosendohq
+            **Environment:** Production
+            **Live URL:** [rosendohq.vercel.app](https://rosendohq.vercel.app)
+            **Commit:** `${{ github.sha | substr:0:7 }}`
+          color: 0x00ff00
+          username: "GitHub Actions"
