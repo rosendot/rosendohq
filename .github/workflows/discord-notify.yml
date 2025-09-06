@@ -11,6 +11,23 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Get changed files
+        id: changes
+        run: |
+          echo "files=$(git diff --name-only HEAD^ HEAD | head -5 | tr '\n' ', ' | sed 's/,$//')" >> $GITHUB_OUTPUT
+          echo "file_count=$(git diff --name-only HEAD^ HEAD | wc -l)" >> $GITHUB_OUTPUT
+
+      - name: Get commit stats
+        id: stats
+        run: |
+          echo "additions=$(git diff --shortstat HEAD^ HEAD | grep -o '[0-9]* insertion' | cut -d' ' -f1 || echo '0')" >> $GITHUB_OUTPUT
+          echo "deletions=$(git diff --shortstat HEAD^ HEAD | grep -o '[0-9]* deletion' | cut -d' ' -f1 || echo '0')" >> $GITHUB_OUTPUT
+
       - name: Notify Deployment Started
         uses: sarisia/actions-status-discord@v1
         with:
@@ -19,46 +36,125 @@ jobs:
           description: |
             **Project:** rosendohq
             **Branch:** `${{ github.ref_name }}`
-            **Commit:** `${{ github.sha }}`
             **Author:** ${{ github.actor }}
+            **Commit:** [`${{ github.sha }}`](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
             **Message:** ${{ github.event.head_commit.message }}
+
+            **📊 Changes:**
+            • **Files changed:** ${{ steps.changes.outputs.file_count }}
+            • **Lines added:** +${{ steps.stats.outputs.additions }}
+            • **Lines removed:** -${{ steps.stats.outputs.deletions }}
+
+            **📁 Modified files:** ${{ steps.changes.outputs.files }}
           color: 0xffa500
-          username: "GitHub Actions"
+          username: "GitHub Deploy Bot"
+          avatar_url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
 
   notify-pr:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get PR stats
+        id: pr_stats
+        run: |
+          echo "commits=$(echo '${{ github.event.pull_request.commits }}')" >> $GITHUB_OUTPUT
+          echo "additions=$(echo '${{ github.event.pull_request.additions }}')" >> $GITHUB_OUTPUT
+          echo "deletions=$(echo '${{ github.event.pull_request.deletions }}')" >> $GITHUB_OUTPUT
+          echo "changed_files=$(echo '${{ github.event.pull_request.changed_files }}')" >> $GITHUB_OUTPUT
+
       - name: Notify Pull Request
         uses: sarisia/actions-status-discord@v1
         with:
           webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
           title: "📝 New Pull Request"
           description: |
-            **PR:** ${{ github.event.pull_request.title }}
+            **PR:** [${{ github.event.pull_request.title }}](${{ github.event.pull_request.html_url }})
             **Author:** ${{ github.actor }}
             **Branch:** `${{ github.head_ref }}` → `${{ github.base_ref }}`
-          color: 0x00aaff
-          username: "GitHub Actions"
-          url: ${{ github.event.pull_request.html_url }}
 
-  notify-success:
+            **📊 PR Stats:**
+            • **Commits:** ${{ steps.pr_stats.outputs.commits }}
+            • **Files changed:** ${{ steps.pr_stats.outputs.changed_files }}
+            • **Lines:** +${{ steps.pr_stats.outputs.additions }} / -${{ steps.pr_stats.outputs.deletions }}
+          color: 0x00aaff
+          username: "GitHub PR Bot"
+          avatar_url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
+
+  check-deployment:
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
     needs: notify-start
     steps:
-      - name: Wait for Vercel deployment
-        run: sleep 30
+      - name: Wait and check Vercel deployment
+        id: deployment_check
+        run: |
+          echo "Waiting for Vercel deployment..."
+          sleep 45
 
-      - name: Notify Deployment Success
+          # Check if site is responding
+          response=$(curl -s -o /dev/null -w "%{http_code}" https://rosendohq.vercel.app || echo "000")
+          echo "status_code=$response" >> $GITHUB_OUTPUT
+
+          if [ "$response" = "200" ]; then
+            echo "deployment_status=✅ Success" >> $GITHUB_OUTPUT
+            echo "status_color=0x00ff00" >> $GITHUB_OUTPUT
+          else
+            echo "deployment_status=⚠️ Check Required (HTTP $response)" >> $GITHUB_OUTPUT
+            echo "status_color=0xff9900" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Get deployment time
+        id: timing
+        run: |
+          echo "deployed_at=$(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_OUTPUT
+
+      - name: Notify Deployment Result
         uses: sarisia/actions-status-discord@v1
         with:
           webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          title: "✅ Deployment Complete"
+          title: "${{ steps.deployment_check.outputs.deployment_status }}"
           description: |
             **Project:** rosendohq
-            **Environment:** Production
+            **Environment:** 🌍 Production
             **Live URL:** [rosendohq.vercel.app](https://rosendohq.vercel.app)
-            **Commit:** `${{ github.sha }}`
-          color: 0x00ff00
-          username: "GitHub Actions"
+            **Deployed at:** ${{ steps.timing.outputs.deployed_at }}
+
+            **🔗 Quick Links:**
+            • [View Site](https://rosendohq.vercel.app)
+            • [Vercel Dashboard](https://vercel.com/dashboard)
+            • [Commit Details](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
+
+            **📱 Test your deployment:**
+            • Desktop: [rosendohq.vercel.app](https://rosendohq.vercel.app)
+            • Mobile view: Check responsive design
+          color: ${{ steps.deployment_check.outputs.status_color }}
+          username: "Vercel Deploy Bot"
+          avatar_url: "https://assets.vercel.com/image/upload/front/favicon/vercel/favicon.ico"
+
+  deployment-failure:
+    runs-on: ubuntu-latest
+    if: failure() && github.event_name == 'push'
+    needs: [notify-start, check-deployment]
+    steps:
+      - name: Notify Deployment Failure
+        uses: sarisia/actions-status-discord@v1
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          title: "❌ Deployment Failed"
+          description: |
+            **Project:** rosendohq
+            **Branch:** `${{ github.ref_name }}`
+            **Author:** ${{ github.actor }}
+            **Commit:** [`${{ github.sha }}`](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
+
+            **🔍 Debug Links:**
+            • [GitHub Actions Log](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            • [Vercel Dashboard](https://vercel.com/dashboard)
+
+            **⚠️ Action Required:** Check the logs above to diagnose the issue.
+          color: 0xff0000
+          username: "GitHub Deploy Bot"
+          avatar_url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
