@@ -1,3 +1,4 @@
+// src/app/layout.tsx
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -49,6 +50,12 @@ export default function RootLayout({
                     className="text-emerald-100 hover:text-white hover:bg-white/10 whitespace-nowrap py-2 px-3 rounded-md font-medium text-sm transition-colors"
                   >
                     Shopping
+                  </Link>
+                  <Link
+                    href="/wishlist"
+                    className="text-emerald-100 hover:text-white hover:bg-white/10 whitespace-nowrap py-2 px-3 rounded-md font-medium text-sm transition-colors"
+                  >
+                    Wishlist
                   </Link>
                 </div>
               </div>
