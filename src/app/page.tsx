@@ -76,6 +76,36 @@ export default function Home() {
               </div>
             </Link>
 
+            {/* Car Tracker Card */}
+            <Link href="/car" className="group">
+              <div className="bg-white overflow-hidden shadow-lg rounded-xl hover:shadow-xl transition-all duration-300 border border-blue-100 hover:border-blue-200">
+                <div className="p-6">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0">
+                      <div className="h-10 w-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-md">
+                        <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="ml-4">
+                      <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                        Car Tracker
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        Vehicle maintenance, fuel logs, and costs
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="px-6 py-3 bg-gradient-to-r from-blue-50 to-blue-100">
+                  <span className="text-sm text-blue-700 group-hover:text-blue-800 font-medium">
+                    Manage vehicles →
+                  </span>
+                </div>
+              </div>
+            </Link>
+
             {/* Inventory Card */}
             <div className="bg-white overflow-hidden shadow-lg rounded-xl border border-teal-100 opacity-60">
               <div className="p-6">
@@ -131,6 +161,34 @@ export default function Home() {
                 </span>
               </div>
             </div>
+
+            {/* More coming soon... */}
+            <div className="bg-white overflow-hidden shadow-lg rounded-xl border border-gray-100 opacity-40">
+              <div className="p-6">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <div className="h-10 w-10 bg-gradient-to-r from-gray-400 to-gray-500 rounded-lg flex items-center justify-center shadow-md">
+                      <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                      </svg>
+                    </div>
+                  </div>
+                  <div className="ml-4">
+                    <h3 className="text-lg font-semibold text-gray-500">
+                      More Features
+                    </h3>
+                    <p className="text-sm text-gray-400">
+                      Reading, habits, travel, and more
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="px-6 py-3 bg-gray-50">
+                <span className="text-sm text-gray-500 font-medium">
+                  Coming soon...
+                </span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -149,8 +207,13 @@ export default function Home() {
               category, and status to keep everything organized.
             </p>
             <p>
-              More features like inventory tracking, notes, and other personal management tools
-              will be added as the application grows.
+              The car tracker helps you stay on top of vehicle maintenance, track fuel costs,
+              and monitor your odometer readings. Get alerts when maintenance is due and keep
+              a complete service history.
+            </p>
+            <p>
+              More features like inventory tracking, notes, reading logs, habit tracking, and other
+              personal management tools will be added as the application grows.
             </p>
           </div>
         </div>
