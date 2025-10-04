@@ -94,6 +94,12 @@ export default function RootLayout({
                     Habits
                   </Link>
                   <Link
+                    href="/finance"
+                    className="text-emerald-100 hover:text-white hover:bg-white/10 whitespace-nowrap py-2 px-3 rounded-md font-medium text-sm transition-colors"
+                  >
+                    Finance
+                  </Link>
+                  <Link
                     href="/nutrition"
                     className="text-emerald-100 hover:text-white hover:bg-white/10 whitespace-nowrap py-2 px-3 rounded-md font-medium text-sm transition-colors"
                   >
