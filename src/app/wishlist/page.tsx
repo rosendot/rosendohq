@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Search, Filter, Heart, Star, ExternalLink, Tag, DollarSign, Calendar, Store } from 'lucide-react';
+import { Plus, Search, Filter, Heart, Star, ExternalLink, Tag, DollarSign, Calendar, Store, Shirt, Palette } from 'lucide-react';
 
 // Database-aligned types
 type WishlistStatus = 'wanted' | 'considering' | 'on_hold' | 'purchased' | 'declined';
@@ -15,11 +15,14 @@ interface WishlistItem {
     url?: string;
     notes?: string;
     priority?: number; // 1-5
-    price_cents?: number; // Store as cents: $19.99 = 1999
+    price_cents?: number;
     currency?: string;
     image_url?: string;
     purchased_at?: string;
     vendor?: string;
+    brand?: string;
+    color?: string;
+    size?: string;
     created_at: string;
 }
 
@@ -37,20 +40,22 @@ export default function WishlistPage() {
     const [selectedStatus, setSelectedStatus] = useState<WishlistStatus | 'all'>('wanted');
     const [searchQuery, setSearchQuery] = useState('');
 
-    // Updated mock data with real database structure
+    // Updated mock data with real database structure including brand, color, size
     const mockItems: WishlistItem[] = [
         {
             id: '1',
-            title: 'Mechanical Keyboard',
-            category: 'Electronics',
+            title: 'Check-In Large Luggage',
+            category: 'Travel',
             status: 'wanted',
-            url: 'https://example.com/keyboard',
-            notes: 'Cherry MX Blue switches preferred',
+            url: 'https://monos.com/collections/check-in-luggage/products/check-in-large',
+            notes: 'Polycarbonate hardshell, lightweight, 360° spinner wheels',
             priority: 1,
-            price_cents: 14999, // $149.99
+            price_cents: 37500,
             currency: 'USD',
-            image_url: 'https://via.placeholder.com/150',
-            vendor: 'Amazon',
+            vendor: 'Monos',
+            brand: 'Monos',
+            color: 'Sage',
+            size: 'Large',
             created_at: new Date().toISOString(),
         },
         {
@@ -59,8 +64,11 @@ export default function WishlistPage() {
             category: 'Sports',
             status: 'considering',
             priority: 2,
-            price_cents: 12000, // $120.00
+            price_cents: 12000,
             currency: 'USD',
+            brand: 'Nike',
+            color: 'Black/White',
+            size: '10.5',
             created_at: new Date(Date.now() - 86400000).toISOString(),
         },
         {
@@ -70,9 +78,10 @@ export default function WishlistPage() {
             status: 'wanted',
             url: 'https://example.com/kindle',
             priority: 1,
-            price_cents: 13999, // $139.99
+            price_cents: 13999,
             currency: 'USD',
             vendor: 'Amazon',
+            brand: 'Amazon',
             created_at: new Date(Date.now() - 172800000).toISOString(),
         },
         {
@@ -81,31 +90,25 @@ export default function WishlistPage() {
             category: 'Home',
             status: 'purchased',
             notes: 'Got it on sale!',
-            price_cents: 7999, // $79.99
+            price_cents: 7999,
             currency: 'USD',
+            brand: 'Breville',
             purchased_at: new Date(Date.now() - 259200000).toISOString(),
             created_at: new Date(Date.now() - 259200000).toISOString(),
         },
         {
             id: '5',
-            title: 'Desk Lamp',
-            category: 'Home',
-            status: 'on_hold',
-            priority: 3,
-            price_cents: 4999, // $49.99
+            title: 'Winter Jacket',
+            category: 'Clothing',
+            status: 'wanted',
+            priority: 1,
+            price_cents: 24999,
             currency: 'USD',
+            brand: 'Patagonia',
+            color: 'Navy Blue',
+            size: 'M',
+            vendor: 'REI',
             created_at: new Date(Date.now() - 345600000).toISOString(),
-        },
-        {
-            id: '6',
-            title: 'Wireless Headphones',
-            category: 'Electronics',
-            status: 'declined',
-            url: 'https://example.com/headphones',
-            notes: 'Found a better alternative',
-            price_cents: 29999, // $299.99
-            currency: 'USD',
-            created_at: new Date(Date.now() - 432000000).toISOString(),
         },
     ];
 
@@ -115,7 +118,8 @@ export default function WishlistPage() {
         const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
         const matchesStatus = selectedStatus === 'all' || item.status === selectedStatus;
         const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            item.notes?.toLowerCase().includes(searchQuery.toLowerCase());
+            item.notes?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            item.brand?.toLowerCase().includes(searchQuery.toLowerCase());
         return matchesCategory && matchesStatus && matchesSearch;
     });
 
@@ -313,6 +317,33 @@ export default function WishlistPage() {
                                             </div>
                                         </div>
                                     </div>
+
+                                    {/* Brand/Color/Size - NEW */}
+                                    {(item.brand || item.color || item.size) && (
+                                        <div className="mb-3 space-y-1">
+                                            {item.brand && (
+                                                <div className="flex items-center gap-2 text-sm text-gray-400">
+                                                    <Tag className="w-4 h-4" />
+                                                    <span className="font-medium text-gray-300">Brand:</span>
+                                                    {item.brand}
+                                                </div>
+                                            )}
+                                            {item.color && (
+                                                <div className="flex items-center gap-2 text-sm text-gray-400">
+                                                    <Palette className="w-4 h-4" />
+                                                    <span className="font-medium text-gray-300">Color:</span>
+                                                    {item.color}
+                                                </div>
+                                            )}
+                                            {item.size && (
+                                                <div className="flex items-center gap-2 text-sm text-gray-400">
+                                                    <Shirt className="w-4 h-4" />
+                                                    <span className="font-medium text-gray-300">Size:</span>
+                                                    {item.size}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
 
                                     {/* Price */}
                                     {item.price_cents && (
