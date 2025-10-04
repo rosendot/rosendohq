@@ -1,533 +1,594 @@
-// src/app/media/page.tsx
+// app/media/page.tsx
 'use client';
 
 import { useState } from 'react';
+import { Plus, Film, Tv, Gamepad2, Music, Star, Clock, CheckCircle, Search, Filter, Trash2, Edit2, Calendar } from 'lucide-react';
 
-type MediaType = 'anime' | 'show' | 'movie';
-type MediaStatus = 'planned' | 'watching' | 'completed' | 'on_hold' | 'dropped';
+type MediaType = 'movie' | 'tv' | 'game' | 'music';
+type MediaStatus = 'planning' | 'in-progress' | 'completed' | 'on-hold' | 'dropped';
 
-interface MediaItem {
+type MediaItem = {
     id: string;
     title: string;
     type: MediaType;
     status: MediaStatus;
-    total_episodes?: number;
+    rating?: number;
+    progress?: string;
+    totalEpisodes?: number;
+    currentEpisode?: number;
+    genre?: string;
+    releaseYear?: number;
+    startDate?: string;
+    completedDate?: string;
     notes?: string;
-    created_at: string;
-    updated_at: string;
-}
+    imageUrl?: string;
+};
 
-interface MediaLog {
-    id: string;
-    media_item_id: string;
-    log_date: string;
-    progress: number;
-    note?: string;
-    created_at: string;
-}
-
-// Mock data for development
-const mockMediaItems: MediaItem[] = [
-    {
-        id: '1',
-        title: 'One Piece',
-        type: 'anime',
-        status: 'watching',
-        total_episodes: 1100,
-        notes: 'Catching up slowly',
-        created_at: '2024-01-01T10:00:00Z',
-        updated_at: '2025-01-03T15:30:00Z'
-    },
-    {
-        id: '2',
-        title: 'Breaking Bad',
-        type: 'show',
-        status: 'completed',
-        total_episodes: 62,
-        created_at: '2024-06-01T10:00:00Z',
-        updated_at: '2024-12-15T20:00:00Z'
-    },
-    {
-        id: '3',
-        title: 'The Matrix',
-        type: 'movie',
-        status: 'completed',
-        total_episodes: 1,
-        created_at: '2024-03-10T10:00:00Z',
-        updated_at: '2024-03-10T22:30:00Z'
-    },
-    {
-        id: '4',
-        title: 'Attack on Titan',
-        type: 'anime',
-        status: 'watching',
-        total_episodes: 87,
-        notes: 'Final season',
-        created_at: '2024-11-01T10:00:00Z',
-        updated_at: '2025-01-05T18:00:00Z'
-    },
-    {
-        id: '5',
-        title: 'The Office',
-        type: 'show',
-        status: 'on_hold',
-        total_episodes: 201,
-        notes: 'Season 5',
-        created_at: '2024-08-15T10:00:00Z',
-        updated_at: '2024-12-20T14:00:00Z'
-    },
-    {
-        id: '6',
-        title: 'Inception',
-        type: 'movie',
-        status: 'planned',
-        total_episodes: 1,
-        created_at: '2025-01-01T10:00:00Z',
-        updated_at: '2025-01-01T10:00:00Z'
-    }
+const MEDIA_TYPES: { value: MediaType; label: string; icon: any }[] = [
+    { value: 'movie', label: 'Movies', icon: Film },
+    { value: 'tv', label: 'TV Shows', icon: Tv },
+    { value: 'game', label: 'Games', icon: Gamepad2 },
+    { value: 'music', label: 'Music', icon: Music }
 ];
 
-const mockMediaLogs: MediaLog[] = [
-    {
-        id: '1',
-        media_item_id: '1',
-        log_date: '2025-01-05',
-        progress: 1015,
-        note: 'Wano arc is fire',
-        created_at: '2025-01-05T20:00:00Z'
-    },
-    {
-        id: '2',
-        media_item_id: '1',
-        log_date: '2025-01-03',
-        progress: 1010,
-        created_at: '2025-01-03T19:30:00Z'
-    },
-    {
-        id: '3',
-        media_item_id: '4',
-        log_date: '2025-01-05',
-        progress: 75,
-        created_at: '2025-01-05T18:00:00Z'
-    },
-    {
-        id: '4',
-        media_item_id: '4',
-        log_date: '2025-01-02',
-        progress: 70,
-        note: 'Getting intense',
-        created_at: '2025-01-02T21:00:00Z'
-    }
+const STATUSES: { value: MediaStatus; label: string; color: string }[] = [
+    { value: 'planning', label: 'Plan to Watch', color: 'bg-gray-600' },
+    { value: 'in-progress', label: 'In Progress', color: 'bg-blue-600' },
+    { value: 'completed', label: 'Completed', color: 'bg-green-600' },
+    { value: 'on-hold', label: 'On Hold', color: 'bg-yellow-600' },
+    { value: 'dropped', label: 'Dropped', color: 'bg-red-600' }
 ];
 
-const statusColors = {
-    planned: 'bg-gradient-to-r from-gray-50 to-gray-100 border-gray-200 text-gray-900',
-    watching: 'bg-gradient-to-r from-emerald-50 to-emerald-100 border-emerald-200 text-emerald-900',
-    completed: 'bg-gradient-to-r from-violet-50 to-violet-100 border-violet-200 text-violet-900',
-    on_hold: 'bg-gradient-to-r from-yellow-50 to-yellow-100 border-yellow-200 text-yellow-900',
-    dropped: 'bg-gradient-to-r from-red-50 to-red-100 border-red-200 text-red-900'
-};
+const GENRES = [
+    'Action', 'Adventure', 'Comedy', 'Drama', 'Fantasy', 'Horror',
+    'Mystery', 'Romance', 'Sci-Fi', 'Thriller', 'Documentary', 'Other'
+];
 
-const statusLabels = {
-    planned: 'Planned',
-    watching: 'Watching',
-    completed: 'Completed',
-    on_hold: 'On Hold',
-    dropped: 'Dropped'
-};
+export default function MediaTrackerPage() {
+    const [items, setItems] = useState<MediaItem[]>([
+        {
+            id: '1',
+            title: 'Inception',
+            type: 'movie',
+            status: 'completed',
+            rating: 5,
+            genre: 'Sci-Fi',
+            releaseYear: 2010,
+            completedDate: '2024-09-15',
+            notes: 'Mind-bending masterpiece'
+        },
+        {
+            id: '2',
+            title: 'Breaking Bad',
+            type: 'tv',
+            status: 'in-progress',
+            rating: 5,
+            genre: 'Drama',
+            releaseYear: 2008,
+            totalEpisodes: 62,
+            currentEpisode: 45,
+            startDate: '2024-08-01',
+            notes: 'Season 5 is incredible'
+        },
+        {
+            id: '3',
+            title: 'The Last of Us Part II',
+            type: 'game',
+            status: 'completed',
+            rating: 4,
+            genre: 'Action',
+            releaseYear: 2020,
+            completedDate: '2024-09-01',
+            notes: 'Emotional journey'
+        }
+    ]);
 
-const typeIcons = {
-    anime: '📺',
-    show: '🎬',
-    movie: '🎥'
-};
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [editingItem, setEditingItem] = useState<MediaItem | null>(null);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedType, setSelectedType] = useState<MediaType | 'all'>('all');
+    const [selectedStatus, setSelectedStatus] = useState<MediaStatus | 'all'>('all');
 
-export default function MediaPage() {
-    const [items, setItems] = useState<MediaItem[]>(mockMediaItems);
-    const [logs, setLogs] = useState<MediaLog[]>(mockMediaLogs);
-    const [selectedStatus, setSelectedStatus] = useState<string>('all');
-    const [selectedType, setSelectedType] = useState<string>('all');
-    const [isAddingItem, setIsAddingItem] = useState(false);
-    const [newItem, setNewItem] = useState({
+    const [formData, setFormData] = useState({
         title: '',
-        type: 'anime' as MediaType,
-        status: 'planned' as MediaStatus,
-        total_episodes: '',
+        type: 'movie' as MediaType,
+        status: 'planning' as MediaStatus,
+        rating: 0,
+        genre: GENRES[0],
+        releaseYear: new Date().getFullYear(),
+        totalEpisodes: 0,
+        currentEpisode: 0,
+        startDate: '',
+        completedDate: '',
         notes: ''
     });
 
-    // Get latest progress for each media item
-    const getLatestProgress = (mediaItemId: string) => {
-        const itemLogs = logs
-            .filter(log => log.media_item_id === mediaItemId)
-            .sort((a, b) => new Date(b.log_date).getTime() - new Date(a.log_date).getTime());
-        return itemLogs[0]?.progress || 0;
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (editingItem) {
+            setItems(items.map(item =>
+                item.id === editingItem.id
+                    ? { ...item, ...formData }
+                    : item
+            ));
+            setEditingItem(null);
+        } else {
+            const newItem: MediaItem = {
+                id: Date.now().toString(),
+                ...formData,
+                rating: formData.rating || undefined,
+                totalEpisodes: formData.totalEpisodes || undefined,
+                currentEpisode: formData.currentEpisode || undefined,
+                startDate: formData.startDate || undefined,
+                completedDate: formData.completedDate || undefined,
+                notes: formData.notes || undefined
+            };
+            setItems([...items, newItem]);
+        }
+        setShowAddModal(false);
+        resetForm();
     };
 
-    // Filter items
-    const filteredItems = items.filter(item => {
-        const statusMatch = selectedStatus === 'all' || item.status === selectedStatus;
-        const typeMatch = selectedType === 'all' || item.type === selectedType;
-        return statusMatch && typeMatch;
-    });
-
-    // Continue watching - items currently watching sorted by recent activity
-    const continueWatching = items
-        .filter(item => item.status === 'watching')
-        .map(item => ({
-            ...item,
-            latestProgress: getLatestProgress(item.id),
-            lastWatched: logs
-                .filter(log => log.media_item_id === item.id)
-                .sort((a, b) => new Date(b.log_date).getTime() - new Date(a.log_date).getTime())[0]?.log_date
-        }))
-        .sort((a, b) => {
-            if (!a.lastWatched) return 1;
-            if (!b.lastWatched) return -1;
-            return new Date(b.lastWatched).getTime() - new Date(a.lastWatched).getTime();
+    const resetForm = () => {
+        setFormData({
+            title: '',
+            type: 'movie',
+            status: 'planning',
+            rating: 0,
+            genre: GENRES[0],
+            releaseYear: new Date().getFullYear(),
+            totalEpisodes: 0,
+            currentEpisode: 0,
+            startDate: '',
+            completedDate: '',
+            notes: ''
         });
-
-    const addNewItem = () => {
-        if (!newItem.title.trim()) return;
-
-        const item: MediaItem = {
-            id: Date.now().toString(),
-            title: newItem.title.trim(),
-            type: newItem.type,
-            status: newItem.status,
-            total_episodes: newItem.total_episodes ? Number(newItem.total_episodes) : undefined,
-            notes: newItem.notes.trim() || undefined,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-        };
-
-        setItems([item, ...items]);
-        setNewItem({ title: '', type: 'anime', status: 'planned', total_episodes: '', notes: '' });
-        setIsAddingItem(false);
     };
 
-    const logEpisode = (mediaItemId: string) => {
-        const currentProgress = getLatestProgress(mediaItemId);
-        const newLog: MediaLog = {
-            id: Date.now().toString(),
-            media_item_id: mediaItemId,
-            log_date: new Date().toISOString().split('T')[0],
-            progress: currentProgress + 1,
-            created_at: new Date().toISOString()
-        };
-
-        setLogs([newLog, ...logs]);
-        setItems(items.map(item =>
-            item.id === mediaItemId
-                ? { ...item, updated_at: new Date().toISOString() }
-                : item
-        ));
+    const handleEdit = (item: MediaItem) => {
+        setEditingItem(item);
+        setFormData({
+            title: item.title,
+            type: item.type,
+            status: item.status,
+            rating: item.rating || 0,
+            genre: item.genre || GENRES[0],
+            releaseYear: item.releaseYear || new Date().getFullYear(),
+            totalEpisodes: item.totalEpisodes || 0,
+            currentEpisode: item.currentEpisode || 0,
+            startDate: item.startDate || '',
+            completedDate: item.completedDate || '',
+            notes: item.notes || ''
+        });
+        setShowAddModal(true);
     };
 
-    const updateStatus = (mediaItemId: string, newStatus: MediaStatus) => {
-        setItems(items.map(item =>
-            item.id === mediaItemId
-                ? { ...item, status: newStatus, updated_at: new Date().toISOString() }
-                : item
-        ));
-    };
-
-    const deleteItem = (mediaItemId: string) => {
+    const handleDelete = (id: string) => {
         if (confirm('Are you sure you want to delete this item?')) {
-            setItems(items.filter(item => item.id !== mediaItemId));
-            setLogs(logs.filter(log => log.media_item_id !== mediaItemId));
+            setItems(items.filter(item => item.id !== id));
         }
     };
 
-    const getProgressPercentage = (item: MediaItem) => {
-        if (!item.total_episodes) return 0;
-        const progress = getLatestProgress(item.id);
-        return Math.min(100, Math.round((progress / item.total_episodes) * 100));
+    const filteredItems = items.filter(item => {
+        const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            item.notes?.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesType = selectedType === 'all' || item.type === selectedType;
+        const matchesStatus = selectedStatus === 'all' || item.status === selectedStatus;
+        return matchesSearch && matchesType && matchesStatus;
+    });
+
+    const getTypeStats = (type: MediaType) => {
+        return items.filter(item => item.type === type).length;
     };
 
-    const getStatusCount = (status: string) => {
-        if (status === 'all') return items.length;
+    const getStatusStats = (status: MediaStatus) => {
         return items.filter(item => item.status === status).length;
     };
 
+    const getIcon = (type: MediaType) => {
+        const mediaType = MEDIA_TYPES.find(t => t.value === type);
+        return mediaType ? mediaType.icon : Film;
+    };
+
+    const getStatusColor = (status: MediaStatus) => {
+        const statusObj = STATUSES.find(s => s.value === status);
+        return statusObj ? statusObj.color : 'bg-gray-600';
+    };
+
+    const getStatusLabel = (status: MediaStatus) => {
+        const statusObj = STATUSES.find(s => s.value === status);
+        return statusObj ? statusObj.label : status;
+    };
+
     return (
-        <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-violet-50">
-            <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="min-h-screen bg-gray-950 text-white p-8">
+            <div className="max-w-7xl mx-auto">
                 {/* Header */}
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-violet-600 bg-clip-text text-transparent mb-2">
-                        Media Tracker
-                    </h1>
-                    <p className="text-gray-600">Track your anime, shows, and movies</p>
+                <div className="flex justify-between items-center mb-8">
+                    <div>
+                        <h1 className="text-4xl font-bold mb-2">Media Tracker</h1>
+                        <p className="text-gray-400">Track movies, TV shows, games, and music</p>
+                    </div>
+                    <button
+                        onClick={() => {
+                            setEditingItem(null);
+                            resetForm();
+                            setShowAddModal(true);
+                        }}
+                        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg transition-colors"
+                    >
+                        <Plus className="w-5 h-5" />
+                        Add Media
+                    </button>
                 </div>
 
-                {/* Continue Watching Section */}
-                {continueWatching.length > 0 && (
-                    <div className="mb-8">
-                        <h2 className="text-2xl font-bold text-gray-900 mb-4">Continue Watching</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {continueWatching.map(item => (
-                                <div
-                                    key={item.id}
-                                    className="bg-white rounded-xl shadow-lg border border-emerald-200 p-5 hover:shadow-xl transition-all duration-200"
-                                >
-                                    <div className="flex items-start justify-between mb-3">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-2xl">{typeIcons[item.type]}</span>
-                                            <h3 className="font-bold text-lg text-gray-900">{item.title}</h3>
-                                        </div>
-                                    </div>
-
-                                    {/* Progress Bar */}
-                                    <div className="mb-3">
-                                        <div className="flex justify-between text-sm text-gray-600 mb-1">
-                                            <span>Episode {item.latestProgress}{item.total_episodes && ` / ${item.total_episodes}`}</span>
-                                            <span>{getProgressPercentage(item)}%</span>
-                                        </div>
-                                        <div className="w-full bg-gray-200 rounded-full h-2">
-                                            <div
-                                                className="bg-gradient-to-r from-emerald-500 to-emerald-600 h-2 rounded-full transition-all duration-300"
-                                                style={{ width: `${getProgressPercentage(item)}%` }}
-                                            />
-                                        </div>
-                                    </div>
-
-                                    {item.lastWatched && (
-                                        <p className="text-sm text-gray-500 mb-3">
-                                            Last watched: {new Date(item.lastWatched).toLocaleDateString()}
-                                        </p>
-                                    )}
-
-                                    <button
-                                        onClick={() => logEpisode(item.id)}
-                                        className="w-full px-4 py-2 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-lg hover:from-emerald-600 hover:to-emerald-700 transition-all duration-200 shadow-md font-medium"
-                                    >
-                                        +1 Episode
-                                    </button>
-                                </div>
-                            ))}
+                {/* Type Stats */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+                    {MEDIA_TYPES.map(({ value, label, icon: Icon }) => (
+                        <div key={value} className="bg-gray-900 border border-gray-800 rounded-lg p-6">
+                            <div className="flex items-center gap-3 mb-2">
+                                <Icon className="w-6 h-6 text-blue-400" />
+                                <h3 className="text-gray-400 text-sm font-medium">{label}</h3>
+                            </div>
+                            <p className="text-3xl font-bold">{getTypeStats(value)}</p>
                         </div>
+                    ))}
+                </div>
+
+                {/* Status Overview */}
+                <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-6">
+                    <h3 className="text-lg font-semibold mb-4">Status Overview</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                        {STATUSES.map(({ value, label, color }) => (
+                            <div key={value} className="text-center">
+                                <div className={`${color} rounded-lg p-4 mb-2`}>
+                                    <p className="text-2xl font-bold">{getStatusStats(value)}</p>
+                                </div>
+                                <p className="text-sm text-gray-400">{label}</p>
+                            </div>
+                        ))}
                     </div>
-                )}
+                </div>
 
                 {/* Filters */}
-                <div className="bg-white rounded-xl shadow-lg border border-emerald-100 p-6 mb-6">
-                    <div className="flex flex-wrap gap-4 items-center justify-between">
-                        <div className="flex flex-wrap gap-4 items-center">
-                            {/* Status Filter */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                                <select
-                                    value={selectedStatus}
-                                    onChange={(e) => setSelectedStatus(e.target.value)}
-                                    className="px-3 py-2 border border-emerald-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                >
-                                    <option value="all">All ({getStatusCount('all')})</option>
-                                    <option value="watching">Watching ({getStatusCount('watching')})</option>
-                                    <option value="planned">Planned ({getStatusCount('planned')})</option>
-                                    <option value="completed">Completed ({getStatusCount('completed')})</option>
-                                    <option value="on_hold">On Hold ({getStatusCount('on_hold')})</option>
-                                    <option value="dropped">Dropped ({getStatusCount('dropped')})</option>
-                                </select>
-                            </div>
-
-                            {/* Type Filter */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
-                                <select
-                                    value={selectedType}
-                                    onChange={(e) => setSelectedType(e.target.value)}
-                                    className="px-3 py-2 border border-emerald-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                >
-                                    <option value="all">All Types</option>
-                                    <option value="anime">Anime</option>
-                                    <option value="show">TV Shows</option>
-                                    <option value="movie">Movies</option>
-                                </select>
-                            </div>
+                <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+                                <Search className="w-4 h-4" />
+                                Search
+                            </label>
+                            <input
+                                type="text"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                placeholder="Search media..."
+                                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
                         </div>
 
-                        <button
-                            onClick={() => setIsAddingItem(true)}
-                            className="px-4 py-2 bg-gradient-to-r from-violet-500 to-violet-600 text-white rounded-lg hover:from-violet-600 hover:to-violet-700 transition-all duration-200 shadow-md"
-                        >
-                            Add Media
-                        </button>
+                        <div>
+                            <label className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+                                <Filter className="w-4 h-4" />
+                                Type
+                            </label>
+                            <select
+                                value={selectedType}
+                                onChange={(e) => setSelectedType(e.target.value as MediaType | 'all')}
+                                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                <option value="all">All Types</option>
+                                {MEDIA_TYPES.map(({ value, label }) => (
+                                    <option key={value} value={value}>{label}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+                                <CheckCircle className="w-4 h-4" />
+                                Status
+                            </label>
+                            <select
+                                value={selectedStatus}
+                                onChange={(e) => setSelectedStatus(e.target.value as MediaStatus | 'all')}
+                                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                <option value="all">All Statuses</option>
+                                {STATUSES.map(({ value, label }) => (
+                                    <option key={value} value={value}>{label}</option>
+                                ))}
+                            </select>
+                        </div>
                     </div>
                 </div>
 
-                {/* Add New Item Form */}
-                {isAddingItem && (
-                    <div className="bg-white rounded-xl shadow-lg border border-violet-100 p-6 mb-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Add New Media</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Title*</label>
-                                <input
-                                    type="text"
-                                    value={newItem.title}
-                                    onChange={(e) => setNewItem({ ...newItem, title: e.target.value })}
-                                    className="w-full px-3 py-2 border border-emerald-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                    placeholder="Enter title..."
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
-                                <select
-                                    value={newItem.type}
-                                    onChange={(e) => setNewItem({ ...newItem, type: e.target.value as MediaType })}
-                                    className="w-full px-3 py-2 border border-emerald-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                >
-                                    <option value="anime">Anime</option>
-                                    <option value="show">TV Show</option>
-                                    <option value="movie">Movie</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                                <select
-                                    value={newItem.status}
-                                    onChange={(e) => setNewItem({ ...newItem, status: e.target.value as MediaStatus })}
-                                    className="w-full px-3 py-2 border border-emerald-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                >
-                                    <option value="planned">Planned</option>
-                                    <option value="watching">Watching</option>
-                                    <option value="completed">Completed</option>
-                                    <option value="on_hold">On Hold</option>
-                                    <option value="dropped">Dropped</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Total Episodes</label>
-                                <input
-                                    type="number"
-                                    value={newItem.total_episodes}
-                                    onChange={(e) => setNewItem({ ...newItem, total_episodes: e.target.value })}
-                                    className="w-full px-3 py-2 border border-emerald-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                    placeholder="Optional"
-                                    min="1"
-                                />
-                            </div>
-                            <div className="md:col-span-2">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-                                <textarea
-                                    value={newItem.notes}
-                                    onChange={(e) => setNewItem({ ...newItem, notes: e.target.value })}
-                                    className="w-full px-3 py-2 border border-emerald-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                    rows={2}
-                                    placeholder="Any notes..."
-                                />
-                            </div>
-                        </div>
-                        <div className="flex gap-2 mt-4">
-                            <button
-                                onClick={addNewItem}
-                                disabled={!newItem.title.trim()}
-                                className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-lg hover:from-emerald-600 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md"
-                            >
-                                Add Media
-                            </button>
-                            <button
-                                onClick={() => {
-                                    setIsAddingItem(false);
-                                    setNewItem({ title: '', type: 'anime', status: 'planned', total_episodes: '', notes: '' });
-                                }}
-                                className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-all duration-200"
-                            >
-                                Cancel
-                            </button>
-                        </div>
-                    </div>
-                )}
-
-                {/* All Media Grid */}
-                <div>
-                    <h2 className="text-2xl font-bold text-gray-900 mb-4">All Media</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {filteredItems.map(item => (
-                            <div
-                                key={item.id}
-                                className={`p-4 rounded-lg border transition-all duration-200 hover:shadow-md ${statusColors[item.status]}`}
-                            >
-                                <div className="flex items-start justify-between mb-2">
-                                    <div className="flex items-center gap-2 flex-1">
-                                        <span className="text-xl">{typeIcons[item.type]}</span>
-                                        <h3 className="font-semibold text-lg">{item.title}</h3>
+                {/* Items Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredItems.map(item => {
+                        const Icon = getIcon(item.type);
+                        return (
+                            <div key={item.id} className="bg-gray-900 border border-gray-800 rounded-lg p-6 hover:border-gray-700 transition-colors">
+                                <div className="flex justify-between items-start mb-4">
+                                    <div className="flex-1">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <Icon className="w-5 h-5 text-blue-400" />
+                                            <span className={`${getStatusColor(item.status)} text-xs px-2 py-1 rounded`}>
+                                                {getStatusLabel(item.status)}
+                                            </span>
+                                        </div>
+                                        <h3 className="text-xl font-semibold mb-1">{item.title}</h3>
+                                        {item.releaseYear && (
+                                            <p className="text-sm text-gray-400">{item.releaseYear}</p>
+                                        )}
                                     </div>
-                                    <button
-                                        onClick={() => deleteItem(item.id)}
-                                        className="text-red-500 hover:text-red-700 text-sm transition-colors ml-2"
-                                        title="Delete"
-                                    >
-                                        ✕
-                                    </button>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => handleEdit(item)}
+                                            className="p-2 text-gray-400 hover:text-blue-400 hover:bg-gray-800 rounded transition-colors"
+                                        >
+                                            <Edit2 className="w-4 h-4" />
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(item.id)}
+                                            className="p-2 text-gray-400 hover:text-red-400 hover:bg-gray-800 rounded transition-colors"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    </div>
                                 </div>
 
-                                <div className="space-y-2">
-                                    <div className="flex items-center justify-between text-sm">
-                                        <span className="font-medium">{statusLabels[item.status]}</span>
-                                        <span className="text-gray-600 capitalize">{item.type}</span>
-                                    </div>
+                                <div className="space-y-2 pt-4 border-t border-gray-800">
+                                    {item.genre && (
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-gray-400">Genre:</span>
+                                            <span className="font-medium">{item.genre}</span>
+                                        </div>
+                                    )}
 
-                                    {item.total_episodes && (
-                                        <div>
-                                            <div className="flex justify-between text-sm text-gray-700 mb-1">
-                                                <span>{getLatestProgress(item.id)} / {item.total_episodes} episodes</span>
-                                                <span>{getProgressPercentage(item)}%</span>
+                                    {item.rating && (
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-gray-400">Rating:</span>
+                                            <div className="flex items-center gap-1">
+                                                {[...Array(5)].map((_, i) => (
+                                                    <Star
+                                                        key={i}
+                                                        className={`w-4 h-4 ${i < item.rating! ? 'fill-yellow-400 text-yellow-400' : 'text-gray-600'}`}
+                                                    />
+                                                ))}
                                             </div>
-                                            <div className="w-full bg-white/60 rounded-full h-1.5">
-                                                <div
-                                                    className="bg-current h-1.5 rounded-full transition-all duration-300"
-                                                    style={{ width: `${getProgressPercentage(item)}%` }}
-                                                />
-                                            </div>
+                                        </div>
+                                    )}
+
+                                    {item.type === 'tv' && item.totalEpisodes && (
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-gray-400">Progress:</span>
+                                            <span className="font-medium">
+                                                {item.currentEpisode || 0}/{item.totalEpisodes} episodes
+                                            </span>
+                                        </div>
+                                    )}
+
+                                    {item.startDate && (
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-gray-400">Started:</span>
+                                            <span className="font-medium">
+                                                {new Date(item.startDate).toLocaleDateString()}
+                                            </span>
+                                        </div>
+                                    )}
+
+                                    {item.completedDate && (
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-gray-400">Completed:</span>
+                                            <span className="font-medium">
+                                                {new Date(item.completedDate).toLocaleDateString()}
+                                            </span>
                                         </div>
                                     )}
 
                                     {item.notes && (
-                                        <p className="text-sm italic opacity-90">{item.notes}</p>
+                                        <p className="text-sm text-gray-400 pt-2 border-t border-gray-800">
+                                            {item.notes}
+                                        </p>
                                     )}
-
-                                    {/* Quick Actions */}
-                                    <div className="flex gap-2 mt-3">
-                                        {item.status === 'watching' && (
-                                            <button
-                                                onClick={() => logEpisode(item.id)}
-                                                className="flex-1 px-3 py-1.5 bg-white/60 hover:bg-white/80 rounded text-sm font-medium transition-colors"
-                                            >
-                                                +1 Episode
-                                            </button>
-                                        )}
-                                        {item.status === 'planned' && (
-                                            <button
-                                                onClick={() => updateStatus(item.id, 'watching')}
-                                                className="flex-1 px-3 py-1.5 bg-white/60 hover:bg-white/80 rounded text-sm font-medium transition-colors"
-                                            >
-                                                Start Watching
-                                            </button>
-                                        )}
-                                        {item.status === 'watching' && (
-                                            <button
-                                                onClick={() => updateStatus(item.id, 'completed')}
-                                                className="flex-1 px-3 py-1.5 bg-white/60 hover:bg-white/80 rounded text-sm font-medium transition-colors"
-                                            >
-                                                Complete
-                                            </button>
-                                        )}
-                                    </div>
                                 </div>
                             </div>
-                        ))}
-                    </div>
-
-                    {filteredItems.length === 0 && (
-                        <div className="text-center text-gray-500 py-12">
-                            <p className="text-lg">No media found.</p>
-                            <p className="text-sm">Try adjusting your filters or add new media!</p>
-                        </div>
-                    )}
+                        );
+                    })}
                 </div>
+
+                {filteredItems.length === 0 && (
+                    <div className="text-center py-12">
+                        <Film className="w-16 h-16 text-gray-700 mx-auto mb-4" />
+                        <p className="text-gray-400 text-lg">No media found</p>
+                        <p className="text-gray-500 text-sm">Add your first item to get started</p>
+                    </div>
+                )}
             </div>
+
+            {/* Add/Edit Modal */}
+            {showAddModal && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+                    <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 max-w-md w-full my-8">
+                        <h2 className="text-2xl font-bold mb-6">
+                            {editingItem ? 'Edit Media' : 'Add New Media'}
+                        </h2>
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <div>
+                                <label className="block text-sm text-gray-400 mb-2">Title *</label>
+                                <input
+                                    type="text"
+                                    value={formData.title}
+                                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    required
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm text-gray-400 mb-2">Type *</label>
+                                    <select
+                                        value={formData.type}
+                                        onChange={(e) => setFormData({ ...formData, type: e.target.value as MediaType })}
+                                        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    >
+                                        {MEDIA_TYPES.map(({ value, label }) => (
+                                            <option key={value} value={value}>{label}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm text-gray-400 mb-2">Status *</label>
+                                    <select
+                                        value={formData.status}
+                                        onChange={(e) => setFormData({ ...formData, status: e.target.value as MediaStatus })}
+                                        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    >
+                                        {STATUSES.map(({ value, label }) => (
+                                            <option key={value} value={value}>{label}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm text-gray-400 mb-2">Genre</label>
+                                    <select
+                                        value={formData.genre}
+                                        onChange={(e) => setFormData({ ...formData, genre: e.target.value })}
+                                        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    >
+                                        {GENRES.map(genre => (
+                                            <option key={genre} value={genre}>{genre}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm text-gray-400 mb-2">Release Year</label>
+                                    <input
+                                        type="number"
+                                        min="1900"
+                                        max={new Date().getFullYear() + 5}
+                                        value={formData.releaseYear}
+                                        onChange={(e) => setFormData({ ...formData, releaseYear: parseInt(e.target.value) })}
+                                        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm text-gray-400 mb-2">Rating (1-5 stars)</label>
+                                <div className="flex gap-2">
+                                    {[1, 2, 3, 4, 5].map((star) => (
+                                        <button
+                                            key={star}
+                                            type="button"
+                                            onClick={() => setFormData({ ...formData, rating: star })}
+                                            className="p-2 hover:bg-gray-800 rounded transition-colors"
+                                        >
+                                            <Star
+                                                className={`w-6 h-6 ${star <= formData.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-600'}`}
+                                            />
+                                        </button>
+                                    ))}
+                                    {formData.rating > 0 && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setFormData({ ...formData, rating: 0 })}
+                                            className="px-3 py-1 text-sm text-gray-400 hover:text-white"
+                                        >
+                                            Clear
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+
+                            {formData.type === 'tv' && (
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm text-gray-400 mb-2">Total Episodes</label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            value={formData.totalEpisodes}
+                                            onChange={(e) => setFormData({ ...formData, totalEpisodes: parseInt(e.target.value) })}
+                                            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm text-gray-400 mb-2">Current Episode</label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            value={formData.currentEpisode}
+                                            onChange={(e) => setFormData({ ...formData, currentEpisode: parseInt(e.target.value) })}
+                                            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm text-gray-400 mb-2">Start Date</label>
+                                    <input
+                                        type="date"
+                                        value={formData.startDate}
+                                        onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                                        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm text-gray-400 mb-2">Completed Date</label>
+                                    <input
+                                        type="date"
+                                        value={formData.completedDate}
+                                        onChange={(e) => setFormData({ ...formData, completedDate: e.target.value })}
+                                        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm text-gray-400 mb-2">Notes</label>
+                                <textarea
+                                    value={formData.notes}
+                                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 h-24 resize-none"
+                                    placeholder="Your thoughts, reviews, etc..."
+                                />
+                            </div>
+
+                            <div className="flex gap-3 pt-4">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setShowAddModal(false);
+                                        setEditingItem(null);
+                                        resetForm();
+                                    }}
+                                    className="flex-1 px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                                >
+                                    {editingItem ? 'Update' : 'Add'} Media
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
