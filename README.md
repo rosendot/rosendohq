@@ -3,15 +3,15 @@
 ## Tech Stack & Integrations
 
 * **Framework**: Next.js 15.5.2 with TypeScript, Tailwind CSS v4, Turbopack
-* **Database & Auth**: Supabase (Postgres, Auth, Storage, RLS)
-* **Deployment**: Vercel
+* **Database**: Supabase (Postgres, Storage)
+* **Deployment**: Vercel (personal use only)
 * **Error Monitoring**: Sentry (frontend, backend, and edge runtime monitoring)
 * **Code Quality**: ESLint, Prettier, TypeScript strict mode
 
 ## Integration Ecosystem
 
 ### Core Platform Connections ✅
-* **GitHub** ↔ **Supabase**: Automated deployments and database migrations
+* **GitHub** ↔ **Supabase**: Database migrations and schema management
 * **GitHub** ↔ **Vercel**: Continuous deployment pipeline
 * **GitHub** ↔ **Sentry**: Source code integration and release tracking
 
@@ -57,9 +57,8 @@
 * Vercel project + environment variables configured
 * **Sentry integration**: Full error monitoring with Discord notifications
 * **GitHub integrations**: Connected to Supabase, Vercel, and Sentry
-* Supabase: Postgres, **Auth enabled**, **Storage** (`files`, `images optional`), **RLS** single-owner
+* Supabase: Postgres database with **Storage** (`files`, `images optional`)
 * Shared DB: `tag`, `note` (+FTS), `tag_map`, `import_run`, `import_error`, `file`, `import_mapping_preset`
-* **Row defaults**: all real tables have `owner_id default auth.uid()` (views excluded; expected)
 * **Tags**: `tag_map` extended to support cross-module tagging (entity types include `note`, `media_item`, `book`, `vehicle`, `trip`, `habit`, `food_item`, `shopping_item`, `inventory_item`, `wishlist_item`)
 * **All database tables created** for all modules
 * **All views created** for all modules
@@ -93,7 +92,6 @@
 * [ ] API routes for transactions CRUD
 * [ ] API routes for budgets CRUD
 * [ ] Supabase client integration
-* [ ] Auth-protected data fetching
 * [ ] Real-time balance calculations
 * [ ] Transaction categorization logic
 * [ ] CSV import endpoint
@@ -120,8 +118,6 @@
 * [ ] API routes for shopping lists CRUD
 * [ ] API routes for shopping items CRUD
 * [ ] Supabase client integration
-* [ ] Auth-protected data fetching
-* [ ] List sharing functionality (optional)
 * [ ] CSV import endpoint
 * [ ] CSV export endpoint
 
@@ -144,7 +140,6 @@
 **Backend Needed:**
 * [ ] API routes for wishlist items CRUD
 * [ ] Supabase client integration
-* [ ] Auth-protected data fetching
 * [ ] CSV import endpoint
 * [ ] CSV export endpoint
 
@@ -166,7 +161,6 @@
 **Backend Needed:**
 * [ ] API routes for inventory items CRUD
 * [ ] Supabase client integration
-* [ ] Auth-protected data fetching
 * [ ] Value aggregation queries
 * [ ] CSV import endpoint
 * [ ] CSV export endpoint
@@ -192,7 +186,6 @@
 * [ ] API routes for odometer logs CRUD
 * [ ] API routes for fuel logs CRUD
 * [ ] Supabase client integration
-* [ ] Auth-protected data fetching
 * [ ] Next-due calculations (by mileage/time)
 * [ ] Cost aggregation queries
 * [ ] CSV import endpoint
@@ -219,7 +212,6 @@
 * [ ] API routes for maintenance tasks CRUD
 * [ ] API routes for supplies CRUD
 * [ ] Supabase client integration
-* [ ] Auth-protected data fetching
 * [ ] Next-due maintenance calculations
 * [ ] Low-stock alert queries
 * [ ] CSV import endpoint
@@ -245,7 +237,6 @@
 * [ ] API routes for media items CRUD
 * [ ] API routes for media logs CRUD
 * [ ] Supabase client integration
-* [ ] Auth-protected data fetching
 * [ ] Progress calculation queries
 * [ ] Continue watching logic
 * [ ] CSV import endpoint
@@ -272,7 +263,6 @@
 * [ ] API routes for reading logs CRUD
 * [ ] API routes for highlights CRUD
 * [ ] Supabase client integration
-* [ ] Auth-protected data fetching
 * [ ] Reading pace calculations
 * [ ] CSV import endpoint
 * [ ] CSV export endpoint
@@ -298,7 +288,6 @@
 * [ ] API routes for habit logs CRUD
 * [ ] API routes for goals CRUD
 * [ ] Supabase client integration
-* [ ] Auth-protected data fetching
 * [ ] Streak calculation logic
 * [ ] Goal progress aggregation
 * [ ] CSV import endpoint
@@ -322,7 +311,6 @@
 **Backend Needed:**
 * [ ] API routes for notes CRUD
 * [ ] Supabase client integration
-* [ ] Auth-protected data fetching
 * [ ] Full-text search integration
 * [ ] Tag management
 * [ ] CSV import endpoint (or .md file import)
@@ -347,7 +335,6 @@
 * [ ] API routes for itinerary items CRUD
 * [ ] API routes for trip entries CRUD
 * [ ] Supabase client integration
-* [ ] Auth-protected data fetching
 * [ ] Countdown calculations
 * [ ] CSV import endpoint
 * [ ] CSV export endpoint
@@ -373,7 +360,6 @@
 * [ ] API routes for meal entries CRUD
 * [ ] API routes for nutrition targets CRUD
 * [ ] Supabase client integration
-* [ ] Auth-protected data fetching
 * [ ] Daily macro aggregation
 * [ ] Goal comparison queries
 * [ ] CSV import endpoint
@@ -385,234 +371,79 @@
 
 ---
 
-## Global Features Status
+## Next Steps - Priority Order
 
-### ✅ Completed
-* Dark theme UI with Tailwind CSS v4
-* Collapsible sidebar navigation
-* Dashboard page with module cards
-* Consistent page layouts across all modules
-* Mock data for development/testing
-* Client-side state management
-* Responsive design (mobile-friendly)
-* Module icons and color coding
-* All 12 module pages fully built
+### 🔴 **Phase 1: Core Backend Integration** (Pick one module to start)
 
-### 🔴 Pending — High Priority
+Choose your most-used module to start with. Recommended order based on utility:
 
-#### Authentication & Security
-* [ ] Supabase Auth provider setup
-* [ ] Login/signup pages
-* [ ] Protected routes middleware
-* [ ] User session management
-* [ ] Auth callbacks
-* [ ] RLS policy testing
+1. **Finance** - Track daily expenses and income
+2. **Habits** - Daily tracking and streak building
+3. **Shopping** - Immediate practical use
+4. **Notes** - Quick capture and reference
+5. **Media/Reading** - Entertainment tracking
+6. Rest of modules as needed
 
-#### Backend API Layer
-* [ ] Create `/api` routes for all modules
-* [ ] Supabase client initialization
-* [ ] Server-side validation
-* [ ] Error handling middleware
-* [ ] API response standardization
+**For each module:**
+* [ ] Create API routes (`/api/[module]/route.ts`)
+* [ ] Set up Supabase client integration
+* [ ] Replace mock data with real database queries
+* [ ] Test CRUD operations
+* [ ] Verify data persistence
 
-#### Data Import Framework
-* [ ] CSV upload component
-* [ ] Column mapping interface
-* [ ] Preview/validation step
-* [ ] Batch insert with import_run_id
-* [ ] Error reporting and download
-* [ ] Mapping preset save/load
+### 🟡 **Phase 2: Import/Export Framework**
 
-#### Data Export
-* [ ] Per-module CSV export
-* [ ] Export All (JSON zip)
-* [ ] Download handlers
+Once you have a few modules working with real data:
 
-### 🟡 Pending — Medium Priority
+* [ ] Build CSV upload component
+* [ ] Create column mapping interface
+* [ ] Implement validation and preview
+* [ ] Add batch insert with import_run_id
+* [ ] Create error reporting
+* [ ] Implement mapping preset storage
+* [ ] Add CSV export for each module
+* [ ] Create "Export All" functionality (JSON zip)
 
-#### Dashboard Integration
-* [ ] Real-time stats from all modules
-* [ ] Recent activity feed
-* [ ] Upcoming items aggregation
-* [ ] Module-specific cards with live data
+### 🟢 **Phase 3: Dashboard & Cross-Module Features**
 
-#### Cross-Module Features
-* [ ] Global tag management
-* [ ] Tag filtering across modules
-* [ ] Global search
-* [ ] Calendar view (renewals, maintenance, goals, trips)
+After most modules are functional:
 
-#### Import History & Rollback
-* [ ] Import history page
-* [ ] Rollback by import_run_id
-* [ ] Import error visualization
+* [ ] Connect dashboard stats to real data
+* [ ] Add recent activity feed
+* [ ] Build upcoming items aggregation
+* [ ] Implement global tag management
+* [ ] Create global search across modules
+* [ ] Build calendar view (optional)
 
-### 🟢 Pending — Polish & Optimization
-* [ ] Performance optimization (pagination, lazy loading)
-* [ ] Index verification in database
-* [ ] UX improvements (loading states, error boundaries)
-* [ ] Form validation on all inputs
-* [ ] Toast notifications
-* [ ] Confirmation modals for destructive actions
-* [ ] Keyboard shortcuts
-* [ ] Accessibility improvements
+### 💎 **Phase 4: Polish & Quality of Life**
+
+Enhance as you use the site:
+
+* [ ] Add pagination to long lists
+* [ ] Implement loading states
+* [ ] Add toast notifications
+* [ ] Create confirmation modals
+* [ ] Improve mobile responsiveness
+* [ ] Add keyboard shortcuts (optional)
+* [ ] Performance optimization as needed
 
 ---
 
-## Implementation Roadmap
+## Development Workflow
 
-### Week 1-2: Core Backend Infrastructure
-**Goal:** Auth & API foundation ready
+Since this is a personal project with no timeline pressure:
 
-1. **Authentication Setup**
-   - [ ] Set up Supabase Auth provider
-   - [ ] Create login/signup pages
-   - [ ] Implement protected routes middleware
-   - [ ] Test RLS policies for all tables
-   - [ ] Add session management
+1. **Pick a module** you want to use most
+2. **Build the backend** for that module (API routes + Supabase integration)
+3. **Test it thoroughly** with real data
+4. **Use it daily** to find bugs and improvements
+5. **Repeat** for the next module when ready
 
-2. **API Foundation**
-   - [ ] Create base API route structure (`/api/[module]`)
-   - [ ] Set up Supabase server client
-   - [ ] Implement standard error handling
-   - [ ] Create API utilities and helpers
-   - [ ] Add request validation
-
-### Week 3-4: Module Backend Integration (Priority Batch 1)
-**Goal:** 3 high-value modules fully functional
-
-1. **Finance** (Complex data model, high value)
-   - [ ] Implement accounts CRUD API
-   - [ ] Implement transactions CRUD API
-   - [ ] Implement budgets CRUD API
-   - [ ] Add transaction deduplication logic
-   - [ ] Connect frontend to APIs
-   - [ ] Test RLS policies
-
-2. **Habits & Goals** (Daily usage, high engagement)
-   - [ ] Implement habits CRUD API
-   - [ ] Implement habit logs CRUD API
-   - [ ] Implement goals CRUD API
-   - [ ] Add streak calculation endpoint
-   - [ ] Connect frontend to APIs
-   - [ ] Test RLS policies
-
-3. **Shopping & Wishlist** (Simple, high utility)
-   - [ ] Implement shopping lists CRUD API
-   - [ ] Implement shopping items CRUD API
-   - [ ] Implement wishlist CRUD API
-   - [ ] Connect frontend to APIs
-   - [ ] Test RLS policies
-
-### Week 5-6: Module Backend Integration (Priority Batch 2)
-**Goal:** 4 more modules functional
-
-4. **Media & Reading** (Similar patterns)
-   - [ ] Implement media items/logs CRUD API
-   - [ ] Implement books/reading logs CRUD API
-   - [ ] Add progress calculation endpoints
-   - [ ] Connect frontend to APIs
-   - [ ] Test RLS policies
-
-5. **Car Tracker** (Maintenance tracking)
-   - [ ] Implement vehicles CRUD API
-   - [ ] Implement maintenance records CRUD API
-   - [ ] Add next-due calculation endpoint
-   - [ ] Connect frontend to APIs
-   - [ ] Test RLS policies
-
-6. **House Tracker** (Maintenance + supplies)
-   - [ ] Implement properties/rooms CRUD API
-   - [ ] Implement maintenance tasks CRUD API
-   - [ ] Implement supplies CRUD API
-   - [ ] Add low-stock alert endpoint
-   - [ ] Connect frontend to APIs
-   - [ ] Test RLS policies
-
-### Week 7: Module Backend Integration (Final Batch)
-**Goal:** All modules functional
-
-7. **Travel Planner** (Content-heavy)
-   - [ ] Implement trips CRUD API
-   - [ ] Implement itinerary items CRUD API
-   - [ ] Implement trip entries CRUD API
-   - [ ] Connect frontend to APIs
-   - [ ] Test RLS policies
-
-8. **Notes** (FTS integration)
-   - [ ] Implement notes CRUD API
-   - [ ] Add full-text search endpoint
-   - [ ] Implement tag management
-   - [ ] Connect frontend to APIs
-   - [ ] Test RLS policies
-
-9. **Nutrition** (Aggregation-heavy)
-   - [ ] Implement food items CRUD API
-   - [ ] Implement meals/entries CRUD API
-   - [ ] Add daily macro aggregation endpoint
-   - [ ] Connect frontend to APIs
-   - [ ] Test RLS policies
-
-10. **Inventory** (Final module)
-    - [ ] Implement inventory items CRUD API
-    - [ ] Add value aggregation endpoint
-    - [ ] Connect frontend to APIs
-    - [ ] Test RLS policies
-
-### Week 8-9: Import/Export Framework
-**Goal:** Complete data import/export system
-
-1. **Import Framework**
-   - [ ] Build reusable CSV upload component
-   - [ ] Create column mapping interface
-   - [ ] Implement validation and preview
-   - [ ] Add batch insert with import_run_id
-   - [ ] Create error reporting system
-   - [ ] Implement mapping preset storage
-   - [ ] Add import endpoints for all modules
-   - [ ] Test with real CSV data
-
-2. **Export Framework**
-   - [ ] Create per-module CSV export endpoints
-   - [ ] Implement Export All (JSON zip)
-   - [ ] Add download handlers
-   - [ ] Test data integrity
-
-3. **Import History**
-   - [ ] Create import history page
-   - [ ] Implement rollback functionality
-   - [ ] Add import error visualization
-
-### Week 10: Cross-Module Features & Polish
-**Goal:** Production-ready application
-
-1. **Dashboard Real Data**
-   - [ ] Connect all dashboard stats to APIs
-   - [ ] Implement recent activity feed
-   - [ ] Add upcoming items aggregation
-   - [ ] Create module-specific widgets
-
-2. **Cross-Module Features**
-   - [ ] Implement global tag management
-   - [ ] Add tag filtering across modules
-   - [ ] Create global search
-   - [ ] Build calendar view
-
-3. **Performance & Polish**
-   - [ ] Add pagination to all lists
-   - [ ] Implement lazy loading
-   - [ ] Optimize database queries
-   - [ ] Add loading states
-   - [ ] Implement error boundaries
-   - [ ] Add toast notifications
-   - [ ] Create confirmation modals
-   - [ ] Test on mobile devices
-
-4. **Final Testing**
-   - [ ] End-to-end testing all features
-   - [ ] Security audit
-   - [ ] Performance testing
-   - [ ] Bug fixes
+**Recommended Starting Module:**
+* **Finance** if you want to track money immediately
+* **Habits** if you want daily tracking and streaks
+* **Shopping** if you need practical list management
+* **Notes** if you want quick note capture
 
 ---
 
@@ -679,34 +510,20 @@
 
 ---
 
-## Success Criteria
+## Quick Start Guide
 
-### Minimum Viable Product (MVP)
-* [ ] User authentication working
-* [ ] At least 3 modules fully functional (Finance, Habits, Shopping recommended)
-* [ ] Basic import/export for those modules
-* [ ] Dashboard with real data from those modules
-* [ ] Mobile responsive
-* [ ] Error monitoring active
+### Getting Started Today
 
-### Full Launch
-* [ ] All 12 modules fully functional with backend
-* [ ] Complete import/export framework
-* [ ] Global search and filtering
-* [ ] Calendar view
-* [ ] Performance optimized (all lists paginated)
-* [ ] Mobile responsive across all pages
-* [ ] Error monitoring and logging
-* [ ] Documentation complete
-* [ ] Security audit passed
-* [ ] E2E tests for critical flows
+1. **Choose your first module** based on what you need most
+2. **Create the API routes** in `/api/[module]/route.ts`
+3. **Set up Supabase client** in the API routes
+4. **Replace mock data** in the frontend with API calls
+5. **Test with real data** and iterate
 
----
-
-## Monitoring & Alerting Workflow
-
-1. **Development**: Code pushed to GitHub triggers Vercel deployment
-2. **Error Detection**: Sentry captures errors across all environments
-3. **Notification**: Critical errors automatically posted to Discord
-4. **Issue Tracking**: GitHub issues created for recurring errors
-5. **Resolution**: Commits linked back to Sentry for error resolution tracking
+### Example: Starting with Finance
+```typescript
+// 1. Create /api/finance/accounts/route.ts
+// 2. Add GET, POST, PUT, DELETE handlers
+// 3. Connect to Supabase
+// 4. Update /finance/page.tsx to fetch real data
+// 5. Start tracking your actual expenses!
