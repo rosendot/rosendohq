@@ -2,51 +2,77 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Search, Filter, Heart, Star, ExternalLink, Tag } from 'lucide-react';
+import { Plus, Search, Filter, Heart, Star, ExternalLink, Tag, DollarSign, Calendar, Store } from 'lucide-react';
+
+// Database-aligned types
+type WishlistStatus = 'wanted' | 'considering' | 'on_hold' | 'purchased' | 'declined';
 
 interface WishlistItem {
     id: string;
     title: string;
     category?: string;
-    status: 'wishlist' | 'purchased' | 'archived';
+    status: WishlistStatus;
     url?: string;
     notes?: string;
-    priority?: number;
+    priority?: number; // 1-5
+    price_cents?: number; // Store as cents: $19.99 = 1999
+    currency?: string;
+    image_url?: string;
+    purchased_at?: string;
+    vendor?: string;
     created_at: string;
 }
 
+// Status configuration matching database enums
+const STATUSES: { value: WishlistStatus; label: string; color: string }[] = [
+    { value: 'wanted', label: 'Want', color: 'bg-blue-500' },
+    { value: 'considering', label: 'Considering', color: 'bg-yellow-500' },
+    { value: 'on_hold', label: 'On Hold', color: 'bg-gray-500' },
+    { value: 'purchased', label: 'Purchased', color: 'bg-green-500' },
+    { value: 'declined', label: 'Declined', color: 'bg-red-500' }
+];
+
 export default function WishlistPage() {
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
-    const [selectedStatus, setSelectedStatus] = useState<string>('wishlist');
+    const [selectedStatus, setSelectedStatus] = useState<WishlistStatus | 'all'>('wanted');
     const [searchQuery, setSearchQuery] = useState('');
 
-    // Minimal mock data - just 6 items
+    // Updated mock data with real database structure
     const mockItems: WishlistItem[] = [
         {
             id: '1',
             title: 'Mechanical Keyboard',
             category: 'Electronics',
-            status: 'wishlist',
+            status: 'wanted',
             url: 'https://example.com/keyboard',
             notes: 'Cherry MX Blue switches preferred',
             priority: 1,
+            price_cents: 14999, // $149.99
+            currency: 'USD',
+            image_url: 'https://via.placeholder.com/150',
+            vendor: 'Amazon',
             created_at: new Date().toISOString(),
         },
         {
             id: '2',
             title: 'Running Shoes',
             category: 'Sports',
-            status: 'wishlist',
+            status: 'considering',
             priority: 2,
+            price_cents: 12000, // $120.00
+            currency: 'USD',
             created_at: new Date(Date.now() - 86400000).toISOString(),
         },
         {
             id: '3',
             title: 'Kindle Paperwhite',
             category: 'Electronics',
-            status: 'wishlist',
+            status: 'wanted',
             url: 'https://example.com/kindle',
             priority: 1,
+            price_cents: 13999, // $139.99
+            currency: 'USD',
+            vendor: 'Amazon',
             created_at: new Date(Date.now() - 172800000).toISOString(),
         },
         {
@@ -55,22 +81,30 @@ export default function WishlistPage() {
             category: 'Home',
             status: 'purchased',
             notes: 'Got it on sale!',
+            price_cents: 7999, // $79.99
+            currency: 'USD',
+            purchased_at: new Date(Date.now() - 259200000).toISOString(),
             created_at: new Date(Date.now() - 259200000).toISOString(),
         },
         {
             id: '5',
             title: 'Desk Lamp',
             category: 'Home',
-            status: 'wishlist',
+            status: 'on_hold',
             priority: 3,
+            price_cents: 4999, // $49.99
+            currency: 'USD',
             created_at: new Date(Date.now() - 345600000).toISOString(),
         },
         {
             id: '6',
             title: 'Wireless Headphones',
             category: 'Electronics',
-            status: 'purchased',
+            status: 'declined',
             url: 'https://example.com/headphones',
+            notes: 'Found a better alternative',
+            price_cents: 29999, // $299.99
+            currency: 'USD',
             created_at: new Date(Date.now() - 432000000).toISOString(),
         },
     ];
@@ -87,19 +121,36 @@ export default function WishlistPage() {
 
     const stats = {
         total: mockItems.length,
-        wishlist: mockItems.filter(i => i.status === 'wishlist').length,
+        wanted: mockItems.filter(i => i.status === 'wanted').length,
         purchased: mockItems.filter(i => i.status === 'purchased').length,
         highPriority: mockItems.filter(i => i.priority === 1).length,
+        totalValue: mockItems
+            .filter(i => i.status === 'wanted' && i.price_cents)
+            .reduce((sum, i) => sum + (i.price_cents || 0), 0) / 100,
     };
 
     const getPriorityColor = (priority?: number) => {
-        if (!priority) return 'bg-gray-500/20 text-gray-400';
+        if (!priority) return 'bg-gray-500/20 text-gray-400 border-gray-500/20';
         switch (priority) {
-            case 1: return 'bg-red-500/20 text-red-400';
-            case 2: return 'bg-yellow-500/20 text-yellow-400';
-            case 3: return 'bg-green-500/20 text-green-400';
-            default: return 'bg-gray-500/20 text-gray-400';
+            case 1: return 'bg-red-500/20 text-red-400 border-red-500/20';
+            case 2: return 'bg-orange-500/20 text-orange-400 border-orange-500/20';
+            case 3: return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/20';
+            case 4: return 'bg-blue-500/20 text-blue-400 border-blue-500/20';
+            case 5: return 'bg-green-500/20 text-green-400 border-green-500/20';
+            default: return 'bg-gray-500/20 text-gray-400 border-gray-500/20';
         }
+    };
+
+    const getStatusConfig = (status: WishlistStatus) => {
+        return STATUSES.find(s => s.value === status) || STATUSES[0];
+    };
+
+    const formatPrice = (cents?: number, currency: string = 'USD') => {
+        if (!cents) return null;
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: currency,
+        }).format(cents / 100);
     };
 
     return (
@@ -120,7 +171,7 @@ export default function WishlistPage() {
                 </div>
 
                 {/* Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
                     <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
                         <div className="flex items-center justify-between">
                             <div>
@@ -136,8 +187,8 @@ export default function WishlistPage() {
                     <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-gray-400 text-sm font-medium">Wishlist</p>
-                                <p className="text-3xl font-bold text-white mt-1">{stats.wishlist}</p>
+                                <p className="text-gray-400 text-sm font-medium">Wanted</p>
+                                <p className="text-3xl font-bold text-white mt-1">{stats.wanted}</p>
                             </div>
                             <div className="p-3 bg-blue-500/10 rounded-lg">
                                 <Star className="w-8 h-8 text-blue-400" />
@@ -165,6 +216,20 @@ export default function WishlistPage() {
                             </div>
                             <div className="p-3 bg-red-500/10 rounded-lg">
                                 <ExternalLink className="w-8 h-8 text-red-400" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-gray-400 text-sm font-medium">Total Value</p>
+                                <p className="text-3xl font-bold text-white mt-1">
+                                    ${stats.totalValue.toFixed(0)}
+                                </p>
+                            </div>
+                            <div className="p-3 bg-emerald-500/10 rounded-lg">
+                                <DollarSign className="w-8 h-8 text-emerald-400" />
                             </div>
                         </div>
                     </div>
@@ -201,13 +266,13 @@ export default function WishlistPage() {
                         {/* Status Filter */}
                         <select
                             value={selectedStatus}
-                            onChange={(e) => setSelectedStatus(e.target.value)}
+                            onChange={(e) => setSelectedStatus(e.target.value as WishlistStatus | 'all')}
                             className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                             <option value="all">All Status</option>
-                            <option value="wishlist">Wishlist</option>
-                            <option value="purchased">Purchased</option>
-                            <option value="archived">Archived</option>
+                            {STATUSES.map(({ value, label }) => (
+                                <option key={value} value={value}>{label}</option>
+                            ))}
                         </select>
                     </div>
                 </div>
@@ -215,65 +280,103 @@ export default function WishlistPage() {
                 {/* Items Grid */}
                 {filteredItems.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {filteredItems.map((item) => (
-                            <div
-                                key={item.id}
-                                className="bg-gray-900 rounded-lg border border-gray-800 p-6 hover:border-gray-700 transition-all"
-                            >
-                                <div className="flex items-start justify-between mb-4">
-                                    <div className="flex-1">
-                                        <h3 className="text-lg font-semibold text-white mb-2">{item.title}</h3>
-                                        {item.category && (
-                                            <span className="inline-block px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-xs font-medium">
-                                                {item.category}
+                        {filteredItems.map((item) => {
+                            const statusConfig = getStatusConfig(item.status);
+                            return (
+                                <div
+                                    key={item.id}
+                                    className="bg-gray-900 rounded-lg border border-gray-800 p-6 hover:border-gray-700 transition-all"
+                                >
+                                    {/* Image */}
+                                    {item.image_url && (
+                                        <div className="mb-4 rounded-lg overflow-hidden bg-gray-800">
+                                            <img
+                                                src={item.image_url}
+                                                alt={item.title}
+                                                className="w-full h-48 object-cover"
+                                            />
+                                        </div>
+                                    )}
+
+                                    <div className="flex items-start justify-between mb-4">
+                                        <div className="flex-1">
+                                            <h3 className="text-lg font-semibold text-white mb-2">{item.title}</h3>
+                                            <div className="flex flex-wrap gap-2 mb-2">
+                                                {item.category && (
+                                                    <span className="inline-block px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-xs font-medium border border-blue-500/20">
+                                                        {item.category}
+                                                    </span>
+                                                )}
+                                                <span className={`inline-block px-2 py-1 ${statusConfig.color}/20 text-${statusConfig.color.split('-')[1]}-400 rounded text-xs font-medium border border-${statusConfig.color.split('-')[1]}-500/20`}>
+                                                    {statusConfig.label}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Price */}
+                                    {item.price_cents && (
+                                        <div className="mb-3 flex items-center gap-2 text-emerald-400 font-semibold text-xl">
+                                            <DollarSign className="w-5 h-5" />
+                                            {formatPrice(item.price_cents, item.currency)}
+                                        </div>
+                                    )}
+
+                                    {/* Vendor */}
+                                    {item.vendor && (
+                                        <div className="mb-3 flex items-center gap-2 text-sm text-gray-400">
+                                            <Store className="w-4 h-4" />
+                                            {item.vendor}
+                                        </div>
+                                    )}
+
+                                    {/* Notes */}
+                                    {item.notes && (
+                                        <p className="text-gray-400 text-sm mb-4">{item.notes}</p>
+                                    )}
+
+                                    {/* Priority & Actions */}
+                                    <div className="flex items-center gap-2 mb-4">
+                                        {item.priority && (
+                                            <span className={`px-2 py-1 rounded text-xs font-medium border ${getPriorityColor(item.priority)}`}>
+                                                Priority {item.priority}
                                             </span>
                                         )}
+                                        {item.url && (
+                                            <a
+                                                href={item.url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex items-center gap-1 text-blue-400 hover:text-blue-300 text-xs"
+                                            >
+                                                <ExternalLink className="w-3 h-3" />
+                                                Link
+                                            </a>
+                                        )}
                                     </div>
-                                    {item.status === 'purchased' && (
-                                        <span className="px-2 py-1 bg-green-500/20 text-green-400 rounded text-xs font-medium">
-                                            Purchased
-                                        </span>
-                                    )}
-                                </div>
 
-                                {item.notes && (
-                                    <p className="text-gray-400 text-sm mb-4">{item.notes}</p>
-                                )}
-
-                                <div className="flex items-center gap-2 mb-4">
-                                    {item.priority && (
-                                        <span className={`px-2 py-1 rounded text-xs font-medium ${getPriorityColor(item.priority)}`}>
-                                            Priority {item.priority}
-                                        </span>
-                                    )}
-                                    {item.url && (
-                                        <a
-                                            href={item.url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="flex items-center gap-1 text-blue-400 hover:text-blue-300 text-xs"
-                                        >
-                                            <ExternalLink className="w-3 h-3" />
-                                            Link
-                                        </a>
-                                    )}
-                                </div>
-
-                                <div className="flex items-center justify-between pt-4 border-t border-gray-800">
-                                    <span className="text-xs text-gray-500">
-                                        {new Date(item.created_at).toLocaleDateString()}
-                                    </span>
-                                    <div className="flex items-center gap-2">
-                                        <button className="p-2 text-gray-400 hover:text-blue-400 transition-colors">
-                                            <Star className="w-4 h-4" />
-                                        </button>
-                                        <button className="p-2 text-gray-400 hover:text-red-400 transition-colors">
-                                            <Heart className="w-4 h-4" />
-                                        </button>
+                                    {/* Footer */}
+                                    <div className="flex items-center justify-between pt-4 border-t border-gray-800">
+                                        <div className="flex items-center gap-2 text-xs text-gray-500">
+                                            <Calendar className="w-3 h-3" />
+                                            {item.purchased_at ? (
+                                                <span>Purchased {new Date(item.purchased_at).toLocaleDateString()}</span>
+                                            ) : (
+                                                <span>Added {new Date(item.created_at).toLocaleDateString()}</span>
+                                            )}
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <button className="p-2 text-gray-400 hover:text-blue-400 transition-colors">
+                                                <Star className="w-4 h-4" />
+                                            </button>
+                                            <button className="p-2 text-gray-400 hover:text-red-400 transition-colors">
+                                                <Heart className="w-4 h-4" />
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 ) : (
                     <div className="bg-gray-900 rounded-lg border border-gray-800 p-12 text-center">
