@@ -1,396 +1,434 @@
-// src/app/inventory/page.tsx
+// app/inventory/page.tsx
 'use client';
 
 import { useState } from 'react';
+import { Plus, Package, MapPin, Calendar, DollarSign, Search, Filter, Trash2, Edit2 } from 'lucide-react';
 
-interface InventoryItem {
+type InventoryItem = {
     id: string;
     name: string;
+    category: string;
+    location: string;
     quantity: number;
-    unit?: string;
-    location?: string;
-    acquired_at?: string;
+    purchaseDate: string;
+    purchasePrice: number;
     notes?: string;
-    updated_at: string;
-    created_at: string;
-}
+    imageUrl?: string;
+};
 
-// Mock data for development
-const mockInventoryItems: InventoryItem[] = [
-    {
-        id: '1',
-        name: 'AA Batteries',
-        quantity: 12,
-        unit: 'count',
-        location: 'Kitchen Drawer',
-        acquired_at: '2024-12-01',
-        notes: 'Bulk pack from Costco',
-        updated_at: '2025-01-01T10:00:00Z',
-        created_at: '2024-12-01T10:00:00Z'
-    },
-    {
-        id: '2',
-        name: 'Paper Towels',
-        quantity: 6,
-        unit: 'rolls',
-        location: 'Pantry',
-        acquired_at: '2024-12-15',
-        updated_at: '2025-01-01T10:00:00Z',
-        created_at: '2024-12-15T10:00:00Z'
-    },
-    {
-        id: '3',
-        name: 'Motor Oil',
-        quantity: 2,
-        unit: 'quarts',
-        location: 'Garage Shelf',
-        acquired_at: '2024-11-20',
-        notes: '5W-30 synthetic',
-        updated_at: '2025-01-01T10:00:00Z',
-        created_at: '2024-11-20T10:00:00Z'
-    },
-    {
-        id: '4',
-        name: 'Canned Tomatoes',
-        quantity: 8,
-        unit: 'cans',
-        location: 'Pantry - Top Shelf',
-        acquired_at: '2025-01-02',
-        updated_at: '2025-01-02T15:30:00Z',
-        created_at: '2025-01-02T15:30:00Z'
-    },
-    {
-        id: '5',
-        name: 'Light Bulbs (LED)',
-        quantity: 4,
-        unit: 'bulbs',
-        location: 'Utility Closet',
-        acquired_at: '2024-10-15',
-        notes: '60W equivalent, soft white',
-        updated_at: '2025-01-01T10:00:00Z',
-        created_at: '2024-10-15T10:00:00Z'
-    }
+const CATEGORIES = [
+    'Electronics',
+    'Furniture',
+    'Appliances',
+    'Tools',
+    'Clothing',
+    'Books',
+    'Kitchen',
+    'Sports',
+    'Other'
+];
+
+const LOCATIONS = [
+    'Living Room',
+    'Bedroom',
+    'Kitchen',
+    'Garage',
+    'Storage',
+    'Office',
+    'Basement',
+    'Attic'
 ];
 
 export default function InventoryPage() {
-    const [items, setItems] = useState<InventoryItem[]>(mockInventoryItems);
-    const [selectedLocation, setSelectedLocation] = useState<string>('all');
+    const [items, setItems] = useState<InventoryItem[]>([
+        {
+            id: '1',
+            name: 'Laptop - MacBook Pro',
+            category: 'Electronics',
+            location: 'Office',
+            quantity: 1,
+            purchaseDate: '2024-01-15',
+            purchasePrice: 2499.99,
+            notes: 'Work computer'
+        },
+        {
+            id: '2',
+            name: 'Office Chair',
+            category: 'Furniture',
+            location: 'Office',
+            quantity: 1,
+            purchaseDate: '2023-11-20',
+            purchasePrice: 399.00,
+            notes: 'Ergonomic chair'
+        }
+    ]);
+
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
-    const [isAddingItem, setIsAddingItem] = useState(false);
-    const [newItem, setNewItem] = useState({
+    const [selectedCategory, setSelectedCategory] = useState<string>('all');
+    const [selectedLocation, setSelectedLocation] = useState<string>('all');
+
+    const [formData, setFormData] = useState({
         name: '',
+        category: CATEGORIES[0],
+        location: LOCATIONS[0],
         quantity: 1,
-        unit: '',
-        location: '',
-        acquired_at: new Date().toISOString().split('T')[0],
+        purchaseDate: new Date().toISOString().split('T')[0],
+        purchasePrice: 0,
         notes: ''
     });
 
-    // Get unique locations
-    const locations = Array.from(new Set(items.map(item => item.location).filter(Boolean)));
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (editingItem) {
+            setItems(items.map(item =>
+                item.id === editingItem.id
+                    ? { ...item, ...formData }
+                    : item
+            ));
+            setEditingItem(null);
+        } else {
+            const newItem: InventoryItem = {
+                id: Date.now().toString(),
+                ...formData
+            };
+            setItems([...items, newItem]);
+        }
+        setShowAddModal(false);
+        resetForm();
+    };
 
-    // Filter items
+    const resetForm = () => {
+        setFormData({
+            name: '',
+            category: CATEGORIES[0],
+            location: LOCATIONS[0],
+            quantity: 1,
+            purchaseDate: new Date().toISOString().split('T')[0],
+            purchasePrice: 0,
+            notes: ''
+        });
+    };
+
+    const handleEdit = (item: InventoryItem) => {
+        setEditingItem(item);
+        setFormData({
+            name: item.name,
+            category: item.category,
+            location: item.location,
+            quantity: item.quantity,
+            purchaseDate: item.purchaseDate,
+            purchasePrice: item.purchasePrice,
+            notes: item.notes || ''
+        });
+        setShowAddModal(true);
+    };
+
+    const handleDelete = (id: string) => {
+        if (confirm('Are you sure you want to delete this item?')) {
+            setItems(items.filter(item => item.id !== id));
+        }
+    };
+
     const filteredItems = items.filter(item => {
-        const locationMatch = selectedLocation === 'all' || item.location === selectedLocation;
-        const searchMatch = searchQuery === '' ||
-            item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            item.location?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             item.notes?.toLowerCase().includes(searchQuery.toLowerCase());
-        return locationMatch && searchMatch;
+        const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
+        const matchesLocation = selectedLocation === 'all' || item.location === selectedLocation;
+        return matchesSearch && matchesCategory && matchesLocation;
     });
 
-    // Group items by location
-    const itemsByLocation = filteredItems.reduce((acc, item) => {
-        const loc = item.location || 'Unspecified Location';
-        if (!acc[loc]) {
-            acc[loc] = [];
-        }
-        acc[loc].push(item);
-        return acc;
-    }, {} as Record<string, InventoryItem[]>);
-
-    const addNewItem = () => {
-        if (!newItem.name.trim()) return;
-
-        const item: InventoryItem = {
-            id: Date.now().toString(),
-            name: newItem.name.trim(),
-            quantity: newItem.quantity,
-            unit: newItem.unit.trim() || undefined,
-            location: newItem.location.trim() || undefined,
-            acquired_at: newItem.acquired_at || undefined,
-            notes: newItem.notes.trim() || undefined,
-            updated_at: new Date().toISOString(),
-            created_at: new Date().toISOString()
-        };
-
-        setItems([item, ...items]);
-        setNewItem({ name: '', quantity: 1, unit: '', location: '', acquired_at: new Date().toISOString().split('T')[0], notes: '' });
-        setIsAddingItem(false);
-    };
-
-    const updateQuantity = (itemId: string, delta: number) => {
-        setItems(items.map(item => {
-            if (item.id === itemId) {
-                const newQuantity = Math.max(0, item.quantity + delta);
-                return { ...item, quantity: newQuantity, updated_at: new Date().toISOString() };
-            }
-            return item;
-        }));
-    };
-
-    const deleteItem = (itemId: string) => {
-        if (confirm('Are you sure you want to delete this item?')) {
-            setItems(items.filter(item => item.id !== itemId));
-        }
-    };
-
-    const getTotalItems = () => {
-        return filteredItems.reduce((sum, item) => sum + item.quantity, 0);
-    };
+    const totalValue = filteredItems.reduce((sum, item) => sum + (item.purchasePrice * item.quantity), 0);
+    const totalItems = filteredItems.reduce((sum, item) => sum + item.quantity, 0);
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-violet-50">
-            <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="min-h-screen bg-gray-950 text-white p-8">
+            <div className="max-w-7xl mx-auto">
                 {/* Header */}
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-violet-600 bg-clip-text text-transparent mb-2">
-                        Inventory
-                    </h1>
-                    <p className="text-gray-600">Track what you have and where it&apos;s stored</p>
+                <div className="flex justify-between items-center mb-8">
+                    <div>
+                        <h1 className="text-4xl font-bold mb-2">Inventory</h1>
+                        <p className="text-gray-400">Track your possessions and their locations</p>
+                    </div>
+                    <button
+                        onClick={() => {
+                            setEditingItem(null);
+                            resetForm();
+                            setShowAddModal(true);
+                        }}
+                        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg transition-colors"
+                    >
+                        <Plus className="w-5 h-5" />
+                        Add Item
+                    </button>
                 </div>
 
-                {/* Stats Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <div className="bg-white rounded-xl shadow-lg border border-emerald-100 p-6">
-                        <div className="text-sm text-gray-600 mb-1">Total Items</div>
-                        <div className="text-3xl font-bold text-emerald-600">{filteredItems.length}</div>
+                {/* Stats */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
+                        <div className="flex items-center gap-3 mb-2">
+                            <Package className="w-6 h-6 text-blue-400" />
+                            <h3 className="text-gray-400 text-sm font-medium">Total Items</h3>
+                        </div>
+                        <p className="text-3xl font-bold">{totalItems}</p>
                     </div>
-                    <div className="bg-white rounded-xl shadow-lg border border-violet-100 p-6">
-                        <div className="text-sm text-gray-600 mb-1">Total Quantity</div>
-                        <div className="text-3xl font-bold text-violet-600">{getTotalItems()}</div>
+
+                    <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
+                        <div className="flex items-center gap-3 mb-2">
+                            <DollarSign className="w-6 h-6 text-green-400" />
+                            <h3 className="text-gray-400 text-sm font-medium">Total Value</h3>
+                        </div>
+                        <p className="text-3xl font-bold">${totalValue.toFixed(2)}</p>
                     </div>
-                    <div className="bg-white rounded-xl shadow-lg border border-teal-100 p-6">
-                        <div className="text-sm text-gray-600 mb-1">Locations</div>
-                        <div className="text-3xl font-bold text-teal-600">{locations.length}</div>
+
+                    <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
+                        <div className="flex items-center gap-3 mb-2">
+                            <MapPin className="w-6 h-6 text-purple-400" />
+                            <h3 className="text-gray-400 text-sm font-medium">Locations</h3>
+                        </div>
+                        <p className="text-3xl font-bold">{new Set(items.map(i => i.location)).size}</p>
                     </div>
                 </div>
 
-                {/* Filters and Search */}
-                <div className="bg-white rounded-xl shadow-lg border border-emerald-100 p-6 mb-6">
-                    <div className="flex flex-wrap gap-4 items-center justify-between">
-                        <div className="flex flex-wrap gap-4 items-center flex-1">
-                            {/* Search */}
-                            <div className="flex-1 min-w-[200px]">
-                                <input
-                                    type="text"
-                                    placeholder="Search items..."
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="w-full px-4 py-2 border border-emerald-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                />
-                            </div>
-
-                            {/* Location Filter */}
-                            <div>
-                                <select
-                                    value={selectedLocation}
-                                    onChange={(e) => setSelectedLocation(e.target.value)}
-                                    className="px-4 py-2 border border-emerald-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                >
-                                    <option value="all">All Locations ({items.length})</option>
-                                    {locations.map(location => (
-                                        <option key={location} value={location}>
-                                            {location} ({items.filter(i => i.location === location).length})
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
+                {/* Filters */}
+                <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+                                <Search className="w-4 h-4" />
+                                Search
+                            </label>
+                            <input
+                                type="text"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                placeholder="Search items..."
+                                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
                         </div>
 
-                        <button
-                            onClick={() => setIsAddingItem(true)}
-                            className="px-4 py-2 bg-gradient-to-r from-violet-500 to-violet-600 text-white rounded-lg hover:from-violet-600 hover:to-violet-700 transition-all duration-200 shadow-md"
-                        >
-                            Add Item
-                        </button>
-                    </div>
-                </div>
-
-                {/* Add New Item Form */}
-                {isAddingItem && (
-                    <div className="bg-white rounded-xl shadow-lg border border-violet-100 p-6 mb-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Add New Item</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Item Name*</label>
-                                <input
-                                    type="text"
-                                    value={newItem.name}
-                                    onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-                                    className="w-full px-3 py-2 border border-emerald-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                    placeholder="e.g., AA Batteries"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
-                                <input
-                                    type="text"
-                                    value={newItem.location}
-                                    onChange={(e) => setNewItem({ ...newItem, location: e.target.value })}
-                                    className="w-full px-3 py-2 border border-emerald-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                    placeholder="e.g., Kitchen Drawer"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Quantity*</label>
-                                <input
-                                    type="number"
-                                    value={newItem.quantity}
-                                    onChange={(e) => setNewItem({ ...newItem, quantity: Number(e.target.value) })}
-                                    className="w-full px-3 py-2 border border-emerald-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                    min="0"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Unit</label>
-                                <input
-                                    type="text"
-                                    value={newItem.unit}
-                                    onChange={(e) => setNewItem({ ...newItem, unit: e.target.value })}
-                                    className="w-full px-3 py-2 border border-emerald-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                    placeholder="e.g., count, boxes, bottles"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Acquired Date</label>
-                                <input
-                                    type="date"
-                                    value={newItem.acquired_at}
-                                    onChange={(e) => setNewItem({ ...newItem, acquired_at: e.target.value })}
-                                    className="w-full px-3 py-2 border border-emerald-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                />
-                            </div>
-                            <div className="md:col-span-2">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-                                <textarea
-                                    value={newItem.notes}
-                                    onChange={(e) => setNewItem({ ...newItem, notes: e.target.value })}
-                                    className="w-full px-3 py-2 border border-emerald-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                    rows={2}
-                                    placeholder="Any additional details..."
-                                />
-                            </div>
-                        </div>
-                        <div className="flex gap-2 mt-4">
-                            <button
-                                onClick={addNewItem}
-                                disabled={!newItem.name.trim()}
-                                className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-lg hover:from-emerald-600 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md"
+                        <div>
+                            <label className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+                                <Filter className="w-4 h-4" />
+                                Category
+                            </label>
+                            <select
+                                value={selectedCategory}
+                                onChange={(e) => setSelectedCategory(e.target.value)}
+                                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
-                                Add Item
-                            </button>
-                            <button
-                                onClick={() => {
-                                    setIsAddingItem(false);
-                                    setNewItem({ name: '', quantity: 1, unit: '', location: '', acquired_at: new Date().toISOString().split('T')[0], notes: '' });
-                                }}
-                                className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-all duration-200"
+                                <option value="all">All Categories</option>
+                                {CATEGORIES.map(cat => (
+                                    <option key={cat} value={cat}>{cat}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+                                <MapPin className="w-4 h-4" />
+                                Location
+                            </label>
+                            <select
+                                value={selectedLocation}
+                                onChange={(e) => setSelectedLocation(e.target.value)}
+                                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
-                                Cancel
-                            </button>
+                                <option value="all">All Locations</option>
+                                {LOCATIONS.map(loc => (
+                                    <option key={loc} value={loc}>{loc}</option>
+                                ))}
+                            </select>
                         </div>
                     </div>
-                )}
+                </div>
 
-                {/* Items Grid - Grouped by Location */}
-                <div className="space-y-6">
-                    {Object.entries(itemsByLocation).map(([location, locationItems]) => (
-                        <div key={location}>
-                            <div className="flex items-center justify-between mb-3">
-                                <h2 className="text-xl font-semibold text-gray-900">
-                                    📍 {location}
-                                </h2>
-                                <span className="text-sm text-gray-600">
-                                    {locationItems.length} {locationItems.length === 1 ? 'item' : 'items'}
-                                </span>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {locationItems.map(item => (
-                                    <div
-                                        key={item.id}
-                                        className="bg-white rounded-lg border border-emerald-200 p-4 hover:shadow-md transition-all duration-200"
-                                    >
-                                        <div className="flex items-start justify-between mb-2">
-                                            <h3 className="font-semibold text-lg text-gray-900">{item.name}</h3>
-                                            <button
-                                                onClick={() => deleteItem(item.id)}
-                                                className="text-red-500 hover:text-red-700 text-sm transition-colors"
-                                                title="Delete item"
-                                            >
-                                                ✕
-                                            </button>
+                {/* Items Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredItems.map(item => (
+                        <div key={item.id} className="bg-gray-900 border border-gray-800 rounded-lg p-6 hover:border-gray-700 transition-colors">
+                            <div className="flex justify-between items-start mb-4">
+                                <div className="flex-1">
+                                    <h3 className="text-xl font-semibold mb-2">{item.name}</h3>
+                                    <div className="space-y-1">
+                                        <div className="flex items-center gap-2 text-sm text-gray-400">
+                                            <Package className="w-4 h-4" />
+                                            {item.category}
                                         </div>
-
-                                        {/* Quantity Controls */}
-                                        <div className="flex items-center gap-3 mb-3">
-                                            <button
-                                                onClick={() => updateQuantity(item.id, -1)}
-                                                className="w-8 h-8 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center font-bold"
-                                            >
-                                                −
-                                            </button>
-                                            <div className="flex-1 text-center">
-                                                <div className="text-2xl font-bold text-emerald-600">
-                                                    {item.quantity}
-                                                </div>
-                                                {item.unit && (
-                                                    <div className="text-sm text-gray-600">{item.unit}</div>
-                                                )}
-                                            </div>
-                                            <button
-                                                onClick={() => updateQuantity(item.id, 1)}
-                                                className="w-8 h-8 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors flex items-center justify-center font-bold"
-                                            >
-                                                +
-                                            </button>
-                                        </div>
-
-                                        {/* Item Details */}
-                                        <div className="space-y-1 text-sm">
-                                            {item.acquired_at && (
-                                                <div className="text-gray-600">
-                                                    <span className="font-medium">Acquired:</span>{' '}
-                                                    {new Date(item.acquired_at).toLocaleDateString()}
-                                                </div>
-                                            )}
-                                            {item.notes && (
-                                                <div className="text-gray-700 italic">
-                                                    &ldquo;{item.notes}&rdquo;
-                                                </div>
-                                            )}
-                                            <div className="text-gray-500 text-xs pt-1">
-                                                Updated: {new Date(item.updated_at).toLocaleDateString()}
-                                            </div>
+                                        <div className="flex items-center gap-2 text-sm text-gray-400">
+                                            <MapPin className="w-4 h-4" />
+                                            {item.location}
                                         </div>
                                     </div>
-                                ))}
+                                </div>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => handleEdit(item)}
+                                        className="p-2 text-gray-400 hover:text-blue-400 hover:bg-gray-800 rounded transition-colors"
+                                    >
+                                        <Edit2 className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                        onClick={() => handleDelete(item.id)}
+                                        className="p-2 text-gray-400 hover:text-red-400 hover:bg-gray-800 rounded transition-colors"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="space-y-2 pt-4 border-t border-gray-800">
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-gray-400">Quantity:</span>
+                                    <span className="font-medium">{item.quantity}</span>
+                                </div>
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-gray-400">Value:</span>
+                                    <span className="font-medium text-green-400">
+                                        ${(item.purchasePrice * item.quantity).toFixed(2)}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-gray-400">Purchased:</span>
+                                    <span className="font-medium">
+                                        {new Date(item.purchaseDate).toLocaleDateString()}
+                                    </span>
+                                </div>
+                                {item.notes && (
+                                    <p className="text-sm text-gray-400 pt-2 border-t border-gray-800">
+                                        {item.notes}
+                                    </p>
+                                )}
                             </div>
                         </div>
                     ))}
                 </div>
 
                 {filteredItems.length === 0 && (
-                    <div className="text-center text-gray-500 py-12">
-                        <p className="text-lg">No items found.</p>
-                        <p className="text-sm">
-                            {searchQuery || selectedLocation !== 'all'
-                                ? 'Try adjusting your filters.'
-                                : 'Add your first item to get started!'}
-                        </p>
+                    <div className="text-center py-12">
+                        <Package className="w-16 h-16 text-gray-700 mx-auto mb-4" />
+                        <p className="text-gray-400 text-lg">No items found</p>
+                        <p className="text-gray-500 text-sm">Add your first item to get started</p>
                     </div>
                 )}
             </div>
+
+            {/* Add/Edit Modal */}
+            {showAddModal && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+                    <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 max-w-md w-full">
+                        <h2 className="text-2xl font-bold mb-6">
+                            {editingItem ? 'Edit Item' : 'Add New Item'}
+                        </h2>
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <div>
+                                <label className="block text-sm text-gray-400 mb-2">Item Name *</label>
+                                <input
+                                    type="text"
+                                    value={formData.name}
+                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    required
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm text-gray-400 mb-2">Category *</label>
+                                    <select
+                                        value={formData.category}
+                                        onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                                        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    >
+                                        {CATEGORIES.map(cat => (
+                                            <option key={cat} value={cat}>{cat}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm text-gray-400 mb-2">Location *</label>
+                                    <select
+                                        value={formData.location}
+                                        onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                                        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    >
+                                        {LOCATIONS.map(loc => (
+                                            <option key={loc} value={loc}>{loc}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm text-gray-400 mb-2">Quantity</label>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        value={formData.quantity}
+                                        onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) })}
+                                        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm text-gray-400 mb-2">Price</label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        min="0"
+                                        value={formData.purchasePrice}
+                                        onChange={(e) => setFormData({ ...formData, purchasePrice: parseFloat(e.target.value) })}
+                                        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm text-gray-400 mb-2">Purchase Date</label>
+                                <input
+                                    type="date"
+                                    value={formData.purchaseDate}
+                                    onChange={(e) => setFormData({ ...formData, purchaseDate: e.target.value })}
+                                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm text-gray-400 mb-2">Notes</label>
+                                <textarea
+                                    value={formData.notes}
+                                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 h-24 resize-none"
+                                    placeholder="Optional notes..."
+                                />
+                            </div>
+
+                            <div className="flex gap-3 pt-4">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setShowAddModal(false);
+                                        setEditingItem(null);
+                                        resetForm();
+                                    }}
+                                    className="flex-1 px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                                >
+                                    {editingItem ? 'Update' : 'Add'} Item
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
