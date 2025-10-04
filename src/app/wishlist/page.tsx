@@ -1,407 +1,292 @@
-// src/app/wishlist/page.tsx
+// app/wishlist/page.tsx
 'use client';
 
 import { useState } from 'react';
+import { Plus, Search, Filter, Heart, Star, ExternalLink, Tag } from 'lucide-react';
 
 interface WishlistItem {
     id: string;
     title: string;
     category?: string;
-    status: 'wanted' | 'considering' | 'on_hold' | 'purchased' | 'declined';
+    status: 'wishlist' | 'purchased' | 'archived';
     url?: string;
     notes?: string;
     priority?: number;
     created_at: string;
 }
 
-// Mock data for development
-const mockWishlistItems: WishlistItem[] = [
-    {
-        id: '1',
-        title: 'Steam Deck',
-        category: 'Gaming',
-        status: 'wanted',
-        url: 'https://store.steampowered.com/steamdeck',
-        notes: 'Wait for next generation or price drop',
-        priority: 4,
-        created_at: '2025-01-01T10:00:00Z'
-    },
-    {
-        id: '2',
-        title: 'Mechanical Keyboard',
-        category: 'Tech',
-        status: 'considering',
-        url: 'https://www.keychron.com/products/keychron-k2-wireless-mechanical-keyboard',
-        notes: 'Keychron K2 or similar 75% layout',
-        priority: 3,
-        created_at: '2025-01-02T15:30:00Z'
-    },
-    {
-        id: '3',
-        title: 'Standing Desk',
-        category: 'Furniture',
-        status: 'wanted',
-        url: 'https://www.upliftdesk.com/',
-        notes: 'Need to measure office space first',
-        priority: 5,
-        created_at: '2025-01-03T09:15:00Z'
-    },
-    {
-        id: '4',
-        title: 'AirPods Pro',
-        category: 'Audio',
-        status: 'purchased',
-        url: 'https://www.apple.com/airpods-pro/',
-        notes: 'Bought during Black Friday sale',
-        priority: 4,
-        created_at: '2024-12-15T12:00:00Z'
-    },
-    {
-        id: '5',
-        title: 'Robot Vacuum',
-        category: 'Home',
-        status: 'on_hold',
-        url: 'https://www.irobot.com/roomba',
-        notes: 'Wait until we move to bigger place',
-        priority: 2,
-        created_at: '2024-12-20T16:45:00Z'
-    },
-    {
-        id: '6',
-        title: 'Expensive Coffee Machine',
-        category: 'Kitchen',
-        status: 'declined',
-        url: 'https://www.breville.com/us/en/products/espresso/bes870.html',
-        notes: 'Too expensive, current machine works fine',
-        priority: 2,
-        created_at: '2024-11-10T08:30:00Z'
-    }
-];
-
-const statusColors = {
-    wanted: 'bg-gradient-to-r from-emerald-50 to-emerald-100 border-emerald-200 text-emerald-900',
-    considering: 'bg-gradient-to-r from-yellow-50 to-yellow-100 border-yellow-200 text-yellow-900',
-    on_hold: 'bg-gradient-to-r from-orange-50 to-orange-100 border-orange-200 text-orange-900',
-    purchased: 'bg-gradient-to-r from-violet-50 to-violet-100 border-violet-200 text-violet-900',
-    declined: 'bg-gradient-to-r from-gray-50 to-gray-100 border-gray-200 text-gray-600'
-};
-
-const statusLabels = {
-    wanted: 'Wanted',
-    considering: 'Considering',
-    on_hold: 'On Hold',
-    purchased: 'Purchased',
-    declined: 'Declined'
-};
-
-const priorityLabels = {
-    1: 'Low',
-    2: 'Medium-Low',
-    3: 'Medium',
-    4: 'High',
-    5: 'Critical'
-};
-
-const priorityColors = {
-    1: 'text-gray-500',
-    2: 'text-blue-500',
-    3: 'text-yellow-500',
-    4: 'text-orange-500',
-    5: 'text-red-500'
-};
-
 export default function WishlistPage() {
-    const [items, setItems] = useState<WishlistItem[]>(mockWishlistItems);
-    const [selectedStatus, setSelectedStatus] = useState<string>('all');
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
-    const [newItem, setNewItem] = useState({
-        title: '',
-        category: '',
-        url: '',
-        notes: '',
-        priority: 3
+    const [selectedStatus, setSelectedStatus] = useState<string>('wishlist');
+    const [searchQuery, setSearchQuery] = useState('');
+
+    // Minimal mock data - just 6 items
+    const mockItems: WishlistItem[] = [
+        {
+            id: '1',
+            title: 'Mechanical Keyboard',
+            category: 'Electronics',
+            status: 'wishlist',
+            url: 'https://example.com/keyboard',
+            notes: 'Cherry MX Blue switches preferred',
+            priority: 1,
+            created_at: new Date().toISOString(),
+        },
+        {
+            id: '2',
+            title: 'Running Shoes',
+            category: 'Sports',
+            status: 'wishlist',
+            priority: 2,
+            created_at: new Date(Date.now() - 86400000).toISOString(),
+        },
+        {
+            id: '3',
+            title: 'Kindle Paperwhite',
+            category: 'Electronics',
+            status: 'wishlist',
+            url: 'https://example.com/kindle',
+            priority: 1,
+            created_at: new Date(Date.now() - 172800000).toISOString(),
+        },
+        {
+            id: '4',
+            title: 'Coffee Maker',
+            category: 'Home',
+            status: 'purchased',
+            notes: 'Got it on sale!',
+            created_at: new Date(Date.now() - 259200000).toISOString(),
+        },
+        {
+            id: '5',
+            title: 'Desk Lamp',
+            category: 'Home',
+            status: 'wishlist',
+            priority: 3,
+            created_at: new Date(Date.now() - 345600000).toISOString(),
+        },
+        {
+            id: '6',
+            title: 'Wireless Headphones',
+            category: 'Electronics',
+            status: 'purchased',
+            url: 'https://example.com/headphones',
+            created_at: new Date(Date.now() - 432000000).toISOString(),
+        },
+    ];
+
+    const categories = ['all', ...Array.from(new Set(mockItems.map(item => item.category).filter(Boolean)))];
+
+    const filteredItems = mockItems.filter(item => {
+        const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
+        const matchesStatus = selectedStatus === 'all' || item.status === selectedStatus;
+        const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            item.notes?.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesCategory && matchesStatus && matchesSearch;
     });
-    const [isAddingItem, setIsAddingItem] = useState(false);
 
-    // Get unique categories
-    const categories = Array.from(new Set(items.map(item => item.category).filter(Boolean)));
+    const stats = {
+        total: mockItems.length,
+        wishlist: mockItems.filter(i => i.status === 'wishlist').length,
+        purchased: mockItems.filter(i => i.status === 'purchased').length,
+        highPriority: mockItems.filter(i => i.priority === 1).length,
+    };
 
-    // Filter items based on selected status and category
-    const filteredItems = items.filter(item => {
-        const statusMatch = selectedStatus === 'all' || item.status === selectedStatus;
-        const categoryMatch = selectedCategory === 'all' || item.category === selectedCategory;
-        return statusMatch && categoryMatch;
-    });
-
-    // Group items by status
-    const groupedItems = filteredItems.reduce((acc, item) => {
-        if (!acc[item.status]) {
-            acc[item.status] = [];
+    const getPriorityColor = (priority?: number) => {
+        if (!priority) return 'bg-gray-500/20 text-gray-400';
+        switch (priority) {
+            case 1: return 'bg-red-500/20 text-red-400';
+            case 2: return 'bg-yellow-500/20 text-yellow-400';
+            case 3: return 'bg-green-500/20 text-green-400';
+            default: return 'bg-gray-500/20 text-gray-400';
         }
-        acc[item.status].push(item);
-        return acc;
-    }, {} as Record<string, WishlistItem[]>);
-
-    const addNewItem = () => {
-        if (!newItem.title.trim()) return;
-
-        const item: WishlistItem = {
-            id: Date.now().toString(),
-            title: newItem.title.trim(),
-            category: newItem.category.trim() || undefined,
-            status: 'wanted',
-            url: newItem.url.trim() || undefined,
-            notes: newItem.notes.trim() || undefined,
-            priority: newItem.priority,
-            created_at: new Date().toISOString()
-        };
-
-        setItems([item, ...items]);
-        setNewItem({ title: '', category: '', url: '', notes: '', priority: 3 });
-        setIsAddingItem(false);
-    };
-
-    const updateItemStatus = (itemId: string, newStatus: WishlistItem['status']) => {
-        setItems(items.map(item =>
-            item.id === itemId ? { ...item, status: newStatus } : item
-        ));
-    };
-
-    const deleteItem = (itemId: string) => {
-        setItems(items.filter(item => item.id !== itemId));
-    };
-
-    const getStatusCount = (status: string) => {
-        if (status === 'all') return items.length;
-        return items.filter(item => item.status === status).length;
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-violet-50">
-            <div className="max-w-6xl mx-auto px-4 py-8">
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Header */}
                 <div className="mb-8">
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-violet-600 bg-clip-text text-transparent mb-2">
-                        Wishlist
-                    </h1>
-                    <p className="text-gray-600">Track items you want, are considering, or have purchased</p>
-                </div>
-
-                {/* Filters and Add Button */}
-                <div className="bg-white rounded-xl shadow-lg border border-emerald-100 p-6 mb-6">
-                    <div className="flex flex-wrap gap-4 items-center justify-between">
-                        <div className="flex flex-wrap gap-4 items-center">
-                            {/* Status Filter */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                                <select
-                                    value={selectedStatus}
-                                    onChange={(e) => setSelectedStatus(e.target.value)}
-                                    className="px-3 py-2 border border-emerald-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                >
-                                    <option value="all">All ({getStatusCount('all')})</option>
-                                    <option value="wanted">Wanted ({getStatusCount('wanted')})</option>
-                                    <option value="considering">Considering ({getStatusCount('considering')})</option>
-                                    <option value="on_hold">On Hold ({getStatusCount('on_hold')})</option>
-                                    <option value="purchased">Purchased ({getStatusCount('purchased')})</option>
-                                    <option value="declined">Declined ({getStatusCount('declined')})</option>
-                                </select>
-                            </div>
-
-                            {/* Category Filter */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                                <select
-                                    value={selectedCategory}
-                                    onChange={(e) => setSelectedCategory(e.target.value)}
-                                    className="px-3 py-2 border border-emerald-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                >
-                                    <option value="all">All Categories</option>
-                                    {categories.map(category => (
-                                        <option key={category} value={category}>{category}</option>
-                                    ))}
-                                </select>
-                            </div>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h1 className="text-3xl font-bold text-white mb-2">Wishlist</h1>
+                            <p className="text-gray-400">Track items you want to purchase</p>
                         </div>
-
-                        <button
-                            onClick={() => setIsAddingItem(true)}
-                            className="px-4 py-2 bg-gradient-to-r from-violet-500 to-violet-600 text-white rounded-lg hover:from-violet-600 hover:to-violet-700 transition-all duration-200 shadow-md"
-                        >
+                        <button className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2">
+                            <Plus className="w-5 h-5" />
                             Add Item
                         </button>
                     </div>
                 </div>
 
-                {/* Add New Item Form */}
-                {isAddingItem && (
-                    <div className="bg-white rounded-xl shadow-lg border border-violet-100 p-6 mb-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Add New Wishlist Item</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Stats */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6">
+                        <div className="flex items-center justify-between">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Title*</label>
-                                <input
-                                    type="text"
-                                    value={newItem.title}
-                                    onChange={(e) => setNewItem({ ...newItem, title: e.target.value })}
-                                    className="w-full px-3 py-2 border border-emerald-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                    placeholder="What do you want?"
-                                />
+                                <p className="text-gray-400 text-sm font-medium">Total Items</p>
+                                <p className="text-3xl font-bold text-white mt-1">{stats.total}</p>
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                                <input
-                                    type="text"
-                                    value={newItem.category}
-                                    onChange={(e) => setNewItem({ ...newItem, category: e.target.value })}
-                                    className="w-full px-3 py-2 border border-emerald-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                    placeholder="Gaming, Tech, Home, etc."
-                                />
+                            <div className="p-3 bg-purple-500/10 rounded-lg">
+                                <Heart className="w-8 h-8 text-purple-400" />
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">URL</label>
-                                <input
-                                    type="url"
-                                    value={newItem.url}
-                                    onChange={(e) => setNewItem({ ...newItem, url: e.target.value })}
-                                    className="w-full px-3 py-2 border border-emerald-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                    placeholder="https://..."
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
-                                <select
-                                    value={newItem.priority}
-                                    onChange={(e) => setNewItem({ ...newItem, priority: Number(e.target.value) })}
-                                    className="w-full px-3 py-2 border border-emerald-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                >
-                                    <option value={1}>Low</option>
-                                    <option value={2}>Medium-Low</option>
-                                    <option value={3}>Medium</option>
-                                    <option value={4}>High</option>
-                                    <option value={5}>Critical</option>
-                                </select>
-                            </div>
-                            <div className="md:col-span-2">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-                                <textarea
-                                    value={newItem.notes}
-                                    onChange={(e) => setNewItem({ ...newItem, notes: e.target.value })}
-                                    className="w-full px-3 py-2 border border-emerald-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                    rows={3}
-                                    placeholder="Any additional notes..."
-                                />
-                            </div>
-                        </div>
-                        <div className="flex gap-2 mt-4">
-                            <button
-                                onClick={addNewItem}
-                                disabled={!newItem.title.trim()}
-                                className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-lg hover:from-emerald-600 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md"
-                            >
-                                Add Item
-                            </button>
-                            <button
-                                onClick={() => {
-                                    setIsAddingItem(false);
-                                    setNewItem({ title: '', category: '', url: '', notes: '', priority: 3 });
-                                }}
-                                className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-all duration-200"
-                            >
-                                Cancel
-                            </button>
                         </div>
                     </div>
-                )}
 
-                {/* Items Grid */}
-                <div className="space-y-6">
-                    {Object.entries(groupedItems).map(([status, statusItems]) => (
-                        <div key={status}>
-                            <h2 className="text-xl font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                                {statusLabels[status as keyof typeof statusLabels]}
-                                <span className="text-sm text-gray-500">({statusItems.length})</span>
-                            </h2>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {statusItems.map(item => (
-                                    <div
-                                        key={item.id}
-                                        className={`p-4 rounded-lg border transition-all duration-200 hover:shadow-md ${statusColors[item.status]}`}
-                                    >
-                                        <div className="flex items-start justify-between mb-2">
-                                            <h3 className="font-semibold text-lg">{item.title}</h3>
-                                            {item.priority && (
-                                                <span className={`text-sm font-medium ${priorityColors[item.priority as keyof typeof priorityColors]}`}>
-                                                    {priorityLabels[item.priority as keyof typeof priorityLabels]}
-                                                </span>
-                                            )}
-                                        </div>
-
-                                        {item.category && (
-                                            <div className="text-sm text-gray-600 mb-2">
-                                                <span className="bg-white/60 px-2 py-1 rounded">
-                                                    {item.category}
-                                                </span>
-                                            </div>
-                                        )}
-
-                                        {item.notes && (
-                                            <p className="text-sm text-gray-700 mb-3">{item.notes}</p>
-                                        )}
-
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-2">
-                                                {item.url && (
-                                                    <a
-                                                        href={item.url}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                                                    >
-                                                        View Link
-                                                    </a>
-                                                )}
-                                            </div>
-                                            <div className="flex items-center gap-1">
-                                                {/* Status Change Buttons */}
-                                                {item.status !== 'purchased' && (
-                                                    <button
-                                                        onClick={() => updateItemStatus(item.id, 'purchased')}
-                                                        className="text-xs px-2 py-1 bg-violet-500 text-white rounded hover:bg-violet-600 transition-colors"
-                                                        title="Mark as purchased"
-                                                    >
-                                                        ✓
-                                                    </button>
-                                                )}
-                                                {item.status !== 'wanted' && item.status !== 'purchased' && (
-                                                    <button
-                                                        onClick={() => updateItemStatus(item.id, 'wanted')}
-                                                        className="text-xs px-2 py-1 bg-emerald-500 text-white rounded hover:bg-emerald-600 transition-colors"
-                                                        title="Mark as wanted"
-                                                    >
-                                                        ♡
-                                                    </button>
-                                                )}
-                                                <button
-                                                    onClick={() => deleteItem(item.id)}
-                                                    className="text-xs px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
-                                                    title="Delete item"
-                                                >
-                                                    ✕
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
+                    <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-gray-400 text-sm font-medium">Wishlist</p>
+                                <p className="text-3xl font-bold text-white mt-1">{stats.wishlist}</p>
+                            </div>
+                            <div className="p-3 bg-blue-500/10 rounded-lg">
+                                <Star className="w-8 h-8 text-blue-400" />
                             </div>
                         </div>
-                    ))}
+                    </div>
+
+                    <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-gray-400 text-sm font-medium">Purchased</p>
+                                <p className="text-3xl font-bold text-white mt-1">{stats.purchased}</p>
+                            </div>
+                            <div className="p-3 bg-green-500/10 rounded-lg">
+                                <Tag className="w-8 h-8 text-green-400" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-gray-400 text-sm font-medium">High Priority</p>
+                                <p className="text-3xl font-bold text-white mt-1">{stats.highPriority}</p>
+                            </div>
+                            <div className="p-3 bg-red-500/10 rounded-lg">
+                                <ExternalLink className="w-8 h-8 text-red-400" />
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                {filteredItems.length === 0 && (
-                    <div className="text-center text-gray-500 py-12">
-                        <p className="text-lg">No items found matching your filters.</p>
-                        <p className="text-sm">Try adjusting your filters or add a new item!</p>
+                {/* Filters */}
+                <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 mb-6">
+                    <div className="flex flex-col md:flex-row gap-4">
+                        {/* Search */}
+                        <div className="flex-1 relative">
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                            <input
+                                type="text"
+                                placeholder="Search items..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full pl-10 pr-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                        </div>
+
+                        {/* Category Filter */}
+                        <select
+                            value={selectedCategory}
+                            onChange={(e) => setSelectedCategory(e.target.value)}
+                            className="px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            {categories.map(cat => (
+                                <option key={cat} value={cat}>
+                                    {cat === 'all' ? 'All Categories' : cat}
+                                </option>
+                            ))}
+                        </select>
+
+                        {/* Status Filter */}
+                        <select
+                            value={selectedStatus}
+                            onChange={(e) => setSelectedStatus(e.target.value)}
+                            className="px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value="all">All Status</option>
+                            <option value="wishlist">Wishlist</option>
+                            <option value="purchased">Purchased</option>
+                            <option value="archived">Archived</option>
+                        </select>
+                    </div>
+                </div>
+
+                {/* Items Grid */}
+                {filteredItems.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {filteredItems.map((item) => (
+                            <div
+                                key={item.id}
+                                className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 hover:border-gray-600 transition-all"
+                            >
+                                <div className="flex items-start justify-between mb-4">
+                                    <div className="flex-1">
+                                        <h3 className="text-lg font-semibold text-white mb-2">{item.title}</h3>
+                                        {item.category && (
+                                            <span className="inline-block px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-xs font-medium">
+                                                {item.category}
+                                            </span>
+                                        )}
+                                    </div>
+                                    {item.status === 'purchased' && (
+                                        <span className="px-2 py-1 bg-green-500/20 text-green-400 rounded text-xs font-medium">
+                                            Purchased
+                                        </span>
+                                    )}
+                                </div>
+
+                                {item.notes && (
+                                    <p className="text-gray-400 text-sm mb-4">{item.notes}</p>
+                                )}
+
+                                <div className="flex items-center gap-2 mb-4">
+                                    {item.priority && (
+                                        <span className={`px-2 py-1 rounded text-xs font-medium ${getPriorityColor(item.priority)}`}>
+                                            Priority {item.priority}
+                                        </span>
+                                    )}
+                                    {item.url && (
+                                        <a
+                                            href={item.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center gap-1 text-blue-400 hover:text-blue-300 text-xs"
+                                        >
+                                            <ExternalLink className="w-3 h-3" />
+                                            Link
+                                        </a>
+                                    )}
+                                </div>
+
+                                <div className="flex items-center justify-between pt-4 border-t border-gray-700">
+                                    <span className="text-xs text-gray-500">
+                                        {new Date(item.created_at).toLocaleDateString()}
+                                    </span>
+                                    <div className="flex items-center gap-2">
+                                        <button className="p-2 text-gray-400 hover:text-blue-400 transition-colors">
+                                            <Star className="w-4 h-4" />
+                                        </button>
+                                        <button className="p-2 text-gray-400 hover:text-red-400 transition-colors">
+                                            <Heart className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-12 text-center">
+                        <Heart className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                        <h3 className="text-xl font-semibold text-white mb-2">No Items Found</h3>
+                        <p className="text-gray-400 mb-6">
+                            {searchQuery || selectedCategory !== 'all' || selectedStatus !== 'all'
+                                ? 'Try adjusting your filters'
+                                : 'Start adding items to your wishlist'}
+                        </p>
+                        <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors">
+                            Add Your First Item
+                        </button>
                     </div>
                 )}
             </div>
