@@ -616,7 +616,7 @@ export default function HabitsPage() {
                                             }
                                             className="w-full px-3 py-2 border border-violet-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
                                         >
-                                            <option value="manual">Manual (I'll update progress myself)</option>
+                                            <option value="manual">Manual (I will update progress myself)</option>
                                             <option value="habit">Linked to Habit (auto-calculated)</option>
                                         </select>
                                     </div>
