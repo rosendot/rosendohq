@@ -157,7 +157,7 @@ export default function InventoryPage() {
                     <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-violet-600 bg-clip-text text-transparent mb-2">
                         Inventory
                     </h1>
-                    <p className="text-gray-600">Track what you have and where it's stored</p>
+                    <p className="text-gray-600">Track what you have and where it&apos;s stored</p>
                 </div>
 
                 {/* Stats Cards */}
@@ -366,7 +366,7 @@ export default function InventoryPage() {
                                             )}
                                             {item.notes && (
                                                 <div className="text-gray-700 italic">
-                                                    "{item.notes}"
+                                                    &ldquo;{item.notes}&rdquo;
                                                 </div>
                                             )}
                                             <div className="text-gray-500 text-xs pt-1">
