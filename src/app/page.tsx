@@ -106,6 +106,36 @@ export default function Home() {
               </div>
             </Link>
 
+            {/* House Card */}
+            <Link href="/house" className="group">
+              <div className="bg-white overflow-hidden shadow-lg rounded-xl hover:shadow-xl transition-all duration-300 border border-amber-100 hover:border-amber-200">
+                <div className="p-6">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0">
+                      <div className="h-10 w-10 bg-gradient-to-r from-amber-500 to-orange-600 rounded-lg flex items-center justify-center shadow-md">
+                        <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="ml-4">
+                      <h3 className="text-lg font-semibold text-gray-900 group-hover:text-amber-600 transition-colors">
+                        House Tracker
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        Maintenance, appliances, and supplies
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="px-6 py-3 bg-gradient-to-r from-amber-50 to-orange-100">
+                  <span className="text-sm text-amber-700 group-hover:text-amber-800 font-medium">
+                    Manage home →
+                  </span>
+                </div>
+              </div>
+            </Link>
+
             {/* Inventory Card */}
             <Link href="/inventory" className="group">
               <div className="bg-white overflow-hidden shadow-lg rounded-xl hover:shadow-xl transition-all duration-300 border border-indigo-100 hover:border-indigo-200">
