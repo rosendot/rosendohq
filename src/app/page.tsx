@@ -107,32 +107,34 @@ export default function Home() {
             </Link>
 
             {/* Inventory Card */}
-            <div className="bg-white overflow-hidden shadow-lg rounded-xl border border-teal-100 opacity-60">
-              <div className="p-6">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="h-10 w-10 bg-gradient-to-r from-teal-400 to-teal-500 rounded-lg flex items-center justify-center shadow-md">
-                      <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                      </svg>
+            <Link href="/inventory" className="group">
+              <div className="bg-white overflow-hidden shadow-lg rounded-xl hover:shadow-xl transition-all duration-300 border border-indigo-100 hover:border-indigo-200">
+                <div className="p-6">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0">
+                      <div className="h-10 w-10 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md">
+                        <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="ml-4">
+                      <h3 className="text-lg font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors">
+                        Inventory
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        Track items in your kitchen and home
+                      </p>
                     </div>
                   </div>
-                  <div className="ml-4">
-                    <h3 className="text-lg font-semibold text-gray-600">
-                      Inventory
-                    </h3>
-                    <p className="text-sm text-gray-500">
-                      Track items in your kitchen and home
-                    </p>
-                  </div>
+                </div>
+                <div className="px-6 py-3 bg-gradient-to-r from-indigo-50 to-indigo-100">
+                  <span className="text-sm text-indigo-700 group-hover:text-indigo-800 font-medium">
+                    View inventory →
+                  </span>
                 </div>
               </div>
-              <div className="px-6 py-3 bg-teal-50">
-                <span className="text-sm text-teal-600 font-medium">
-                  Coming soon...
-                </span>
-              </div>
-            </div>
+            </Link>
 
             {/* Notes Card */}
             <div className="bg-white overflow-hidden shadow-lg rounded-xl border border-orange-100 opacity-60">
