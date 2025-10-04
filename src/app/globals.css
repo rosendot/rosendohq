@@ -1,8 +1,10 @@
+/* app/globals.css */
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Force dark mode */
+  --background: #0a0a0a;
+  --foreground: #ededed;
 
   /* Green and Purple Theme Colors */
   --primary-green: #10b981;
@@ -48,13 +50,6 @@
 
   --color-accent-teal: var(--accent-teal);
   --color-accent-indigo: var(--accent-indigo);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
