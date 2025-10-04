@@ -69,6 +69,12 @@ export default function RootLayout({
                   >
                     Inventory
                   </Link>
+                  <Link
+                    href="/media"
+                    className="text-emerald-100 hover:text-white hover:bg-white/10 whitespace-nowrap py-2 px-3 rounded-md font-medium text-sm transition-colors"
+                  >
+                    Media
+                  </Link>
                 </div>
               </div>
             </div>

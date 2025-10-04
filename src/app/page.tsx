@@ -136,6 +136,36 @@ export default function Home() {
               </div>
             </Link>
 
+            {/* Media Card */}
+            <Link href="/media" className="group">
+              <div className="bg-white overflow-hidden shadow-lg rounded-xl hover:shadow-xl transition-all duration-300 border border-purple-100 hover:border-purple-200">
+                <div className="p-6">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0">
+                      <div className="h-10 w-10 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg flex items-center justify-center shadow-md">
+                        <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="ml-4">
+                      <h3 className="text-lg font-semibold text-gray-900 group-hover:text-purple-600 transition-colors">
+                        Media Tracker
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        Track anime, shows, and movies
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="px-6 py-3 bg-gradient-to-r from-purple-50 to-purple-100">
+                  <span className="text-sm text-purple-700 group-hover:text-purple-800 font-medium">
+                    Continue watching →
+                  </span>
+                </div>
+              </div>
+            </Link>
+
             {/* Notes Card */}
             <div className="bg-white overflow-hidden shadow-lg rounded-xl border border-orange-100 opacity-60">
               <div className="p-6">
