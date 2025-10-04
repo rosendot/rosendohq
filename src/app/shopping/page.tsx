@@ -70,7 +70,7 @@ export default function ShoppingPage() {
     const completedItems = currentItems.filter(item => item.is_done);
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+        <div className="min-h-screen bg-gray-950 text-gray-100">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Header */}
                 <div className="mb-8">
@@ -88,7 +88,7 @@ export default function ShoppingPage() {
 
                 {/* Stats */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6">
+                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-gray-400 text-sm font-medium">Total Lists</p>
@@ -100,7 +100,7 @@ export default function ShoppingPage() {
                         </div>
                     </div>
 
-                    <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6">
+                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-gray-400 text-sm font-medium">Active Items</p>
@@ -114,7 +114,7 @@ export default function ShoppingPage() {
                         </div>
                     </div>
 
-                    <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6">
+                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-gray-400 text-sm font-medium">Completed</p>
@@ -132,7 +132,7 @@ export default function ShoppingPage() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Shopping Lists Sidebar */}
                     <div className="lg:col-span-1">
-                        <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6">
+                        <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
                             <h2 className="text-lg font-semibold text-white mb-4">Your Lists</h2>
 
                             <div className="space-y-3">
@@ -142,7 +142,7 @@ export default function ShoppingPage() {
                                         onClick={() => setSelectedList(list.id)}
                                         className={`w-full text-left p-4 rounded-lg transition-all ${selectedList === list.id
                                             ? 'bg-blue-600 text-white'
-                                            : 'bg-gray-700/50 text-gray-300 hover:bg-gray-700'
+                                            : 'bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700'
                                             }`}
                                     >
                                         <div className="flex items-start justify-between">
@@ -157,7 +157,7 @@ export default function ShoppingPage() {
                                             </div>
                                             <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${selectedList === list.id
                                                 ? 'bg-blue-500 text-white'
-                                                : 'bg-gray-600 text-gray-300'
+                                                : 'bg-gray-700 text-gray-300'
                                                 }`}>
                                                 {list.itemCount}
                                             </span>
@@ -171,7 +171,7 @@ export default function ShoppingPage() {
                     {/* Items List */}
                     <div className="lg:col-span-2">
                         {selectedList ? (
-                            <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6">
+                            <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
                                 <div className="flex items-center justify-between mb-6">
                                     <h2 className="text-xl font-semibold text-white">{currentList?.name}</h2>
                                     <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
@@ -189,10 +189,10 @@ export default function ShoppingPage() {
                                             placeholder="Search items..."
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}
-                                            className="w-full pl-10 pr-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         />
                                     </div>
-                                    <button className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors flex items-center gap-2">
+                                    <button className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors flex items-center gap-2 border border-gray-700">
                                         <Filter className="w-4 h-4" />
                                         Filter
                                     </button>
@@ -208,13 +208,13 @@ export default function ShoppingPage() {
                                             {activeItems.map((item) => (
                                                 <div
                                                     key={item.id}
-                                                    className="p-4 bg-gray-700/50 hover:bg-gray-700 rounded-lg transition-colors border border-gray-600"
+                                                    className="p-4 bg-gray-800 hover:bg-gray-750 rounded-lg transition-colors border border-gray-700"
                                                 >
                                                     <div className="flex items-start gap-3">
                                                         <input
                                                             type="checkbox"
                                                             checked={item.is_done}
-                                                            className="mt-1 w-5 h-5 rounded border-gray-500 text-blue-600 focus:ring-blue-500 focus:ring-offset-gray-800"
+                                                            className="mt-1 w-5 h-5 rounded border-gray-600 text-blue-600 focus:ring-blue-500 focus:ring-offset-gray-900"
                                                             readOnly
                                                         />
                                                         <div className="flex-1">
@@ -255,13 +255,13 @@ export default function ShoppingPage() {
                                             {completedItems.map((item) => (
                                                 <div
                                                     key={item.id}
-                                                    className="p-4 bg-gray-700/30 rounded-lg border border-gray-700"
+                                                    className="p-4 bg-gray-800/50 rounded-lg border border-gray-700"
                                                 >
                                                     <div className="flex items-start gap-3">
                                                         <input
                                                             type="checkbox"
                                                             checked={item.is_done}
-                                                            className="mt-1 w-5 h-5 rounded border-gray-500 text-blue-600 focus:ring-blue-500 focus:ring-offset-gray-800"
+                                                            className="mt-1 w-5 h-5 rounded border-gray-600 text-blue-600 focus:ring-blue-500 focus:ring-offset-gray-900"
                                                             readOnly
                                                         />
                                                         <div className="flex-1">
@@ -281,7 +281,7 @@ export default function ShoppingPage() {
 
                                 {currentItems.length === 0 && (
                                     <div className="text-center py-12">
-                                        <ShoppingCart className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                                        <ShoppingCart className="w-16 h-16 text-gray-700 mx-auto mb-4" />
                                         <p className="text-gray-400">No items in this list yet</p>
                                         <button className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors">
                                             Add First Item
@@ -290,8 +290,8 @@ export default function ShoppingPage() {
                                 )}
                             </div>
                         ) : (
-                            <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-12 text-center">
-                                <ShoppingCart className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                            <div className="bg-gray-900 rounded-lg border border-gray-800 p-12 text-center">
+                                <ShoppingCart className="w-16 h-16 text-gray-700 mx-auto mb-4" />
                                 <h3 className="text-xl font-semibold text-white mb-2">Select a Shopping List</h3>
                                 <p className="text-gray-400">Choose a list from the sidebar to view and manage items</p>
                             </div>

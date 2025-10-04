@@ -103,7 +103,7 @@ export default function WishlistPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+        <div className="min-h-screen bg-gray-950 text-gray-100">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Header */}
                 <div className="mb-8">
@@ -121,7 +121,7 @@ export default function WishlistPage() {
 
                 {/* Stats */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                    <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6">
+                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-gray-400 text-sm font-medium">Total Items</p>
@@ -133,7 +133,7 @@ export default function WishlistPage() {
                         </div>
                     </div>
 
-                    <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6">
+                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-gray-400 text-sm font-medium">Wishlist</p>
@@ -145,7 +145,7 @@ export default function WishlistPage() {
                         </div>
                     </div>
 
-                    <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6">
+                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-gray-400 text-sm font-medium">Purchased</p>
@@ -157,7 +157,7 @@ export default function WishlistPage() {
                         </div>
                     </div>
 
-                    <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6">
+                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-gray-400 text-sm font-medium">High Priority</p>
@@ -171,7 +171,7 @@ export default function WishlistPage() {
                 </div>
 
                 {/* Filters */}
-                <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 mb-6">
+                <div className="bg-gray-900 rounded-lg border border-gray-800 p-6 mb-6">
                     <div className="flex flex-col md:flex-row gap-4">
                         {/* Search */}
                         <div className="flex-1 relative">
@@ -181,7 +181,7 @@ export default function WishlistPage() {
                                 placeholder="Search items..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
                         </div>
 
@@ -189,7 +189,7 @@ export default function WishlistPage() {
                         <select
                             value={selectedCategory}
                             onChange={(e) => setSelectedCategory(e.target.value)}
-                            className="px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                             {categories.map(cat => (
                                 <option key={cat} value={cat}>
@@ -202,7 +202,7 @@ export default function WishlistPage() {
                         <select
                             value={selectedStatus}
                             onChange={(e) => setSelectedStatus(e.target.value)}
-                            className="px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                             <option value="all">All Status</option>
                             <option value="wishlist">Wishlist</option>
@@ -218,7 +218,7 @@ export default function WishlistPage() {
                         {filteredItems.map((item) => (
                             <div
                                 key={item.id}
-                                className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 hover:border-gray-600 transition-all"
+                                className="bg-gray-900 rounded-lg border border-gray-800 p-6 hover:border-gray-700 transition-all"
                             >
                                 <div className="flex items-start justify-between mb-4">
                                     <div className="flex-1">
@@ -259,7 +259,7 @@ export default function WishlistPage() {
                                     )}
                                 </div>
 
-                                <div className="flex items-center justify-between pt-4 border-t border-gray-700">
+                                <div className="flex items-center justify-between pt-4 border-t border-gray-800">
                                     <span className="text-xs text-gray-500">
                                         {new Date(item.created_at).toLocaleDateString()}
                                     </span>
@@ -276,8 +276,8 @@ export default function WishlistPage() {
                         ))}
                     </div>
                 ) : (
-                    <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-12 text-center">
-                        <Heart className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-12 text-center">
+                        <Heart className="w-16 h-16 text-gray-700 mx-auto mb-4" />
                         <h3 className="text-xl font-semibold text-white mb-2">No Items Found</h3>
                         <p className="text-gray-400 mb-6">
                             {searchQuery || selectedCategory !== 'all' || selectedStatus !== 'all'

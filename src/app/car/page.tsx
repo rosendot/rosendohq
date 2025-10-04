@@ -108,7 +108,7 @@ export default function CarTrackerPage() {
     const avgCost = currentRecords.length > 0 ? totalCost / currentRecords.length : 0;
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+        <div className="min-h-screen bg-gray-950 text-gray-100">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Header */}
                 <div className="mb-8">
@@ -126,7 +126,7 @@ export default function CarTrackerPage() {
 
                 {/* Stats */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                    <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6">
+                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-gray-400 text-sm font-medium">Total Vehicles</p>
@@ -138,7 +138,7 @@ export default function CarTrackerPage() {
                         </div>
                     </div>
 
-                    <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6">
+                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-gray-400 text-sm font-medium">Total Records</p>
@@ -150,7 +150,7 @@ export default function CarTrackerPage() {
                         </div>
                     </div>
 
-                    <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6">
+                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-gray-400 text-sm font-medium">Total Spent</p>
@@ -164,7 +164,7 @@ export default function CarTrackerPage() {
                         </div>
                     </div>
 
-                    <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6">
+                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-gray-400 text-sm font-medium">Avg Cost</p>
@@ -182,7 +182,7 @@ export default function CarTrackerPage() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Vehicles Sidebar */}
                     <div className="lg:col-span-1">
-                        <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6">
+                        <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
                             <h2 className="text-lg font-semibold text-white mb-4">Your Vehicles</h2>
 
                             <div className="space-y-3">
@@ -192,11 +192,11 @@ export default function CarTrackerPage() {
                                         onClick={() => setSelectedVehicle(vehicle.id)}
                                         className={`w-full text-left p-4 rounded-lg transition-all ${selectedVehicle === vehicle.id
                                             ? 'bg-blue-600 text-white'
-                                            : 'bg-gray-700/50 text-gray-300 hover:bg-gray-700'
+                                            : 'bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700'
                                             }`}
                                     >
                                         <div className="flex items-center gap-3">
-                                            <div className={`p-2 rounded-lg ${selectedVehicle === vehicle.id ? 'bg-blue-500' : 'bg-gray-600'
+                                            <div className={`p-2 rounded-lg ${selectedVehicle === vehicle.id ? 'bg-blue-500' : 'bg-gray-700'
                                                 }`}>
                                                 <Car className="w-5 h-5" />
                                             </div>
@@ -211,7 +211,7 @@ export default function CarTrackerPage() {
                                             </div>
                                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${selectedVehicle === vehicle.id
                                                 ? 'bg-blue-500 text-white'
-                                                : 'bg-gray-600 text-gray-300'
+                                                : 'bg-gray-700 text-gray-300'
                                                 }`}>
                                                 {mockRecords.filter(r => r.vehicle_id === vehicle.id).length}
                                             </span>
@@ -225,7 +225,7 @@ export default function CarTrackerPage() {
                     {/* Maintenance Records */}
                     <div className="lg:col-span-2">
                         {selectedVehicle ? (
-                            <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6">
+                            <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
                                 <div className="flex items-center justify-between mb-6">
                                     <div>
                                         <h2 className="text-xl font-semibold text-white">
@@ -243,13 +243,13 @@ export default function CarTrackerPage() {
 
                                 {/* Vehicle Stats */}
                                 <div className="grid grid-cols-2 gap-4 mb-6">
-                                    <div className="bg-gray-700/30 rounded-lg p-4 border border-gray-700">
+                                    <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
                                         <p className="text-gray-400 text-sm mb-1">Total Spent</p>
                                         <p className="text-2xl font-bold text-white">
                                             ${(totalCost / 100).toFixed(2)}
                                         </p>
                                     </div>
-                                    <div className="bg-gray-700/30 rounded-lg p-4 border border-gray-700">
+                                    <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
                                         <p className="text-gray-400 text-sm mb-1">Average Cost</p>
                                         <p className="text-2xl font-bold text-white">
                                             ${(avgCost / 100).toFixed(2)}
@@ -263,7 +263,7 @@ export default function CarTrackerPage() {
                                         {currentRecords.map((record) => (
                                             <div
                                                 key={record.id}
-                                                className="p-4 bg-gray-700/50 hover:bg-gray-700 rounded-lg transition-colors border border-gray-600"
+                                                className="p-4 bg-gray-800 hover:bg-gray-750 rounded-lg transition-colors border border-gray-700"
                                             >
                                                 <div className="flex items-start justify-between mb-2">
                                                     <div className="flex-1">
@@ -292,7 +292,7 @@ export default function CarTrackerPage() {
                                                 )}
 
                                                 {record.notes && (
-                                                    <p className="text-sm text-gray-400 bg-gray-800/50 rounded p-2 mt-2">
+                                                    <p className="text-sm text-gray-400 bg-gray-900 rounded p-2 mt-2">
                                                         {record.notes}
                                                     </p>
                                                 )}
@@ -301,7 +301,7 @@ export default function CarTrackerPage() {
                                     </div>
                                 ) : (
                                     <div className="text-center py-12">
-                                        <Wrench className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                                        <Wrench className="w-16 h-16 text-gray-700 mx-auto mb-4" />
                                         <p className="text-gray-400">No maintenance records yet</p>
                                         <button className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors">
                                             Add First Record
@@ -310,8 +310,8 @@ export default function CarTrackerPage() {
                                 )}
                             </div>
                         ) : (
-                            <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-12 text-center">
-                                <Car className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                            <div className="bg-gray-900 rounded-lg border border-gray-800 p-12 text-center">
+                                <Car className="w-16 h-16 text-gray-700 mx-auto mb-4" />
                                 <h3 className="text-xl font-semibold text-white mb-2">Select a Vehicle</h3>
                                 <p className="text-gray-400">Choose a vehicle from the sidebar to view maintenance records</p>
                             </div>
