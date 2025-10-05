@@ -2,8 +2,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Search, Filter, Heart, Star, ExternalLink, Tag, DollarSign, Calendar, Store, Shirt, Palette } from 'lucide-react';
-import AddItemModal from './AddItemModal';
+import { Plus, Search, Filter, Heart, Star, ExternalLink, Tag, DollarSign, Calendar, Store, Shirt, Palette, Edit } from 'lucide-react';
+import AddItemModal from '@/app/wishlist/AddItemModal';
+import EditItemModal from '@/app/wishlist/EditItemModal';
 
 // Database-aligned types
 type WishlistStatus = 'wanted' | 'considering' | 'on_hold' | 'purchased' | 'declined';
@@ -46,6 +47,8 @@ export default function WishlistPage() {
 
     // Add modal state
     const [showAddModal, setShowAddModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [editingItem, setEditingItem] = useState<WishlistItem | null>(null);
 
     // Fetch function
     async function fetchItems() {
@@ -70,6 +73,17 @@ export default function WishlistPage() {
 
     // Add success handler
     const handleAddSuccess = () => {
+        fetchItems(); // Refresh the list
+    };
+
+    // Add edit handler
+    const handleEdit = (item: WishlistItem) => {
+        setEditingItem(item);
+        setShowEditModal(true);
+    };
+
+    // Add edit success handler
+    const handleEditSuccess = () => {
         fetchItems(); // Refresh the list
     };
 
@@ -331,15 +345,24 @@ export default function WishlistPage() {
                                                 </span>
                                             </div>
                                         </div>
-                                        <button
-                                            onClick={() => handleDelete(item.id, item.title)}
-                                            className="ml-2 p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-                                            title="Delete item"
-                                        >
-                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                            </svg>
-                                        </button>
+                                        <div className="flex gap-1 ml-2">
+                                            <button
+                                                onClick={() => handleEdit(item)}
+                                                className="p-2 text-gray-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
+                                                title="Edit item"
+                                            >
+                                                <Edit className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(item.id, item.title)}
+                                                className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                                                title="Delete item"
+                                            >
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                            </button>
+                                        </div>
                                     </div>
 
                                     {/* Brand/Color/Size - NEW */}
@@ -452,6 +475,16 @@ export default function WishlistPage() {
                     isOpen={showAddModal}
                     onClose={() => setShowAddModal(false)}
                     onSuccess={handleAddSuccess}
+                />
+
+                <EditItemModal
+                    isOpen={showEditModal}
+                    item={editingItem}
+                    onClose={() => {
+                        setShowEditModal(false);
+                        setEditingItem(null);
+                    }}
+                    onSuccess={handleEditSuccess}
                 />
             </div>
         </div >
