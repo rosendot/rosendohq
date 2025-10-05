@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Search, Filter, Heart, Star, ExternalLink, Tag, DollarSign, Calendar, Store, Shirt, Palette, Edit } from 'lucide-react';
+import { Plus, Search, Heart, Star, ExternalLink, Tag, DollarSign, Calendar, Store, Shirt, Palette, Edit } from 'lucide-react';
 import AddItemModal from '@/app/wishlist/AddItemModal';
 import EditItemModal from '@/app/wishlist/EditItemModal';
 
@@ -442,14 +442,6 @@ export default function WishlistPage() {
                                             ) : (
                                                 <span>Added {new Date(item.created_at).toLocaleDateString()}</span>
                                             )}
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <button className="p-2 text-gray-400 hover:text-blue-400 transition-colors">
-                                                <Star className="w-4 h-4" />
-                                            </button>
-                                            <button className="p-2 text-gray-400 hover:text-red-400 transition-colors">
-                                                <Heart className="w-4 h-4" />
-                                            </button>
                                         </div>
                                     </div>
                                 </div>
