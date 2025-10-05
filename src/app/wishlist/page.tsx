@@ -1,7 +1,7 @@
 // app/wishlist/page.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Search, Filter, Heart, Star, ExternalLink, Tag, DollarSign, Calendar, Store, Shirt, Palette } from 'lucide-react';
 
 // Database-aligned types
@@ -40,81 +40,38 @@ export default function WishlistPage() {
     const [selectedStatus, setSelectedStatus] = useState<WishlistStatus | 'all'>('wanted');
     const [searchQuery, setSearchQuery] = useState('');
 
-    // Updated mock data with real database structure including brand, color, size
-    const mockItems: WishlistItem[] = [
-        {
-            id: '1',
-            title: 'Check-In Large Luggage',
-            category: 'Travel',
-            status: 'wanted',
-            url: 'https://monos.com/collections/check-in-luggage/products/check-in-large',
-            notes: 'Polycarbonate hardshell, lightweight, 360° spinner wheels',
-            priority: 1,
-            price_cents: 37500,
-            currency: 'USD',
-            vendor: 'Monos',
-            brand: 'Monos',
-            color: 'Sage',
-            size: 'Large',
-            created_at: new Date().toISOString(),
-        },
-        {
-            id: '2',
-            title: 'Running Shoes',
-            category: 'Sports',
-            status: 'considering',
-            priority: 2,
-            price_cents: 12000,
-            currency: 'USD',
-            brand: 'Nike',
-            color: 'Black/White',
-            size: '10.5',
-            created_at: new Date(Date.now() - 86400000).toISOString(),
-        },
-        {
-            id: '3',
-            title: 'Kindle Paperwhite',
-            category: 'Electronics',
-            status: 'wanted',
-            url: 'https://example.com/kindle',
-            priority: 1,
-            price_cents: 13999,
-            currency: 'USD',
-            vendor: 'Amazon',
-            brand: 'Amazon',
-            created_at: new Date(Date.now() - 172800000).toISOString(),
-        },
-        {
-            id: '4',
-            title: 'Coffee Maker',
-            category: 'Home',
-            status: 'purchased',
-            notes: 'Got it on sale!',
-            price_cents: 7999,
-            currency: 'USD',
-            brand: 'Breville',
-            purchased_at: new Date(Date.now() - 259200000).toISOString(),
-            created_at: new Date(Date.now() - 259200000).toISOString(),
-        },
-        {
-            id: '5',
-            title: 'Winter Jacket',
-            category: 'Clothing',
-            status: 'wanted',
-            priority: 1,
-            price_cents: 24999,
-            currency: 'USD',
-            brand: 'Patagonia',
-            color: 'Navy Blue',
-            size: 'M',
-            vendor: 'REI',
-            created_at: new Date(Date.now() - 345600000).toISOString(),
-        },
-    ];
+    // NEW: State for real data
+    const [items, setItems] = useState<WishlistItem[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    const categories = ['all', ...Array.from(new Set(mockItems.map(item => item.category).filter(Boolean)))];
+    // NEW: Fetch data from API
+    useEffect(() => {
+        async function fetchItems() {
+            try {
+                console.log('Fetching wishlist items...');
+                const response = await fetch('/api/wishlist');
+                console.log('Response status:', response.status);
 
-    const filteredItems = mockItems.filter(item => {
+                if (!response.ok) throw new Error('Failed to fetch');
+
+                const data = await response.json();
+                console.log('Received data:', data);
+
+                setItems(data);
+            } catch (err) {
+                console.error('Fetch error:', err);
+                setError(err instanceof Error ? err.message : 'Failed to load items');
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchItems();
+    }, []);
+
+    const categories = ['all', ...Array.from(new Set(items.map(item => item.category).filter(Boolean)))];
+
+    const filteredItems = items.filter(item => {
         const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
         const matchesStatus = selectedStatus === 'all' || item.status === selectedStatus;
         const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -124,11 +81,11 @@ export default function WishlistPage() {
     });
 
     const stats = {
-        total: mockItems.length,
-        wanted: mockItems.filter(i => i.status === 'wanted').length,
-        purchased: mockItems.filter(i => i.status === 'purchased').length,
-        highPriority: mockItems.filter(i => i.priority === 1).length,
-        totalValue: mockItems
+        total: items.length,
+        wanted: items.filter(i => i.status === 'wanted').length,
+        purchased: items.filter(i => i.status === 'purchased').length,
+        highPriority: items.filter(i => i.priority === 1).length,
+        totalValue: items
             .filter(i => i.status === 'wanted' && i.price_cents)
             .reduce((sum, i) => sum + (i.price_cents || 0), 0) / 100,
     };
@@ -156,6 +113,34 @@ export default function WishlistPage() {
             currency: currency,
         }).format(cents / 100);
     };
+
+    // Add loading state before the return
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gray-950 text-gray-100 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                    <p className="text-gray-400">Loading wishlist...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="min-h-screen bg-gray-950 text-gray-100 flex items-center justify-center">
+                <div className="text-center">
+                    <p className="text-red-400 mb-4">Error: {error}</p>
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
+                    >
+                        Retry
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gray-950 text-gray-100">
