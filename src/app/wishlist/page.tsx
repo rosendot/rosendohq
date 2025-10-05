@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { Plus, Search, Filter, Heart, Star, ExternalLink, Tag, DollarSign, Calendar, Store, Shirt, Palette } from 'lucide-react';
+import AddItemModal from './AddItemModal';
 
 // Database-aligned types
 type WishlistStatus = 'wanted' | 'considering' | 'on_hold' | 'purchased' | 'declined';
@@ -39,35 +40,38 @@ export default function WishlistPage() {
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
     const [selectedStatus, setSelectedStatus] = useState<WishlistStatus | 'all'>('wanted');
     const [searchQuery, setSearchQuery] = useState('');
-
-    // NEW: State for real data
     const [items, setItems] = useState<WishlistItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    // NEW: Fetch data from API
-    useEffect(() => {
-        async function fetchItems() {
-            try {
-                console.log('Fetching wishlist items...');
-                const response = await fetch('/api/wishlist');
-                console.log('Response status:', response.status);
+    // Add modal state
+    const [showAddModal, setShowAddModal] = useState(false);
 
-                if (!response.ok) throw new Error('Failed to fetch');
-
-                const data = await response.json();
-                console.log('Received data:', data);
-
-                setItems(data);
-            } catch (err) {
-                console.error('Fetch error:', err);
-                setError(err instanceof Error ? err.message : 'Failed to load items');
-            } finally {
-                setLoading(false);
-            }
+    // Fetch function
+    async function fetchItems() {
+        try {
+            setLoading(true);
+            const response = await fetch('/api/wishlist');
+            if (!response.ok) throw new Error('Failed to fetch');
+            const data = await response.json();
+            setItems(data);
+            setError(null);
+        } catch (err) {
+            console.error('Fetch error:', err);
+            setError(err instanceof Error ? err.message : 'Failed to load items');
+        } finally {
+            setLoading(false);
         }
+    }
+
+    useEffect(() => {
         fetchItems();
     }, []);
+
+    // Add success handler
+    const handleAddSuccess = () => {
+        fetchItems(); // Refresh the list
+    };
 
     const categories = ['all', ...Array.from(new Set(items.map(item => item.category).filter(Boolean)))];
 
@@ -152,7 +156,10 @@ export default function WishlistPage() {
                             <h1 className="text-3xl font-bold text-white mb-2">Wishlist</h1>
                             <p className="text-gray-400">Track items you want to purchase</p>
                         </div>
-                        <button className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2">
+                        <button
+                            onClick={() => setShowAddModal(true)}
+                            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                        >
                             <Plus className="w-5 h-5" />
                             Add Item
                         </button>
@@ -408,6 +415,12 @@ export default function WishlistPage() {
                         </button>
                     </div>
                 )}
+
+                <AddItemModal
+                    isOpen={showAddModal}
+                    onClose={() => setShowAddModal(false)}
+                    onSuccess={handleAddSuccess}
+                />
             </div>
         </div >
     );
