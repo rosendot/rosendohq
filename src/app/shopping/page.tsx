@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { Plus, Search, ShoppingCart, CheckCircle2, Circle, Tag, Calendar, AlertCircle } from 'lucide-react';
-import type { ShoppingList, ShoppingListItem } from '@/types/shopping';
+import type { ShoppingList, ShoppingListItem } from '@/types/database.types';
 
 export default function ShoppingPage() {
     const [lists, setLists] = useState<ShoppingList[]>([]);
