@@ -1,8 +1,8 @@
 // src/app/media/page.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Plus, Film, Tv, Star, Search, Trash2, Edit2 } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Plus, Film, Tv, Star, Search, Trash2, Edit2, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { MediaItem, MediaType, MediaStatus } from '@/types/database.types';
 
 const MEDIA_TYPES: { value: MediaType; label: string; icon: typeof Film }[] = [
@@ -19,14 +19,240 @@ const STATUSES: { value: MediaStatus; label: string; color: string }[] = [
     { value: 'dropped', label: 'Dropped', color: 'bg-red-600' }
 ];
 
+// Horizontal Carousel Component
+function MediaCarousel({
+    title,
+    items,
+    onEdit,
+    onDelete,
+    emptyMessage
+}: {
+    title: string;
+    items: MediaItem[];
+    onEdit: (item: MediaItem) => void;
+    onDelete: (id: string) => void;
+    emptyMessage: string;
+}) {
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const [canScrollLeft, setCanScrollLeft] = useState(false);
+    const [canScrollRight, setCanScrollRight] = useState(false);
+
+    const checkScroll = () => {
+        if (scrollRef.current) {
+            const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+            setCanScrollLeft(scrollLeft > 0);
+            setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
+        }
+    };
+
+    useEffect(() => {
+        checkScroll();
+        window.addEventListener('resize', checkScroll);
+        return () => window.removeEventListener('resize', checkScroll);
+    }, [items]);
+
+    const scroll = (direction: 'left' | 'right') => {
+        if (scrollRef.current) {
+            const scrollAmount = scrollRef.current.clientWidth * 0.8;
+            scrollRef.current.scrollBy({
+                left: direction === 'left' ? -scrollAmount : scrollAmount,
+                behavior: 'smooth'
+            });
+            setTimeout(checkScroll, 300);
+        }
+    };
+
+    if (items.length === 0) {
+        return (
+            <div className="mb-12">
+                <h2 className="text-2xl font-bold mb-4">{title}</h2>
+                <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-8 text-center">
+                    <p className="text-gray-500">{emptyMessage}</p>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="mb-12">
+            <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-bold">{title}</h2>
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => scroll('left')}
+                        disabled={!canScrollLeft}
+                        className={`p-2 rounded-lg transition-colors ${canScrollLeft
+                            ? 'bg-gray-800 hover:bg-gray-700'
+                            : 'bg-gray-900 text-gray-600 cursor-not-allowed'
+                            }`}
+                    >
+                        <ChevronLeft className="w-5 h-5" />
+                    </button>
+                    <button
+                        onClick={() => scroll('right')}
+                        disabled={!canScrollRight}
+                        className={`p-2 rounded-lg transition-colors ${canScrollRight
+                            ? 'bg-gray-800 hover:bg-gray-700'
+                            : 'bg-gray-900 text-gray-600 cursor-not-allowed'
+                            }`}
+                    >
+                        <ChevronRight className="w-5 h-5" />
+                    </button>
+                </div>
+            </div>
+
+            <div
+                ref={scrollRef}
+                onScroll={checkScroll}
+                className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-4"
+                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
+                {items.map((item) => (
+                    <MediaCard
+                        key={item.id}
+                        item={item}
+                        onEdit={onEdit}
+                        onDelete={onDelete}
+                    />
+                ))}
+            </div>
+        </div>
+    );
+}
+
+// Media Card Component
+function MediaCard({
+    item,
+    onEdit,
+    onDelete
+}: {
+    item: MediaItem;
+    onEdit: (item: MediaItem) => void;
+    onDelete: (id: string) => void;
+}) {
+    const Icon = item.type === 'movie' ? Film : Tv;
+    const statusObj = STATUSES.find(s => s.value === item.status);
+
+    return (
+        <div className="min-w-[280px] max-w-[280px] bg-gray-900 border border-gray-800 rounded-lg overflow-hidden hover:border-gray-700 transition-all group">
+            {/* Card Header with Status */}
+            <div className="p-4 pb-3">
+                <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <Icon className="w-4 h-4 text-blue-400 flex-shrink-0" />
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusObj?.color} flex-shrink-0`}>
+                            {statusObj?.label}
+                        </span>
+                    </div>
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                            onClick={() => onEdit(item)}
+                            className="p-1.5 hover:bg-gray-800 rounded transition-colors"
+                        >
+                            <Edit2 className="w-3.5 h-3.5 text-gray-400" />
+                        </button>
+                        <button
+                            onClick={() => onDelete(item.id)}
+                            className="p-1.5 hover:bg-gray-800 rounded transition-colors"
+                        >
+                            <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                        </button>
+                    </div>
+                </div>
+
+                {/* Title */}
+                <h3 className="text-lg font-bold mb-2 line-clamp-2 min-h-[3.5rem]">
+                    {item.title}
+                </h3>
+
+                {/* Platform */}
+                {item.platform && (
+                    <p className="text-xs text-gray-400 mb-3 flex items-center gap-1">
+                        <span className="w-1 h-1 bg-gray-600 rounded-full"></span>
+                        {item.platform}
+                    </p>
+                )}
+
+                {/* Rating */}
+                {item.rating && (
+                    <div className="flex items-center gap-1 mb-3">
+                        {[...Array(5)].map((_, i) => (
+                            <Star
+                                key={i}
+                                className={`w-3.5 h-3.5 ${i < item.rating!
+                                    ? 'fill-yellow-500 text-yellow-500'
+                                    : 'text-gray-700'
+                                    }`}
+                            />
+                        ))}
+                    </div>
+                )}
+
+                {/* Progress Bar (for shows/anime with episodes) */}
+                {item.total_episodes && item.total_episodes > 0 && (
+                    <div className="mb-3">
+                        <div className="flex justify-between text-xs mb-1.5">
+                            <span className="text-gray-400">Progress</span>
+                            <span className="font-medium text-gray-300">
+                                {item.current_episode || 0} / {item.total_episodes}
+                            </span>
+                        </div>
+                        <div className="w-full bg-gray-800 rounded-full h-1.5">
+                            <div
+                                className="bg-blue-500 h-1.5 rounded-full transition-all"
+                                style={{
+                                    width: `${Math.min(((item.current_episode || 0) / item.total_episodes) * 100, 100)}%`
+                                }}
+                            ></div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Dates */}
+                <div className="space-y-1.5 text-xs">
+                    {item.started_at && (
+                        <div className="flex justify-between text-gray-400">
+                            <span>Started</span>
+                            <span className="text-gray-300">
+                                {new Date(item.started_at).toLocaleDateString('en-US', {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    year: 'numeric'
+                                })}
+                            </span>
+                        </div>
+                    )}
+                    {item.completed_at && (
+                        <div className="flex justify-between text-gray-400">
+                            <span>Completed</span>
+                            <span className="text-gray-300">
+                                {new Date(item.completed_at).toLocaleDateString('en-US', {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    year: 'numeric'
+                                })}
+                            </span>
+                        </div>
+                    )}
+                </div>
+
+                {/* Notes (truncated) */}
+                {item.notes && (
+                    <p className="text-xs text-gray-500 mt-3 pt-3 border-t border-gray-800 line-clamp-2">
+                        {item.notes}
+                    </p>
+                )}
+            </div>
+        </div>
+    );
+}
+
 export default function MediaTrackerPage() {
     const [items, setItems] = useState<MediaItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [showAddModal, setShowAddModal] = useState(false);
     const [editingItem, setEditingItem] = useState<MediaItem | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedType, setSelectedType] = useState<MediaType | 'all'>('all');
-    const [selectedStatus, setSelectedStatus] = useState<MediaStatus | 'all'>('all');
 
     const [formData, setFormData] = useState({
         title: '',
@@ -39,19 +265,14 @@ export default function MediaTrackerPage() {
         notes: ''
     });
 
-    // Fetch media items
     useEffect(() => {
         fetchItems();
-    }, [selectedType, selectedStatus]);
+    }, []);
 
     const fetchItems = async () => {
         try {
             setLoading(true);
-            const params = new URLSearchParams();
-            if (selectedType !== 'all') params.append('type', selectedType);
-            if (selectedStatus !== 'all') params.append('status', selectedStatus);
-
-            const response = await fetch(`/api/media?${params}`);
+            const response = await fetch('/api/media');
             if (!response.ok) throw new Error('Failed to fetch');
 
             const data = await response.json();
@@ -68,7 +289,6 @@ export default function MediaTrackerPage() {
 
         try {
             if (editingItem) {
-                // Update existing
                 const response = await fetch(`/api/media/${editingItem.id}`, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
@@ -85,12 +305,11 @@ export default function MediaTrackerPage() {
                 if (!response.ok) throw new Error('Failed to update');
 
             } else {
-                // Create new
                 const response = await fetch('/api/media', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        owner_id: 'd5682543-5b15-4bf2-90a3-6a3ddf9dc509', // Your owner_id
+                        owner_id: 'd5682543-5b15-4bf2-90a3-6a3ddf9dc509',
                         ...formData,
                         rating: formData.rating || null,
                         platform: formData.platform || null,
@@ -106,7 +325,7 @@ export default function MediaTrackerPage() {
             setShowAddModal(false);
             setEditingItem(null);
             resetForm();
-            fetchItems(); // Refresh list
+            fetchItems();
         } catch (error) {
             console.error('Error saving media:', error);
             alert('Failed to save media item');
@@ -123,7 +342,7 @@ export default function MediaTrackerPage() {
 
             if (!response.ok) throw new Error('Failed to delete');
 
-            fetchItems(); // Refresh list
+            fetchItems();
         } catch (error) {
             console.error('Error deleting media:', error);
             alert('Failed to delete media item');
@@ -158,34 +377,25 @@ export default function MediaTrackerPage() {
         });
     };
 
-    // Filter items client-side by search
+    // Filter and group items
     const filteredItems = items.filter(item => {
-        const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            item.notes?.toLowerCase().includes(searchQuery.toLowerCase());
-        return matchesSearch;
+        if (!searchQuery) return true;
+        return item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            item.notes?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            item.platform?.toLowerCase().includes(searchQuery.toLowerCase());
     });
 
-    const getTypeStats = (type: MediaType) => {
-        return items.filter(item => item.type === type).length;
-    };
+    const watchingItems = filteredItems.filter(item => item.status === 'watching');
+    const plannedItems = filteredItems.filter(item => item.status === 'planned');
+    const completedItems = filteredItems.filter(item => item.status === 'completed');
+    const onHoldItems = filteredItems.filter(item => item.status === 'on_hold');
+    const droppedItems = filteredItems.filter(item => item.status === 'dropped');
 
-    const getStatusStats = (status: MediaStatus) => {
-        return items.filter(item => item.status === status).length;
-    };
-
-    const getIcon = (type: MediaType) => {
-        const mediaType = MEDIA_TYPES.find(t => t.value === type);
-        return mediaType ? mediaType.icon : Film;
-    };
-
-    const getStatusColor = (status: MediaStatus) => {
-        const statusObj = STATUSES.find(s => s.value === status);
-        return statusObj ? statusObj.color : 'bg-gray-600';
-    };
-
-    const getStatusLabel = (status: MediaStatus) => {
-        const statusObj = STATUSES.find(s => s.value === status);
-        return statusObj ? statusObj.label : status;
+    // Stats
+    const totalByType = {
+        movie: items.filter(i => i.type === 'movie').length,
+        show: items.filter(i => i.type === 'show').length,
+        anime: items.filter(i => i.type === 'anime').length,
     };
 
     if (loading) {
@@ -197,195 +407,103 @@ export default function MediaTrackerPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-950 text-white p-8">
-            <div className="max-w-7xl mx-auto">
-                {/* Header */}
-                <div className="flex justify-between items-center mb-8">
-                    <div>
-                        <h1 className="text-4xl font-bold mb-2">Media Tracker</h1>
-                        <p className="text-gray-400">Track anime, shows, and movies</p>
+        <div className="min-h-screen bg-gray-950 text-white">
+            {/* Header */}
+            <div className="border-b border-gray-800 bg-gray-950 sticky top-0 z-10">
+                <div className="max-w-7xl mx-auto px-8 py-6">
+                    <div className="flex justify-between items-center mb-6">
+                        <div>
+                            <h1 className="text-4xl font-bold mb-2">Media Tracker</h1>
+                            <p className="text-gray-400">Track anime, shows, and movies</p>
+                        </div>
+                        <button
+                            onClick={() => {
+                                setEditingItem(null);
+                                resetForm();
+                                setShowAddModal(true);
+                            }}
+                            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg transition-colors"
+                        >
+                            <Plus className="w-5 h-5" />
+                            Add Media
+                        </button>
                     </div>
-                    <button
-                        onClick={() => {
-                            setEditingItem(null);
-                            resetForm();
-                            setShowAddModal(true);
-                        }}
-                        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg transition-colors"
-                    >
-                        <Plus className="w-5 h-5" />
-                        Add Media
-                    </button>
-                </div>
 
-                {/* Type Stats */}
-                <div className="grid grid-cols-3 gap-6 mb-8">
-                    {MEDIA_TYPES.map(({ value, label, icon: Icon }) => (
-                        <div key={value} className="bg-gray-900 border border-gray-800 rounded-lg p-6">
-                            <div className="flex items-center gap-3 mb-2">
-                                <Icon className="w-6 h-6 text-blue-400" />
-                                <h3 className="text-gray-400 text-sm font-medium">{label}</h3>
+                    {/* Type Stats */}
+                    <div className="grid grid-cols-3 gap-4 mb-6">
+                        {MEDIA_TYPES.map(({ value, label, icon: Icon }) => (
+                            <div key={value} className="bg-gray-900/50 border border-gray-800 rounded-lg p-4">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <Icon className="w-4 h-4 text-blue-400" />
+                                    <h3 className="text-gray-400 text-xs font-medium">{label}</h3>
+                                </div>
+                                <p className="text-2xl font-bold">{totalByType[value]}</p>
                             </div>
-                            <p className="text-3xl font-bold">{getTypeStats(value)}</p>
-                        </div>
-                    ))}
-                </div>
+                        ))}
+                    </div>
 
-                {/* Status Overview */}
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-                    {STATUSES.map(({ value, label, color }) => (
-                        <div key={value} className="bg-gray-900 border border-gray-800 rounded-lg p-4">
-                            <div className="flex items-center gap-2 mb-2">
-                                <div className={`w-3 h-3 rounded-full ${color}`}></div>
-                                <h3 className="text-gray-400 text-xs font-medium">{label}</h3>
-                            </div>
-                            <p className="text-2xl font-bold">{getStatusStats(value)}</p>
-                        </div>
-                    ))}
-                </div>
-
-                {/* Filters */}
-                <div className="flex flex-col md:flex-row gap-4 mb-6">
-                    <div className="flex-1 relative">
+                    {/* Search */}
+                    <div className="relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                         <input
                             type="text"
-                            placeholder="Search media..."
+                            placeholder="Search your library..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-3 bg-gray-900 border border-gray-800 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
+                            className="w-full pl-10 pr-4 py-3 bg-gray-900 border border-gray-800 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
                         />
                     </div>
-                    <select
-                        value={selectedType}
-                        onChange={(e) => setSelectedType(e.target.value as MediaType | 'all')}
-                        className="px-4 py-3 bg-gray-900 border border-gray-800 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                    >
-                        <option value="all">All Types</option>
-                        {MEDIA_TYPES.map(({ value, label }) => (
-                            <option key={value} value={value}>{label}</option>
-                        ))}
-                    </select>
-                    <select
-                        value={selectedStatus}
-                        onChange={(e) => setSelectedStatus(e.target.value as MediaStatus | 'all')}
-                        className="px-4 py-3 bg-gray-900 border border-gray-800 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                    >
-                        <option value="all">All Statuses</option>
-                        {STATUSES.map(({ value, label }) => (
-                            <option key={value} value={value}>{label}</option>
-                        ))}
-                    </select>
                 </div>
+            </div>
 
-                {/* Media Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredItems.map((item) => {
-                        const Icon = getIcon(item.type);
-                        return (
-                            <div
-                                key={item.id}
-                                className="bg-gray-900 border border-gray-800 rounded-lg p-6 hover:border-gray-700 transition-colors"
-                            >
-                                <div className="flex items-start justify-between mb-4">
-                                    <div className="flex items-center gap-3">
-                                        <Icon className="w-5 h-5 text-blue-400" />
-                                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(item.status)}`}>
-                                            {getStatusLabel(item.status)}
-                                        </span>
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <button
-                                            onClick={() => handleEdit(item)}
-                                            className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
-                                        >
-                                            <Edit2 className="w-4 h-4 text-gray-400" />
-                                        </button>
-                                        <button
-                                            onClick={() => handleDelete(item.id)}
-                                            className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
-                                        >
-                                            <Trash2 className="w-4 h-4 text-red-400" />
-                                        </button>
-                                    </div>
-                                </div>
+            {/* Carousels */}
+            <div className="max-w-7xl mx-auto px-8 py-8">
+                <MediaCarousel
+                    title={`Continue Watching (${watchingItems.length})`}
+                    items={watchingItems}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    emptyMessage="No media currently watching. Start something from your plan to watch list!"
+                />
 
-                                <h3 className="text-xl font-bold mb-2">{item.title}</h3>
+                <MediaCarousel
+                    title={`Plan to Watch (${plannedItems.length})`}
+                    items={plannedItems}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    emptyMessage="Your plan to watch list is empty. Add some media to get started!"
+                />
 
-                                {item.platform && (
-                                    <p className="text-sm text-gray-400 mb-3">
-                                        📺 {item.platform}
-                                    </p>
-                                )}
+                <MediaCarousel
+                    title={`Completed (${completedItems.length})`}
+                    items={completedItems}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    emptyMessage="No completed media yet. Finish watching something!"
+                />
 
-                                {item.rating && (
-                                    <div className="flex items-center gap-1 mb-3">
-                                        {[...Array(5)].map((_, i) => (
-                                            <Star
-                                                key={i}
-                                                className={`w-4 h-4 ${i < item.rating! ? 'fill-yellow-500 text-yellow-500' : 'text-gray-600'}`}
-                                            />
-                                        ))}
-                                    </div>
-                                )}
+                {onHoldItems.length > 0 && (
+                    <MediaCarousel
+                        title={`On Hold (${onHoldItems.length})`}
+                        items={onHoldItems}
+                        onEdit={handleEdit}
+                        onDelete={handleDelete}
+                        emptyMessage=""
+                    />
+                )}
 
-                                {item.total_episodes && (
-                                    <div className="mb-3">
-                                        <div className="flex justify-between text-sm mb-1">
-                                            <span className="text-gray-400">Progress</span>
-                                            <span className="font-medium">
-                                                {item.current_episode || 0} / {item.total_episodes}
-                                            </span>
-                                        </div>
-                                        <div className="w-full bg-gray-800 rounded-full h-2">
-                                            <div
-                                                className="bg-blue-600 h-2 rounded-full transition-all"
-                                                style={{
-                                                    width: `${((item.current_episode || 0) / item.total_episodes) * 100}%`
-                                                }}
-                                            ></div>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {item.started_at && (
-                                    <div className="flex justify-between text-sm mb-2">
-                                        <span className="text-gray-400">Started:</span>
-                                        <span className="font-medium">
-                                            {new Date(item.started_at).toLocaleDateString()}
-                                        </span>
-                                    </div>
-                                )}
-
-                                {item.completed_at && (
-                                    <div className="flex justify-between text-sm mb-2">
-                                        <span className="text-gray-400">Completed:</span>
-                                        <span className="font-medium">
-                                            {new Date(item.completed_at).toLocaleDateString()}
-                                        </span>
-                                    </div>
-                                )}
-
-                                {item.notes && (
-                                    <p className="text-sm text-gray-400 pt-3 border-t border-gray-800 mt-3">
-                                        {item.notes}
-                                    </p>
-                                )}
-                            </div>
-                        );
-                    })}
-                </div>
-
-                {filteredItems.length === 0 && (
-                    <div className="text-center py-12">
-                        <Film className="w-16 h-16 text-gray-700 mx-auto mb-4" />
-                        <p className="text-gray-400 text-lg">No media found</p>
-                        <p className="text-gray-500 text-sm">Add your first item to get started</p>
-                    </div>
+                {droppedItems.length > 0 && (
+                    <MediaCarousel
+                        title={`Dropped (${droppedItems.length})`}
+                        items={droppedItems}
+                        onEdit={handleEdit}
+                        onDelete={handleDelete}
+                        emptyMessage=""
+                    />
                 )}
             </div>
 
-            {/* Add/Edit Modal */}
+            {/* Add/Edit Modal - Same as before */}
             {showAddModal && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
                     <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 max-w-md w-full my-8">
