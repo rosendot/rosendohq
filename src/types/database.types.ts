@@ -115,6 +115,53 @@ export type MediaLogInsert = Omit<MediaLog, 'id' | 'created_at'> & {
     created_at?: string;
 };
 
+// Reading Tracker Types
+export type BookStatus = 'planned' | 'reading' | 'finished' | 'on_hold' | 'dropped';
+export type BookFormat = 'physical' | 'ebook' | 'audiobook';
+
+export interface Book {
+    id: string;
+    owner_id: string;
+    title: string;
+    author: string | null;
+    status: BookStatus;
+    started_at: string | null;
+    finished_at: string | null;
+    rating: number | null;
+    current_page: number | null;
+    total_pages: number | null;
+    format: BookFormat | null;
+    notes: string | null;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface ReadingLog {
+    id: string;
+    owner_id: string;
+    book_id: string;
+    log_date: string;
+    pages: number | null;
+    minutes: number | null;
+    note: string | null;
+    created_at: string;
+}
+
+export interface Highlight {
+    id: string;
+    owner_id: string;
+    book_id: string;
+    location: string | null;
+    text: string;
+    created_at: string;
+}
+
+export type BookInsert = Omit<Book, 'id' | 'created_at' | 'updated_at'>;
+export type BookUpdate = Partial<BookInsert>;
+
+export type ReadingLogInsert = Omit<ReadingLog, 'id' | 'created_at'>;
+export type HighlightInsert = Omit<Highlight, 'id' | 'created_at'>;
+
 // Database type (for Supabase type inference)
 export interface Database {
     public: {
@@ -143,6 +190,21 @@ export interface Database {
                 Row: MediaLog;
                 Insert: MediaLogInsert;
                 Update: Partial<MediaLogInsert>;
+            };
+            book: {
+                Row: Book;
+                Insert: BookInsert;
+                Update: BookUpdate;
+            };
+            reading_log: {
+                Row: ReadingLog;
+                Insert: ReadingLogInsert;
+                Update: Partial<ReadingLogInsert>;
+            };
+            highlight: {
+                Row: Highlight;
+                Insert: HighlightInsert;
+                Update: Partial<HighlightInsert>;
             };
         };
     };
