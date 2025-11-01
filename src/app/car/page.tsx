@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Car, Wrench, Calendar, DollarSign, AlertCircle, TrendingUp } from 'lucide-react';
+import { Plus, Car, Wrench, Calendar, DollarSign, TrendingUp } from 'lucide-react';
 
 interface Vehicle {
     id: string;

@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Package, MapPin, Calendar, DollarSign, Search, Filter, Trash2, Edit2 } from 'lucide-react';
+import { Plus, Package, MapPin, DollarSign, Search, Filter, Trash2, Edit2 } from 'lucide-react';
 
 type InventoryItem = {
     id: string;

@@ -35,7 +35,7 @@ export default function UpcomingItems() {
                 if (responses[0].status === 'fulfilled') {
                     const maintenance = responses[0].value;
                     if (Array.isArray(maintenance)) {
-                        maintenance.forEach((m: any) => {
+                        maintenance.forEach((m: { id: string; service_type: string; next_due_date?: string }) => {
                             if (m.next_due_date) {
                                 allItems.push({
                                     id: `car-${m.id}`,
@@ -55,7 +55,7 @@ export default function UpcomingItems() {
                 if (responses[1].status === 'fulfilled') {
                     const tasks = responses[1].value;
                     if (Array.isArray(tasks)) {
-                        tasks.forEach((t: any) => {
+                        tasks.forEach((t: { id: string; title: string; due_date?: string; status?: string; priority?: 'high' | 'medium' | 'low' }) => {
                             if (t.due_date && t.status !== 'completed') {
                                 allItems.push({
                                     id: `house-${t.id}`,
@@ -75,7 +75,7 @@ export default function UpcomingItems() {
                 if (responses[2].status === 'fulfilled') {
                     const trips = responses[2].value;
                     if (Array.isArray(trips)) {
-                        trips.forEach((t: any) => {
+                        trips.forEach((t: { id: string; destination: string; start_date?: string }) => {
                             if (t.start_date && new Date(t.start_date) > new Date()) {
                                 allItems.push({
                                     id: `travel-${t.id}`,

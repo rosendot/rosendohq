@@ -4,10 +4,10 @@ import { supabase } from '@/lib/supabase/client';
 
 export async function GET(
     request: Request,
-    { params }: { params: { listId: string } }
+    { params }: { params: Promise<{ listId: string }> }
 ) {
     try {
-        const { listId } = params;
+        const { listId } = await params;
 
         const { data, error } = await supabase
             .from('shopping_list_item')
@@ -35,10 +35,10 @@ export async function GET(
 
 export async function POST(
     request: Request,
-    { params }: { params: { listId: string } }
+    { params }: { params: Promise<{ listId: string }> }
 ) {
     try {
-        const { listId } = params;
+        const { listId } = await params;
         const body = await request.json();
 
         if (!body.item_name || !body.item_name.trim()) {

@@ -35,7 +35,7 @@ export default function QuickStats() {
                 setStats([
                     {
                         label: 'Active Shopping Lists',
-                        value: Array.isArray(shoppingLists) ? shoppingLists.filter((l: any) => !l.completed).length : 0,
+                        value: Array.isArray(shoppingLists) ? shoppingLists.filter((l: { completed?: boolean }) => !l.completed).length : 0,
                         icon: '🛒',
                         color: 'bg-blue-500',
                     },
@@ -47,7 +47,7 @@ export default function QuickStats() {
                     },
                     {
                         label: 'Active Habits',
-                        value: Array.isArray(habits) ? habits.filter((h: any) => h.active).length : 0,
+                        value: Array.isArray(habits) ? habits.filter((h: { active?: boolean }) => h.active).length : 0,
                         icon: '🎯',
                         color: 'bg-teal-500',
                     },

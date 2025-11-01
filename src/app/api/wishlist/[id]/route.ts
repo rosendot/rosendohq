@@ -4,10 +4,10 @@ import { supabase } from '@/lib/supabase/client';
 // DELETE - Remove a wishlist item
 export async function DELETE(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const { id } = params;
+        const { id } = await params;
 
         // Validate ID format (UUID)
         const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -62,10 +62,10 @@ export async function DELETE(
 // PUT - Update a wishlist item (bonus - included for completeness)
 export async function PUT(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const { id } = params;
+        const { id } = await params;
         const body = await request.json();
 
         // Validate ID format (UUID)
@@ -131,7 +131,7 @@ export async function PUT(
         }
 
         // Prepare update data - only include fields that were provided
-        const updateData: any = {};
+        const updateData: Record<string, unknown> = {};
 
         if (body.title !== undefined) updateData.title = body.title.trim();
         if (body.category !== undefined) updateData.category = body.category?.trim() || null;

@@ -4,13 +4,13 @@ import { supabase } from '@/lib/supabase/client';
 
 export async function PATCH(
     request: Request,
-    { params }: { params: { itemId: string } }
+    { params }: { params: Promise<{ itemId: string }> }
 ) {
     try {
-        const { itemId } = params;
+        const { itemId } = await params;
         const body = await request.json();
 
-        const updateData: Record<string, any> = {};
+        const updateData: Record<string, unknown> = {};
 
         if (body.item_name !== undefined) updateData.item_name = body.item_name.trim();
         if (body.quantity !== undefined) updateData.quantity = body.quantity;
@@ -50,10 +50,10 @@ export async function PATCH(
 
 export async function DELETE(
     request: Request,
-    { params }: { params: { itemId: string } }
+    { params }: { params: Promise<{ itemId: string }> }
 ) {
     try {
-        const { itemId } = params;
+        const { itemId } = await params;
 
         const { error } = await supabase
             .from('shopping_list_item')

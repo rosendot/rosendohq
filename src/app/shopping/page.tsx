@@ -80,7 +80,7 @@ export default function ShoppingPage() {
         }
     };
 
-    const categories = ['all', ...Array.from(new Set(items.map(item => item.category).filter(Boolean)))];
+    const categories = ['all', ...Array.from(new Set(items.map(item => item.category).filter((cat): cat is string => cat !== null)))];
 
     const filteredItems = items.filter(item => {
         const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;

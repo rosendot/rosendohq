@@ -590,7 +590,7 @@ export default function TravelPage() {
 
                         {/* Itinerary Timeline */}
                         <div className="space-y-4">
-                            {getTripItinerary(selectedTrip.id).map((item, index) => (
+                            {getTripItinerary(selectedTrip.id).map((item) => (
                                 <div
                                     key={item.id}
                                     className="bg-gray-900 rounded-xl border border-gray-800 p-6 hover:border-emerald-500/30 transition-all duration-200"

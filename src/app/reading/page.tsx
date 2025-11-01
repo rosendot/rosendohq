@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, BookOpen, Star, Calendar, CheckCircle, Clock, Bookmark, Search, Filter, Trash2, Edit2, TrendingUp } from 'lucide-react';
+import { Plus, BookOpen, Star, CheckCircle, Clock, Bookmark, Search, Filter, Trash2, Edit2 } from 'lucide-react';
 
 type ReadingStatus = 'want-to-read' | 'reading' | 'completed' | 'on-hold' | 'dropped';
 

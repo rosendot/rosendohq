@@ -1,10 +1,10 @@
 // src/app/api/shopping/lists/route.ts
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase/client';
-import type { ShoppingList, ShoppingListInsert } from '@/types/database.types';
+import type { ShoppingListInsert } from '@/types/database.types';
 
 export async function GET() {
-    const { data, error } = await supabase
+    const { data } = await supabase
         .from('shopping_list')
         .select('*');
 
@@ -15,7 +15,7 @@ export async function GET() {
 export async function POST(request: Request) {
     const body: ShoppingListInsert = await request.json();
 
-    const { data, error } = await supabase
+    const { data } = await supabase
         .from('shopping_list')
         .insert([body])
         .select()

@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Film, Tv, Gamepad2, Music, Star, Clock, CheckCircle, Search, Filter, Trash2, Edit2, Calendar } from 'lucide-react';
+import { Plus, Film, Tv, Gamepad2, Music, Star, CheckCircle, Search, Filter, Trash2, Edit2 } from 'lucide-react';
 
 type MediaType = 'movie' | 'tv' | 'game' | 'music';
 type MediaStatus = 'planning' | 'in-progress' | 'completed' | 'on-hold' | 'dropped';
@@ -24,7 +24,7 @@ type MediaItem = {
     imageUrl?: string;
 };
 
-const MEDIA_TYPES: { value: MediaType; label: string; icon: any }[] = [
+const MEDIA_TYPES: { value: MediaType; label: string; icon: typeof Film }[] = [
     { value: 'movie', label: 'Movies', icon: Film },
     { value: 'tv', label: 'TV Shows', icon: Tv },
     { value: 'game', label: 'Games', icon: Gamepad2 },
