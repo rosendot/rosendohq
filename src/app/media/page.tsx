@@ -1,88 +1,27 @@
-// app/media/page.tsx
+// src/app/media/page.tsx
 'use client';
 
-import { useState } from 'react';
-import { Plus, Film, Tv, Gamepad2, Music, Star, CheckCircle, Search, Filter, Trash2, Edit2 } from 'lucide-react';
-
-type MediaType = 'movie' | 'tv' | 'game' | 'music';
-type MediaStatus = 'planning' | 'in-progress' | 'completed' | 'on-hold' | 'dropped';
-
-type MediaItem = {
-    id: string;
-    title: string;
-    type: MediaType;
-    status: MediaStatus;
-    rating?: number;
-    progress?: string;
-    totalEpisodes?: number;
-    currentEpisode?: number;
-    genre?: string;
-    releaseYear?: number;
-    startDate?: string;
-    completedDate?: string;
-    notes?: string;
-    imageUrl?: string;
-};
+import { useState, useEffect } from 'react';
+import { Plus, Film, Tv, Star, Search, Trash2, Edit2 } from 'lucide-react';
+import type { MediaItem, MediaType, MediaStatus } from '@/types/database.types';
 
 const MEDIA_TYPES: { value: MediaType; label: string; icon: typeof Film }[] = [
     { value: 'movie', label: 'Movies', icon: Film },
-    { value: 'tv', label: 'TV Shows', icon: Tv },
-    { value: 'game', label: 'Games', icon: Gamepad2 },
-    { value: 'music', label: 'Music', icon: Music }
+    { value: 'show', label: 'Shows', icon: Tv },
+    { value: 'anime', label: 'Anime', icon: Film },
 ];
 
 const STATUSES: { value: MediaStatus; label: string; color: string }[] = [
-    { value: 'planning', label: 'Plan to Watch', color: 'bg-gray-600' },
-    { value: 'in-progress', label: 'In Progress', color: 'bg-blue-600' },
+    { value: 'planned', label: 'Plan to Watch', color: 'bg-gray-600' },
+    { value: 'watching', label: 'Watching', color: 'bg-blue-600' },
     { value: 'completed', label: 'Completed', color: 'bg-green-600' },
-    { value: 'on-hold', label: 'On Hold', color: 'bg-yellow-600' },
+    { value: 'on_hold', label: 'On Hold', color: 'bg-yellow-600' },
     { value: 'dropped', label: 'Dropped', color: 'bg-red-600' }
 ];
 
-const GENRES = [
-    'Action', 'Adventure', 'Comedy', 'Drama', 'Fantasy', 'Horror',
-    'Mystery', 'Romance', 'Sci-Fi', 'Thriller', 'Documentary', 'Other'
-];
-
 export default function MediaTrackerPage() {
-    const [items, setItems] = useState<MediaItem[]>([
-        {
-            id: '1',
-            title: 'Inception',
-            type: 'movie',
-            status: 'completed',
-            rating: 5,
-            genre: 'Sci-Fi',
-            releaseYear: 2010,
-            completedDate: '2024-09-15',
-            notes: 'Mind-bending masterpiece'
-        },
-        {
-            id: '2',
-            title: 'Breaking Bad',
-            type: 'tv',
-            status: 'in-progress',
-            rating: 5,
-            genre: 'Drama',
-            releaseYear: 2008,
-            totalEpisodes: 62,
-            currentEpisode: 45,
-            startDate: '2024-08-01',
-            notes: 'Season 5 is incredible'
-        },
-        {
-            id: '3',
-            title: 'The Last of Us Part II',
-            type: 'game',
-            status: 'completed',
-            rating: 4,
-            genre: 'Action',
-            releaseYear: 2020,
-            completedDate: '2024-09-01',
-            notes: 'Emotional journey'
-        }
-    ]);
-
+    const [items, setItems] = useState<MediaItem[]>([]);
+    const [loading, setLoading] = useState(true);
     const [showAddModal, setShowAddModal] = useState(false);
     const [editingItem, setEditingItem] = useState<MediaItem | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
@@ -92,57 +31,103 @@ export default function MediaTrackerPage() {
     const [formData, setFormData] = useState({
         title: '',
         type: 'movie' as MediaType,
-        status: 'planning' as MediaStatus,
+        status: 'planned' as MediaStatus,
+        platform: '',
+        current_episode: 0,
+        total_episodes: 0,
         rating: 0,
-        genre: GENRES[0],
-        releaseYear: new Date().getFullYear(),
-        totalEpisodes: 0,
-        currentEpisode: 0,
-        startDate: '',
-        completedDate: '',
         notes: ''
     });
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (editingItem) {
-            setItems(items.map(item =>
-                item.id === editingItem.id
-                    ? { ...item, ...formData }
-                    : item
-            ));
-            setEditingItem(null);
-        } else {
-            const newItem: MediaItem = {
-                id: Date.now().toString(),
-                ...formData,
-                rating: formData.rating || undefined,
-                totalEpisodes: formData.totalEpisodes || undefined,
-                currentEpisode: formData.currentEpisode || undefined,
-                startDate: formData.startDate || undefined,
-                completedDate: formData.completedDate || undefined,
-                notes: formData.notes || undefined
-            };
-            setItems([...items, newItem]);
+    // Fetch media items
+    useEffect(() => {
+        fetchItems();
+    }, [selectedType, selectedStatus]);
+
+    const fetchItems = async () => {
+        try {
+            setLoading(true);
+            const params = new URLSearchParams();
+            if (selectedType !== 'all') params.append('type', selectedType);
+            if (selectedStatus !== 'all') params.append('status', selectedStatus);
+
+            const response = await fetch(`/api/media?${params}`);
+            if (!response.ok) throw new Error('Failed to fetch');
+
+            const data = await response.json();
+            setItems(data);
+        } catch (error) {
+            console.error('Error fetching media:', error);
+        } finally {
+            setLoading(false);
         }
-        setShowAddModal(false);
-        resetForm();
     };
 
-    const resetForm = () => {
-        setFormData({
-            title: '',
-            type: 'movie',
-            status: 'planning',
-            rating: 0,
-            genre: GENRES[0],
-            releaseYear: new Date().getFullYear(),
-            totalEpisodes: 0,
-            currentEpisode: 0,
-            startDate: '',
-            completedDate: '',
-            notes: ''
-        });
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        try {
+            if (editingItem) {
+                // Update existing
+                const response = await fetch(`/api/media/${editingItem.id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        ...formData,
+                        rating: formData.rating || null,
+                        platform: formData.platform || null,
+                        notes: formData.notes || null,
+                        total_episodes: formData.total_episodes || null,
+                        current_episode: formData.current_episode || 0,
+                    }),
+                });
+
+                if (!response.ok) throw new Error('Failed to update');
+
+            } else {
+                // Create new
+                const response = await fetch('/api/media', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        owner_id: 'd5682543-5b15-4bf2-90a3-6a3ddf9dc509', // Your owner_id
+                        ...formData,
+                        rating: formData.rating || null,
+                        platform: formData.platform || null,
+                        notes: formData.notes || null,
+                        total_episodes: formData.total_episodes || null,
+                        current_episode: formData.current_episode || 0,
+                    }),
+                });
+
+                if (!response.ok) throw new Error('Failed to create');
+            }
+
+            setShowAddModal(false);
+            setEditingItem(null);
+            resetForm();
+            fetchItems(); // Refresh list
+        } catch (error) {
+            console.error('Error saving media:', error);
+            alert('Failed to save media item');
+        }
+    };
+
+    const handleDelete = async (id: string) => {
+        if (!confirm('Are you sure you want to delete this item?')) return;
+
+        try {
+            const response = await fetch(`/api/media/${id}`, {
+                method: 'DELETE',
+            });
+
+            if (!response.ok) throw new Error('Failed to delete');
+
+            fetchItems(); // Refresh list
+        } catch (error) {
+            console.error('Error deleting media:', error);
+            alert('Failed to delete media item');
+        }
     };
 
     const handleEdit = (item: MediaItem) => {
@@ -151,30 +136,33 @@ export default function MediaTrackerPage() {
             title: item.title,
             type: item.type,
             status: item.status,
+            platform: item.platform || '',
+            current_episode: item.current_episode || 0,
+            total_episodes: item.total_episodes || 0,
             rating: item.rating || 0,
-            genre: item.genre || GENRES[0],
-            releaseYear: item.releaseYear || new Date().getFullYear(),
-            totalEpisodes: item.totalEpisodes || 0,
-            currentEpisode: item.currentEpisode || 0,
-            startDate: item.startDate || '',
-            completedDate: item.completedDate || '',
             notes: item.notes || ''
         });
         setShowAddModal(true);
     };
 
-    const handleDelete = (id: string) => {
-        if (confirm('Are you sure you want to delete this item?')) {
-            setItems(items.filter(item => item.id !== id));
-        }
+    const resetForm = () => {
+        setFormData({
+            title: '',
+            type: 'movie',
+            status: 'planned',
+            platform: '',
+            current_episode: 0,
+            total_episodes: 0,
+            rating: 0,
+            notes: ''
+        });
     };
 
+    // Filter items client-side by search
     const filteredItems = items.filter(item => {
         const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
             item.notes?.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesType = selectedType === 'all' || item.type === selectedType;
-        const matchesStatus = selectedStatus === 'all' || item.status === selectedStatus;
-        return matchesSearch && matchesType && matchesStatus;
+        return matchesSearch;
     });
 
     const getTypeStats = (type: MediaType) => {
@@ -200,6 +188,14 @@ export default function MediaTrackerPage() {
         return statusObj ? statusObj.label : status;
     };
 
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gray-950 text-white p-8 flex items-center justify-center">
+                <p className="text-gray-400">Loading media...</p>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-gray-950 text-white p-8">
             <div className="max-w-7xl mx-auto">
@@ -207,7 +203,7 @@ export default function MediaTrackerPage() {
                 <div className="flex justify-between items-center mb-8">
                     <div>
                         <h1 className="text-4xl font-bold mb-2">Media Tracker</h1>
-                        <p className="text-gray-400">Track movies, TV shows, games, and music</p>
+                        <p className="text-gray-400">Track anime, shows, and movies</p>
                     </div>
                     <button
                         onClick={() => {
@@ -223,7 +219,7 @@ export default function MediaTrackerPage() {
                 </div>
 
                 {/* Type Stats */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+                <div className="grid grid-cols-3 gap-6 mb-8">
                     {MEDIA_TYPES.map(({ value, label, icon: Icon }) => (
                         <div key={value} className="bg-gray-900 border border-gray-800 rounded-lg p-6">
                             <div className="flex items-center gap-3 mb-2">
@@ -236,163 +232,145 @@ export default function MediaTrackerPage() {
                 </div>
 
                 {/* Status Overview */}
-                <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-6">
-                    <h3 className="text-lg font-semibold mb-4">Status Overview</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                        {STATUSES.map(({ value, label, color }) => (
-                            <div key={value} className="text-center">
-                                <div className={`${color} rounded-lg p-4 mb-2`}>
-                                    <p className="text-2xl font-bold">{getStatusStats(value)}</p>
-                                </div>
-                                <p className="text-sm text-gray-400">{label}</p>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+                    {STATUSES.map(({ value, label, color }) => (
+                        <div key={value} className="bg-gray-900 border border-gray-800 rounded-lg p-4">
+                            <div className="flex items-center gap-2 mb-2">
+                                <div className={`w-3 h-3 rounded-full ${color}`}></div>
+                                <h3 className="text-gray-400 text-xs font-medium">{label}</h3>
                             </div>
-                        ))}
-                    </div>
+                            <p className="text-2xl font-bold">{getStatusStats(value)}</p>
+                        </div>
+                    ))}
                 </div>
 
                 {/* Filters */}
-                <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-6">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                            <label className="flex items-center gap-2 text-sm text-gray-400 mb-2">
-                                <Search className="w-4 h-4" />
-                                Search
-                            </label>
-                            <input
-                                type="text"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                placeholder="Search media..."
-                                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="flex items-center gap-2 text-sm text-gray-400 mb-2">
-                                <Filter className="w-4 h-4" />
-                                Type
-                            </label>
-                            <select
-                                value={selectedType}
-                                onChange={(e) => setSelectedType(e.target.value as MediaType | 'all')}
-                                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            >
-                                <option value="all">All Types</option>
-                                {MEDIA_TYPES.map(({ value, label }) => (
-                                    <option key={value} value={value}>{label}</option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="flex items-center gap-2 text-sm text-gray-400 mb-2">
-                                <CheckCircle className="w-4 h-4" />
-                                Status
-                            </label>
-                            <select
-                                value={selectedStatus}
-                                onChange={(e) => setSelectedStatus(e.target.value as MediaStatus | 'all')}
-                                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            >
-                                <option value="all">All Statuses</option>
-                                {STATUSES.map(({ value, label }) => (
-                                    <option key={value} value={value}>{label}</option>
-                                ))}
-                            </select>
-                        </div>
+                <div className="flex flex-col md:flex-row gap-4 mb-6">
+                    <div className="flex-1 relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <input
+                            type="text"
+                            placeholder="Search media..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full pl-10 pr-4 py-3 bg-gray-900 border border-gray-800 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
+                        />
                     </div>
+                    <select
+                        value={selectedType}
+                        onChange={(e) => setSelectedType(e.target.value as MediaType | 'all')}
+                        className="px-4 py-3 bg-gray-900 border border-gray-800 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                    >
+                        <option value="all">All Types</option>
+                        {MEDIA_TYPES.map(({ value, label }) => (
+                            <option key={value} value={value}>{label}</option>
+                        ))}
+                    </select>
+                    <select
+                        value={selectedStatus}
+                        onChange={(e) => setSelectedStatus(e.target.value as MediaStatus | 'all')}
+                        className="px-4 py-3 bg-gray-900 border border-gray-800 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                    >
+                        <option value="all">All Statuses</option>
+                        {STATUSES.map(({ value, label }) => (
+                            <option key={value} value={value}>{label}</option>
+                        ))}
+                    </select>
                 </div>
 
-                {/* Items Grid */}
+                {/* Media Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredItems.map(item => {
+                    {filteredItems.map((item) => {
                         const Icon = getIcon(item.type);
                         return (
-                            <div key={item.id} className="bg-gray-900 border border-gray-800 rounded-lg p-6 hover:border-gray-700 transition-colors">
-                                <div className="flex justify-between items-start mb-4">
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <Icon className="w-5 h-5 text-blue-400" />
-                                            <span className={`${getStatusColor(item.status)} text-xs px-2 py-1 rounded`}>
-                                                {getStatusLabel(item.status)}
-                                            </span>
-                                        </div>
-                                        <h3 className="text-xl font-semibold mb-1">{item.title}</h3>
-                                        {item.releaseYear && (
-                                            <p className="text-sm text-gray-400">{item.releaseYear}</p>
-                                        )}
+                            <div
+                                key={item.id}
+                                className="bg-gray-900 border border-gray-800 rounded-lg p-6 hover:border-gray-700 transition-colors"
+                            >
+                                <div className="flex items-start justify-between mb-4">
+                                    <div className="flex items-center gap-3">
+                                        <Icon className="w-5 h-5 text-blue-400" />
+                                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(item.status)}`}>
+                                            {getStatusLabel(item.status)}
+                                        </span>
                                     </div>
                                     <div className="flex gap-2">
                                         <button
                                             onClick={() => handleEdit(item)}
-                                            className="p-2 text-gray-400 hover:text-blue-400 hover:bg-gray-800 rounded transition-colors"
+                                            className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
                                         >
-                                            <Edit2 className="w-4 h-4" />
+                                            <Edit2 className="w-4 h-4 text-gray-400" />
                                         </button>
                                         <button
                                             onClick={() => handleDelete(item.id)}
-                                            className="p-2 text-gray-400 hover:text-red-400 hover:bg-gray-800 rounded transition-colors"
+                                            className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
                                         >
-                                            <Trash2 className="w-4 h-4" />
+                                            <Trash2 className="w-4 h-4 text-red-400" />
                                         </button>
                                     </div>
                                 </div>
 
-                                <div className="space-y-2 pt-4 border-t border-gray-800">
-                                    {item.genre && (
-                                        <div className="flex justify-between text-sm">
-                                            <span className="text-gray-400">Genre:</span>
-                                            <span className="font-medium">{item.genre}</span>
-                                        </div>
-                                    )}
+                                <h3 className="text-xl font-bold mb-2">{item.title}</h3>
 
-                                    {item.rating && (
-                                        <div className="flex justify-between text-sm">
-                                            <span className="text-gray-400">Rating:</span>
-                                            <div className="flex items-center gap-1">
-                                                {[...Array(5)].map((_, i) => (
-                                                    <Star
-                                                        key={i}
-                                                        className={`w-4 h-4 ${i < item.rating! ? 'fill-yellow-400 text-yellow-400' : 'text-gray-600'}`}
-                                                    />
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
+                                {item.platform && (
+                                    <p className="text-sm text-gray-400 mb-3">
+                                        📺 {item.platform}
+                                    </p>
+                                )}
 
-                                    {item.type === 'tv' && item.totalEpisodes && (
-                                        <div className="flex justify-between text-sm">
-                                            <span className="text-gray-400">Progress:</span>
+                                {item.rating && (
+                                    <div className="flex items-center gap-1 mb-3">
+                                        {[...Array(5)].map((_, i) => (
+                                            <Star
+                                                key={i}
+                                                className={`w-4 h-4 ${i < item.rating! ? 'fill-yellow-500 text-yellow-500' : 'text-gray-600'}`}
+                                            />
+                                        ))}
+                                    </div>
+                                )}
+
+                                {item.total_episodes && (
+                                    <div className="mb-3">
+                                        <div className="flex justify-between text-sm mb-1">
+                                            <span className="text-gray-400">Progress</span>
                                             <span className="font-medium">
-                                                {item.currentEpisode || 0}/{item.totalEpisodes} episodes
+                                                {item.current_episode || 0} / {item.total_episodes}
                                             </span>
                                         </div>
-                                    )}
-
-                                    {item.startDate && (
-                                        <div className="flex justify-between text-sm">
-                                            <span className="text-gray-400">Started:</span>
-                                            <span className="font-medium">
-                                                {new Date(item.startDate).toLocaleDateString()}
-                                            </span>
+                                        <div className="w-full bg-gray-800 rounded-full h-2">
+                                            <div
+                                                className="bg-blue-600 h-2 rounded-full transition-all"
+                                                style={{
+                                                    width: `${((item.current_episode || 0) / item.total_episodes) * 100}%`
+                                                }}
+                                            ></div>
                                         </div>
-                                    )}
+                                    </div>
+                                )}
 
-                                    {item.completedDate && (
-                                        <div className="flex justify-between text-sm">
-                                            <span className="text-gray-400">Completed:</span>
-                                            <span className="font-medium">
-                                                {new Date(item.completedDate).toLocaleDateString()}
-                                            </span>
-                                        </div>
-                                    )}
+                                {item.started_at && (
+                                    <div className="flex justify-between text-sm mb-2">
+                                        <span className="text-gray-400">Started:</span>
+                                        <span className="font-medium">
+                                            {new Date(item.started_at).toLocaleDateString()}
+                                        </span>
+                                    </div>
+                                )}
 
-                                    {item.notes && (
-                                        <p className="text-sm text-gray-400 pt-2 border-t border-gray-800">
-                                            {item.notes}
-                                        </p>
-                                    )}
-                                </div>
+                                {item.completed_at && (
+                                    <div className="flex justify-between text-sm mb-2">
+                                        <span className="text-gray-400">Completed:</span>
+                                        <span className="font-medium">
+                                            {new Date(item.completed_at).toLocaleDateString()}
+                                        </span>
+                                    </div>
+                                )}
+
+                                {item.notes && (
+                                    <p className="text-sm text-gray-400 pt-3 border-t border-gray-800 mt-3">
+                                        {item.notes}
+                                    </p>
+                                )}
                             </div>
                         );
                     })}
@@ -414,25 +392,26 @@ export default function MediaTrackerPage() {
                         <h2 className="text-2xl font-bold mb-6">
                             {editingItem ? 'Edit Media' : 'Add New Media'}
                         </h2>
+
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div>
-                                <label className="block text-sm text-gray-400 mb-2">Title *</label>
+                                <label className="block text-sm font-medium mb-2">Title *</label>
                                 <input
                                     type="text"
                                     value={formData.title}
                                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
                                     required
                                 />
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm text-gray-400 mb-2">Type *</label>
+                                    <label className="block text-sm font-medium mb-2">Type *</label>
                                     <select
                                         value={formData.type}
                                         onChange={(e) => setFormData({ ...formData, type: e.target.value as MediaType })}
-                                        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
                                     >
                                         {MEDIA_TYPES.map(({ value, label }) => (
                                             <option key={value} value={value}>{label}</option>
@@ -441,11 +420,11 @@ export default function MediaTrackerPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm text-gray-400 mb-2">Status *</label>
+                                    <label className="block text-sm font-medium mb-2">Status *</label>
                                     <select
                                         value={formData.status}
                                         onChange={(e) => setFormData({ ...formData, status: e.target.value as MediaStatus })}
-                                        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
                                     >
                                         {STATUSES.map(({ value, label }) => (
                                             <option key={value} value={value}>{label}</option>
@@ -454,119 +433,77 @@ export default function MediaTrackerPage() {
                                 </div>
                             </div>
 
+                            <div>
+                                <label className="block text-sm font-medium mb-2">Platform</label>
+                                <input
+                                    type="text"
+                                    value={formData.platform}
+                                    onChange={(e) => setFormData({ ...formData, platform: e.target.value })}
+                                    placeholder="Netflix, Crunchyroll, etc."
+                                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                                />
+                            </div>
+
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm text-gray-400 mb-2">Genre</label>
-                                    <select
-                                        value={formData.genre}
-                                        onChange={(e) => setFormData({ ...formData, genre: e.target.value })}
-                                        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    >
-                                        {GENRES.map(genre => (
-                                            <option key={genre} value={genre}>{genre}</option>
-                                        ))}
-                                    </select>
+                                    <label className="block text-sm font-medium mb-2">Current Episode</label>
+                                    <input
+                                        type="number"
+                                        value={formData.current_episode}
+                                        onChange={(e) => setFormData({ ...formData, current_episode: parseInt(e.target.value) || 0 })}
+                                        min="0"
+                                        className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                                    />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm text-gray-400 mb-2">Release Year</label>
+                                    <label className="block text-sm font-medium mb-2">Total Episodes</label>
                                     <input
                                         type="number"
-                                        min="1900"
-                                        max={new Date().getFullYear() + 5}
-                                        value={formData.releaseYear}
-                                        onChange={(e) => setFormData({ ...formData, releaseYear: parseInt(e.target.value) })}
-                                        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        value={formData.total_episodes}
+                                        onChange={(e) => setFormData({ ...formData, total_episodes: parseInt(e.target.value) || 0 })}
+                                        min="0"
+                                        className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
                                     />
                                 </div>
                             </div>
 
                             <div>
-                                <label className="block text-sm text-gray-400 mb-2">Rating (1-5 stars)</label>
+                                <label className="block text-sm font-medium mb-2">Rating</label>
                                 <div className="flex gap-2">
-                                    {[1, 2, 3, 4, 5].map((star) => (
+                                    {[1, 2, 3, 4, 5].map((rating) => (
                                         <button
-                                            key={star}
+                                            key={rating}
                                             type="button"
-                                            onClick={() => setFormData({ ...formData, rating: star })}
+                                            onClick={() => setFormData({ ...formData, rating })}
                                             className="p-2 hover:bg-gray-800 rounded transition-colors"
                                         >
                                             <Star
-                                                className={`w-6 h-6 ${star <= formData.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-600'}`}
+                                                className={`w-6 h-6 ${rating <= formData.rating ? 'fill-yellow-500 text-yellow-500' : 'text-gray-600'}`}
                                             />
                                         </button>
                                     ))}
-                                    {formData.rating > 0 && (
-                                        <button
-                                            type="button"
-                                            onClick={() => setFormData({ ...formData, rating: 0 })}
-                                            className="px-3 py-1 text-sm text-gray-400 hover:text-white"
-                                        >
-                                            Clear
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-
-                            {formData.type === 'tv' && (
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm text-gray-400 mb-2">Total Episodes</label>
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            value={formData.totalEpisodes}
-                                            onChange={(e) => setFormData({ ...formData, totalEpisodes: parseInt(e.target.value) })}
-                                            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm text-gray-400 mb-2">Current Episode</label>
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            value={formData.currentEpisode}
-                                            onChange={(e) => setFormData({ ...formData, currentEpisode: parseInt(e.target.value) })}
-                                            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        />
-                                    </div>
-                                </div>
-                            )}
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm text-gray-400 mb-2">Start Date</label>
-                                    <input
-                                        type="date"
-                                        value={formData.startDate}
-                                        onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                                        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm text-gray-400 mb-2">Completed Date</label>
-                                    <input
-                                        type="date"
-                                        value={formData.completedDate}
-                                        onChange={(e) => setFormData({ ...formData, completedDate: e.target.value })}
-                                        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    />
                                 </div>
                             </div>
 
                             <div>
-                                <label className="block text-sm text-gray-400 mb-2">Notes</label>
+                                <label className="block text-sm font-medium mb-2">Notes</label>
                                 <textarea
                                     value={formData.notes}
                                     onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 h-24 resize-none"
-                                    placeholder="Your thoughts, reviews, etc..."
+                                    rows={3}
+                                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500 resize-none"
+                                    placeholder="Your thoughts, reminders, etc."
                                 />
                             </div>
 
                             <div className="flex gap-3 pt-4">
+                                <button
+                                    type="submit"
+                                    className="flex-1 bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg font-medium transition-colors"
+                                >
+                                    {editingItem ? 'Update' : 'Add Media'}
+                                </button>
                                 <button
                                     type="button"
                                     onClick={() => {
@@ -574,15 +511,9 @@ export default function MediaTrackerPage() {
                                         setEditingItem(null);
                                         resetForm();
                                     }}
-                                    className="flex-1 px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors"
+                                    className="px-6 py-3 bg-gray-800 hover:bg-gray-700 rounded-lg font-medium transition-colors"
                                 >
                                     Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
-                                >
-                                    {editingItem ? 'Update' : 'Add'} Media
                                 </button>
                             </div>
                         </form>

@@ -68,6 +68,53 @@ export type ShoppingListItemInsert = Omit<ShoppingListItem, 'id' | 'created_at'>
 };
 export type ShoppingListItemUpdate = Partial<Omit<ShoppingListItem, 'id' | 'created_at'>>;
 
+// Media types from database enum
+export type MediaType = 'anime' | 'show' | 'movie';
+export type MediaStatus = 'planned' | 'watching' | 'completed' | 'on_hold' | 'dropped';
+
+// Media Item - matches database schema
+export interface MediaItem {
+    id: string;
+    owner_id: string;
+    title: string;
+    type: MediaType;
+    status: MediaStatus;
+    total_episodes: number | null;
+    notes: string | null;
+    platform: string | null;
+    current_episode: number | null;
+    rating: number | null; // 1-5
+    started_at: string | null;
+    completed_at: string | null;
+    created_at: string;
+    updated_at: string;
+}
+
+// Media Log - matches database schema
+export interface MediaLog {
+    id: string;
+    owner_id: string;
+    media_item_id: string;
+    log_date: string;
+    progress: number;
+    note: string | null;
+    created_at: string;
+}
+
+// Insert and Update types
+export type MediaItemInsert = Omit<MediaItem, 'id' | 'created_at' | 'updated_at'> & {
+    id?: string;
+    created_at?: string;
+    updated_at?: string;
+};
+
+export type MediaItemUpdate = Partial<Omit<MediaItem, 'id' | 'owner_id' | 'created_at'>>;
+
+export type MediaLogInsert = Omit<MediaLog, 'id' | 'created_at'> & {
+    id?: string;
+    created_at?: string;
+};
+
 // Database type (for Supabase type inference)
 export interface Database {
     public: {
@@ -86,6 +133,16 @@ export interface Database {
                 Row: ShoppingListItem;
                 Insert: ShoppingListItemInsert;
                 Update: ShoppingListItemUpdate;
+            };
+            media_item: {
+                Row: MediaItem;
+                Insert: MediaItemInsert;
+                Update: MediaItemUpdate;
+            };
+            media_log: {
+                Row: MediaLog;
+                Insert: MediaLogInsert;
+                Update: Partial<MediaLogInsert>;
             };
         };
     };
