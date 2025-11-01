@@ -104,7 +104,7 @@
 
 ---
 
-### 🟢 Shopping Lists — **UI Complete, Backend Pending**
+### 🟡 Shopping Lists — **Backend In Progress**
 
 **Frontend Status:** ✅ Complete (`/shopping`)
 * List sidebar with item counts
@@ -114,10 +114,12 @@
 * Mark items as done
 * Priority indicators
 
-**Backend Needed:**
-* [ ] API routes for shopping lists CRUD
-* [ ] API routes for shopping items CRUD
-* [ ] Supabase client integration
+**Backend Status:** 🔨 In Progress
+* [x] API routes for shopping lists CRUD
+* [x] API routes for shopping items CRUD
+* [x] Supabase client integration
+* [x] Fixed TypeScript/ESLint errors
+* [x] Updated for Next.js 15 async params
 * [ ] CSV import endpoint
 * [ ] CSV export endpoint
 
@@ -125,9 +127,15 @@
 * Tables: `shopping_list`, `shopping_list_item`
 * Views: `v_shopping_open_items`
 
+**Live Data:**
+* **3 Shopping Lists Created:**
+  - Grocery List (with 45+ items across Meat, Supplements, Dairy, Pantry, Spices categories)
+  - Household Supplies (with 15 cleaning/household items)
+  - Personal Care (with 16 toiletry/personal care items)
+
 ---
 
-### 🟢 Wishlist — **UI Complete, Backend Pending**
+### 🟡 Wishlist — **Backend In Progress**
 
 **Frontend Status:** ✅ Complete (`/wishlist`)
 * Grid view of wishlist items
@@ -137,15 +145,23 @@
 * Search functionality
 * Purchase tracking
 
-**Backend Needed:**
-* [ ] API routes for wishlist items CRUD
-* [ ] Supabase client integration
+**Backend Status:** 🔨 In Progress
+* [x] API routes for wishlist items CRUD
+* [x] Supabase client integration
+* [x] Fixed TypeScript/ESLint errors
+* [x] Updated for Next.js 15 async params
 * [ ] CSV import endpoint
 * [ ] CSV export endpoint
 
 **Database:** ✅ Complete
 * Tables: `wishlist_item`
 * Views: `v_wishlist_active`
+
+**Live Data:**
+* **3 Wishlist Items Added:**
+  - Pulsefire® LRT Flamethrower ($629.99)
+  - Leviathan Axe - Ragnarok Kratos Axe ($556.00)
+  - BAUER 20V Brushless Cordless Circular Saw ($89.99)
 
 ---
 
@@ -371,29 +387,62 @@
 
 ---
 
+## Recent Progress (November 2025)
+
+### Build & Deployment Fixes ✅
+* Fixed all TypeScript compilation errors
+* Resolved ESLint warnings (no-explicit-any, unused variables)
+* Updated API routes for Next.js 15 async params pattern
+* Fixed database type definitions (removed duplicate interfaces)
+* Successfully deployed to Vercel with clean build
+
+### Shopping Lists Module 🔨
+* Created 3 active shopping lists with real data
+* 60+ shopping items added across categories
+* API routes fully functional and deployed
+* Categories: Meat, Dairy, Supplements, Pantry, Spices, Personal Care, Household Supplies
+
+### Wishlist Module 🔨
+* Added 3 wishlist items with full product details
+* Price tracking and vendor information configured
+* API routes functional with proper error handling
+
+---
+
 ## Next Steps - Priority Order
 
-### 🔴 **Phase 1: Core Backend Integration** (Pick one module to start)
+### 🔴 **Phase 1: Complete Current Modules**
 
-Choose your most-used module to start with. Recommended order based on utility:
+**Immediate Next Steps:**
+1. **Test Shopping & Wishlist in Production**
+   - [ ] Verify all CRUD operations work on deployed site
+   - [ ] Test adding/editing/deleting items through UI
+   - [ ] Validate data persistence
 
-1. **Finance** - Track daily expenses and income
-2. **Habits** - Daily tracking and streak building
-3. **Shopping** - Immediate practical use
-4. **Notes** - Quick capture and reference
-5. **Media/Reading** - Entertainment tracking
-6. Rest of modules as needed
+2. **Add Missing Features to Shopping/Wishlist**
+   - [ ] CSV import endpoint
+   - [ ] CSV export endpoint
+   - [ ] Image upload for wishlist items (optional)
 
-**For each module:**
-* [ ] Create API routes (`/api/[module]/route.ts`)
-* [ ] Set up Supabase client integration
-* [ ] Replace mock data with real database queries
-* [ ] Test CRUD operations
-* [ ] Verify data persistence
+### 🟡 **Phase 2: Next Module - Habits or Finance**
 
-### 🟡 **Phase 2: Import/Export Framework**
+Choose based on immediate need:
 
-Once you have a few modules working with real data:
+**Option A: Habits** (for daily tracking)
+* [ ] Create API routes for habits CRUD
+* [ ] Create API routes for habit logs CRUD
+* [ ] Implement streak calculation logic
+* [ ] Connect frontend to backend
+
+**Option B: Finance** (for expense tracking)
+* [ ] Create API routes for accounts CRUD
+* [ ] Create API routes for transactions CRUD
+* [ ] Implement balance calculations
+* [ ] Connect frontend to backend
+
+### 🟢 **Phase 3: Import/Export Framework**
+
+Once you have 2-3 modules with real data:
 
 * [ ] Build CSV upload component
 * [ ] Create column mapping interface
@@ -404,7 +453,7 @@ Once you have a few modules working with real data:
 * [ ] Add CSV export for each module
 * [ ] Create "Export All" functionality (JSON zip)
 
-### 🟢 **Phase 3: Dashboard & Cross-Module Features**
+### 💎 **Phase 4: Dashboard & Cross-Module Features**
 
 After most modules are functional:
 
@@ -415,35 +464,17 @@ After most modules are functional:
 * [ ] Create global search across modules
 * [ ] Build calendar view (optional)
 
-### 💎 **Phase 4: Polish & Quality of Life**
-
-Enhance as you use the site:
-
-* [ ] Add pagination to long lists
-* [ ] Implement loading states
-* [ ] Add toast notifications
-* [ ] Create confirmation modals
-* [ ] Improve mobile responsiveness
-* [ ] Add keyboard shortcuts (optional)
-* [ ] Performance optimization as needed
-
 ---
 
 ## Development Workflow
 
 Since this is a personal project with no timeline pressure:
 
-1. **Pick a module** you want to use most
-2. **Build the backend** for that module (API routes + Supabase integration)
-3. **Test it thoroughly** with real data
+1. **Pick a module** you want to use most ✅ (Started with Shopping & Wishlist)
+2. **Build the backend** for that module (API routes + Supabase integration) ✅
+3. **Test it thoroughly** with real data ⏳ (In Progress)
 4. **Use it daily** to find bugs and improvements
 5. **Repeat** for the next module when ready
-
-**Recommended Starting Module:**
-* **Finance** if you want to track money immediately
-* **Habits** if you want daily tracking and streaks
-* **Shopping** if you need practical list management
-* **Notes** if you want quick note capture
 
 ---
 
@@ -514,16 +545,18 @@ Since this is a personal project with no timeline pressure:
 
 ### Getting Started Today
 
-1. **Choose your first module** based on what you need most
-2. **Create the API routes** in `/api/[module]/route.ts`
-3. **Set up Supabase client** in the API routes
-4. **Replace mock data** in the frontend with API calls
-5. **Test with real data** and iterate
+1. **Choose your first module** based on what you need most ✅
+2. **Create the API routes** in `/api/[module]/route.ts` ✅
+3. **Set up Supabase client** in the API routes ✅
+4. **Replace mock data** in the frontend with API calls ✅
+5. **Test with real data** and iterate ⏳
 
-### Example: Starting with Finance
-```typescript
-// 1. Create /api/finance/accounts/route.ts
-// 2. Add GET, POST, PUT, DELETE handlers
-// 3. Connect to Supabase
-// 4. Update /finance/page.tsx to fetch real data
-// 5. Start tracking your actual expenses!
+### Current Focus: Testing & Using Shopping/Wishlist
+
+Now that Shopping Lists and Wishlist are live with real data:
+1. Use them daily to track your actual shopping needs
+2. Add/edit/delete items through the UI to test all features
+3. Note any bugs or missing features
+4. Refine before moving to the next module
+
+**Next Module Recommendation:** Habits or Finance based on immediate utility
