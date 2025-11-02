@@ -147,20 +147,10 @@ export interface ReadingLog {
     created_at: string;
 }
 
-export interface Highlight {
-    id: string;
-    owner_id: string;
-    book_id: string;
-    location: string | null;
-    text: string;
-    created_at: string;
-}
-
 export type BookInsert = Omit<Book, 'id' | 'created_at' | 'updated_at'>;
 export type BookUpdate = Partial<Omit<Book, 'id' | 'owner_id' | 'created_at'>>;
 
 export type ReadingLogInsert = Omit<ReadingLog, 'id' | 'created_at'>;
-export type HighlightInsert = Omit<Highlight, 'id' | 'created_at'>;
 
 export type VehicleStatus = 'active' | 'sold' | 'traded' | 'totaled';
 export type FuelType = 'regular' | 'premium' | 'diesel' | 'electric';
@@ -318,11 +308,6 @@ export interface Database {
                 Row: ReadingLog;
                 Insert: ReadingLogInsert;
                 Update: Partial<ReadingLogInsert>;
-            };
-            highlight: {
-                Row: Highlight;
-                Insert: HighlightInsert;
-                Update: Partial<HighlightInsert>;
             };
             vehicle: {
                 Row: Vehicle;
