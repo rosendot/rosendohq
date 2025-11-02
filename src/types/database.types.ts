@@ -162,6 +162,124 @@ export type BookUpdate = Partial<Omit<Book, 'id' | 'owner_id' | 'created_at'>>;
 export type ReadingLogInsert = Omit<ReadingLog, 'id' | 'created_at'>;
 export type HighlightInsert = Omit<Highlight, 'id' | 'created_at'>;
 
+export type VehicleStatus = 'active' | 'sold' | 'traded' | 'totaled';
+export type FuelType = 'regular' | 'premium' | 'diesel' | 'electric';
+export type MaintenancePriority = 'critical' | 'recommended' | 'optional';
+
+export interface Vehicle {
+    id: string;
+    owner_id: string;
+    make: string | null;
+    model: string | null;
+    year: number | null;
+    vin: string | null;
+    nickname: string | null;
+    license_plate: string | null;
+    color: string | null;
+    purchase_date: string | null;
+    purchase_price_cents: number | null;
+    purchase_mileage: number | null;
+    status: VehicleStatus;
+    insurance_provider: string | null;
+    insurance_policy_number: string | null;
+    insurance_renewal_date: string | null;
+    insurance_premium_cents: number | null;
+    created_at: string;
+}
+
+export interface OdometerLog {
+    id: string;
+    owner_id: string;
+    vehicle_id: string;
+    log_date: string;
+    mileage: number;
+    note: string | null;
+    created_at: string;
+}
+
+export interface FuelLog {
+    id: string;
+    owner_id: string;
+    vehicle_id: string;
+    fill_date: string;
+    odometer: number | null;
+    gallons: number | null;
+    total_cents: number | null;
+    fuel_type: FuelType | null;
+    is_full_tank: boolean;
+    station_name: string | null;
+    price_per_gallon_cents: number | null;
+    trip_miles: number | null;
+    mpg: number | null;
+    created_at: string;
+}
+
+export interface MaintenanceTemplate {
+    id: string;
+    owner_id: string;
+    name: string;
+    interval_miles: number | null;
+    interval_months: number | null;
+    priority: MaintenancePriority;
+    category: string | null;
+    estimated_cost_cents: number | null;
+    notes: string | null;
+    created_at: string;
+}
+
+export interface MaintenanceRecord {
+    id: string;
+    owner_id: string;
+    vehicle_id: string;
+    template_id: string | null;
+    item: string;
+    service_date: string;
+    mileage: number | null;
+    cost_cents: number | null;
+    vendor: string | null;
+    notes: string | null;
+    warranty_work: boolean;
+    receipt_file_id: string | null;
+    next_due_date: string | null;
+    next_due_mileage: number | null;
+    parts_cost_cents: number | null;
+    labor_cost_cents: number | null;
+    is_diy: boolean;
+    created_at: string;
+}
+
+// Insert types for Car Tracker
+export type VehicleInsert = Omit<Vehicle, 'id' | 'created_at'> & {
+    id?: string;
+    created_at?: string;
+};
+
+export type VehicleUpdate = Partial<Omit<Vehicle, 'id' | 'owner_id' | 'created_at'>>;
+
+export type OdometerLogInsert = Omit<OdometerLog, 'id' | 'owner_id' | 'created_at'> & {
+    id?: string;
+    created_at?: string;
+};
+
+export type FuelLogInsert = Omit<FuelLog, 'id' | 'owner_id' | 'created_at'> & {
+    id?: string;
+    created_at?: string;
+};
+
+export type MaintenanceTemplateInsert = Omit<MaintenanceTemplate, 'id' | 'owner_id' | 'created_at'> & {
+    id?: string;
+    created_at?: string;
+};
+
+export type MaintenanceTemplateUpdate = Partial<Omit<MaintenanceTemplate, 'id' | 'owner_id' | 'created_at'>>;
+
+export type MaintenanceRecordInsert = Omit<MaintenanceRecord, 'id' | 'owner_id' | 'created_at'> & {
+    id?: string;
+    created_at?: string;
+};
+
+export type MaintenanceRecordUpdate = Partial<Omit<MaintenanceRecord, 'id' | 'owner_id' | 'created_at'>>;
+
 // Database type (for Supabase type inference)
 export interface Database {
     public: {
@@ -205,6 +323,31 @@ export interface Database {
                 Row: Highlight;
                 Insert: HighlightInsert;
                 Update: Partial<HighlightInsert>;
+            };
+            vehicle: {
+                Row: Vehicle;
+                Insert: VehicleInsert;
+                Update: VehicleUpdate;
+            };
+            odometer_log: {
+                Row: OdometerLog;
+                Insert: OdometerLogInsert;
+                Update: Partial<OdometerLogInsert>;
+            };
+            fuel_log: {
+                Row: FuelLog;
+                Insert: FuelLogInsert;
+                Update: Partial<FuelLogInsert>;
+            };
+            maintenance_template: {
+                Row: MaintenanceTemplate;
+                Insert: MaintenanceTemplateInsert;
+                Update: MaintenanceTemplateUpdate;
+            };
+            maintenance_record: {
+                Row: MaintenanceRecord;
+                Insert: MaintenanceRecordInsert;
+                Update: MaintenanceRecordUpdate;
             };
         };
     };
