@@ -7,7 +7,7 @@ import type { ShoppingList, ShoppingListItem } from '@/types/database.types';
 
 export default function ShoppingPage() {
     const [lists, setLists] = useState<ShoppingList[]>([]);
-    const [items, setItems] = useState<ShoppingListItem[]>([]);
+    const [allItems, setAllItems] = useState<Record<string, ShoppingListItem[]>>({});
     const [selectedListId, setSelectedListId] = useState<string>('');
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -25,50 +25,68 @@ export default function ShoppingPage() {
         needed_by: ''
     });
 
-    // Fetch shopping lists
-    async function fetchLists() {
-        try {
-            const response = await fetch('/api/shopping/lists');
-            if (!response.ok) throw new Error('Failed to fetch lists');
-            const data = await response.json();
-            setLists(data);
-            if (data.length > 0 && !selectedListId) {
-                setSelectedListId(data[0].id);
-            }
-        } catch (err) {
-            console.error('Fetch lists error:', err);
-            setError(err instanceof Error ? err.message : 'Failed to load lists');
-        }
-    }
-
-    // Fetch items for selected list
-    async function fetchItems() {
-        if (!selectedListId) return;
-
+    // Fetch all shopping lists and their items in parallel on mount
+    async function fetchAllData() {
         try {
             setLoading(true);
-            const response = await fetch(`/api/shopping/lists/${selectedListId}/items`);
-            if (!response.ok) throw new Error('Failed to fetch items');
-            const data = await response.json();
-            setItems(data);
+
+            // First, fetch all lists
+            const listsResponse = await fetch('/api/shopping/lists');
+            if (!listsResponse.ok) throw new Error('Failed to fetch lists');
+            const listsData = await listsResponse.json();
+            setLists(listsData);
+
+            // Then, fetch items for all lists in parallel
+            const itemsPromises = listsData.map(async (list: ShoppingList) => {
+                const response = await fetch(`/api/shopping/lists/${list.id}/items`);
+                if (!response.ok) throw new Error(`Failed to fetch items for list ${list.id}`);
+                const items = await response.json();
+                return { listId: list.id, items };
+            });
+
+            const itemsResults = await Promise.all(itemsPromises);
+
+            // Build the items map
+            const itemsMap: Record<string, ShoppingListItem[]> = {};
+            itemsResults.forEach(({ listId, items }) => {
+                itemsMap[listId] = items;
+            });
+
+            setAllItems(itemsMap);
+
+            // Set the first list as selected if none is selected
+            if (listsData.length > 0 && !selectedListId) {
+                setSelectedListId(listsData[0].id);
+            }
+
             setError(null);
         } catch (err) {
-            console.error('Fetch items error:', err);
-            setError(err instanceof Error ? err.message : 'Failed to load items');
+            console.error('Fetch data error:', err);
+            setError(err instanceof Error ? err.message : 'Failed to load data');
         } finally {
             setLoading(false);
         }
     }
 
-    useEffect(() => {
-        fetchLists();
-    }, []);
+    // Refresh items for a specific list
+    async function refreshListItems(listId: string) {
+        try {
+            const response = await fetch(`/api/shopping/lists/${listId}/items`);
+            if (!response.ok) throw new Error('Failed to fetch items');
+            const items = await response.json();
+            setAllItems(prev => ({ ...prev, [listId]: items }));
+        } catch (err) {
+            console.error('Refresh items error:', err);
+            setError(err instanceof Error ? err.message : 'Failed to refresh items');
+        }
+    }
 
     useEffect(() => {
-        if (selectedListId) {
-            fetchItems();
-        }
-    }, [selectedListId]);
+        fetchAllData();
+    }, []);
+
+    // Get items for the currently selected list
+    const items = selectedListId ? (allItems[selectedListId] || []) : [];
 
     // Toggle item done status
     const toggleItemDone = async (itemId: string, currentStatus: boolean) => {
@@ -84,7 +102,9 @@ export default function ShoppingPage() {
 
             if (!response.ok) throw new Error('Failed to update item');
 
-            fetchItems();
+            if (selectedListId) {
+                await refreshListItems(selectedListId);
+            }
         } catch (err) {
             console.error('Error toggling item:', err);
             alert(err instanceof Error ? err.message : 'Failed to update item');
@@ -129,7 +149,9 @@ export default function ShoppingPage() {
                 needed_by: ''
             });
             setShowAddModal(false);
-            fetchItems();
+
+            // Refresh items for this list
+            await refreshListItems(selectedListId);
         } catch (err) {
             console.error('Error adding item:', err);
             alert(err instanceof Error ? err.message : 'Failed to add item');
@@ -149,7 +171,9 @@ export default function ShoppingPage() {
 
             if (!response.ok) throw new Error('Failed to delete item');
 
-            fetchItems();
+            if (selectedListId) {
+                await refreshListItems(selectedListId);
+            }
         } catch (err) {
             console.error('Error deleting item:', err);
             alert(err instanceof Error ? err.message : 'Failed to delete item');
@@ -175,7 +199,7 @@ export default function ShoppingPage() {
         highPriority: items.filter(i => i.priority === 1 && !i.is_done).length,
     };
 
-    if (loading && items.length === 0) {
+    if (loading) {
         return (
             <div className="min-h-screen bg-gray-950 text-gray-100 flex items-center justify-center">
                 <div className="text-center">
