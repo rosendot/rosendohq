@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Search, ShoppingCart, CheckCircle2, Circle, Tag, Calendar, AlertCircle, Trash2 } from 'lucide-react';
+import { Plus, Search, ShoppingCart, CheckCircle2, Circle, Tag, Calendar, AlertCircle, Trash2, Check, X } from 'lucide-react';
 import type { ShoppingList, ShoppingListItem } from '@/types/database.types';
 
 export default function ShoppingPage() {
@@ -14,6 +14,7 @@ export default function ShoppingPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [showAddModal, setShowAddModal] = useState(false);
+    const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
     const [newItem, setNewItem] = useState({
         item_name: '',
         quantity: '',
@@ -84,6 +85,11 @@ export default function ShoppingPage() {
     useEffect(() => {
         fetchAllData();
     }, []);
+
+    // Clear selection when switching lists
+    useEffect(() => {
+        setSelectedItems(new Set());
+    }, [selectedListId]);
 
     // Get items for the currently selected list
     const items = selectedListId ? (allItems[selectedListId] || []) : [];
@@ -180,6 +186,147 @@ export default function ShoppingPage() {
         }
     };
 
+    // Toggle item selection
+    const toggleItemSelection = (itemId: string) => {
+        setSelectedItems(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(itemId)) {
+                newSet.delete(itemId);
+            } else {
+                newSet.add(itemId);
+            }
+            return newSet;
+        });
+    };
+
+    // Toggle select all active items
+    const toggleSelectAllActive = () => {
+        const allActiveIds = new Set(activeItems.map(item => item.id));
+        const allActiveSelected = activeItems.every(item => selectedItems.has(item.id));
+
+        if (allActiveSelected && activeItems.length > 0) {
+            // Unselect all active items
+            const newSelection = new Set(selectedItems);
+            allActiveIds.forEach(id => newSelection.delete(id));
+            setSelectedItems(newSelection);
+        } else {
+            // Select all active items (merge with existing selection)
+            setSelectedItems(new Set([...selectedItems, ...allActiveIds]));
+        }
+    };
+
+    // Toggle select all completed items
+    const toggleSelectAllCompleted = () => {
+        const allCompletedIds = new Set(completedItems.map(item => item.id));
+        const allCompletedSelected = completedItems.every(item => selectedItems.has(item.id));
+
+        if (allCompletedSelected && completedItems.length > 0) {
+            // Unselect all completed items
+            const newSelection = new Set(selectedItems);
+            allCompletedIds.forEach(id => newSelection.delete(id));
+            setSelectedItems(newSelection);
+        } else {
+            // Select all completed items (merge with existing selection)
+            setSelectedItems(new Set([...selectedItems, ...allCompletedIds]));
+        }
+    };
+
+    // Clear selection
+    const clearSelection = () => {
+        setSelectedItems(new Set());
+    };
+
+    // Bulk complete selected items
+    const bulkCompleteItems = async () => {
+        if (selectedItems.size === 0) return;
+
+        try {
+            const response = await fetch('/api/shopping/items/bulk', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    itemIds: Array.from(selectedItems),
+                    updates: {
+                        is_done: true,
+                        last_purchased_at: new Date().toISOString()
+                    }
+                }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to complete items');
+            }
+
+            clearSelection();
+            if (selectedListId) {
+                await refreshListItems(selectedListId);
+            }
+        } catch (err) {
+            console.error('Error completing items:', err);
+            alert(err instanceof Error ? err.message : 'Failed to complete items');
+        }
+    };
+
+    // Bulk uncomplete selected items
+    const bulkUncompleteItems = async () => {
+        if (selectedItems.size === 0) return;
+
+        try {
+            const response = await fetch('/api/shopping/items/bulk', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    itemIds: Array.from(selectedItems),
+                    updates: {
+                        is_done: false
+                    }
+                }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to uncomplete items');
+            }
+
+            clearSelection();
+            if (selectedListId) {
+                await refreshListItems(selectedListId);
+            }
+        } catch (err) {
+            console.error('Error uncompleting items:', err);
+            alert(err instanceof Error ? err.message : 'Failed to uncomplete items');
+        }
+    };
+
+    // Bulk delete selected items
+    const bulkDeleteItems = async () => {
+        if (selectedItems.size === 0) return;
+
+        try {
+            const response = await fetch('/api/shopping/items/bulk', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    itemIds: Array.from(selectedItems)
+                }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to delete items');
+            }
+
+            clearSelection();
+            if (selectedListId) {
+                await refreshListItems(selectedListId);
+            }
+        } catch (err) {
+            console.error('Error deleting items:', err);
+            alert(err instanceof Error ? err.message : 'Failed to delete items');
+        }
+    };
+
     const categories = ['all', ...Array.from(new Set(items.map(item => item.category).filter((cat): cat is string => cat !== null)))];
 
     const filteredItems = items.filter(item => {
@@ -191,6 +338,14 @@ export default function ShoppingPage() {
 
     const activeItems = filteredItems.filter(i => !i.is_done);
     const completedItems = filteredItems.filter(i => i.is_done);
+
+    // Determine if selected items are from active or completed section
+    const selectedActiveCount = Array.from(selectedItems).filter(id =>
+        activeItems.some(item => item.id === id)
+    ).length;
+    const selectedCompletedCount = Array.from(selectedItems).filter(id =>
+        completedItems.some(item => item.id === id)
+    ).length;
 
     const stats = {
         total: items.length,
@@ -352,17 +507,79 @@ export default function ShoppingPage() {
                             </div>
                         </div>
 
+                        {/* Bulk Actions Toolbar */}
+                        {selectedItems.size > 0 && (
+                            <div className="bg-blue-600 rounded-lg p-4 mb-6 flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <span className="text-white font-medium">
+                                        {selectedItems.size} item{selectedItems.size > 1 ? 's' : ''} selected
+                                    </span>
+                                    <button
+                                        onClick={clearSelection}
+                                        className="text-blue-200 hover:text-white transition-colors text-sm"
+                                    >
+                                        Clear
+                                    </button>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    {selectedActiveCount > 0 && (
+                                        <button
+                                            onClick={bulkCompleteItems}
+                                            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                                        >
+                                            <Check className="w-4 h-4" />
+                                            Mark Complete
+                                        </button>
+                                    )}
+                                    {selectedCompletedCount > 0 && (
+                                        <button
+                                            onClick={bulkUncompleteItems}
+                                            className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                                        >
+                                            <X className="w-4 h-4" />
+                                            Mark Incomplete
+                                        </button>
+                                    )}
+                                    <button
+                                        onClick={bulkDeleteItems}
+                                        className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                        Delete
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
                         {/* Active Items */}
                         {activeItems.length > 0 && (
                             <div className="mb-6">
-                                <h3 className="text-lg font-semibold text-white mb-4">To Buy ({activeItems.length})</h3>
+                                <div className="flex items-center justify-between mb-4">
+                                    <h3 className="text-lg font-semibold text-white">To Buy ({activeItems.length})</h3>
+                                    {activeItems.length > 0 && (
+                                        <button
+                                            onClick={toggleSelectAllActive}
+                                            className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                                        >
+                                            {activeItems.every(item => selectedItems.has(item.id)) ? 'Unselect All' : 'Select All'}
+                                        </button>
+                                    )}
+                                </div>
                                 <div className="space-y-3">
                                     {activeItems.map((item) => (
                                         <div
                                             key={item.id}
-                                            className="bg-gray-900 rounded-lg border border-gray-800 p-4 hover:border-gray-700 transition-all"
+                                            className={`bg-gray-900 rounded-lg border p-4 hover:border-gray-700 transition-all ${
+                                                selectedItems.has(item.id) ? 'border-blue-500' : 'border-gray-800'
+                                            }`}
                                         >
                                             <div className="flex items-start gap-4">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedItems.has(item.id)}
+                                                    onChange={() => toggleItemSelection(item.id)}
+                                                    className="mt-2 w-4 h-4 rounded border-gray-700 bg-gray-800 text-blue-600 focus:ring-blue-500 focus:ring-offset-gray-900"
+                                                />
                                                 <button
                                                     onClick={() => toggleItemDone(item.id, item.is_done)}
                                                     className="mt-1 flex-shrink-0"
@@ -430,14 +647,32 @@ export default function ShoppingPage() {
                         {/* Completed Items */}
                         {completedItems.length > 0 && (
                             <div>
-                                <h3 className="text-lg font-semibold text-white mb-4">Completed ({completedItems.length})</h3>
+                                <div className="flex items-center justify-between mb-4">
+                                    <h3 className="text-lg font-semibold text-white">Completed ({completedItems.length})</h3>
+                                    {completedItems.length > 0 && (
+                                        <button
+                                            onClick={toggleSelectAllCompleted}
+                                            className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                                        >
+                                            {completedItems.every(item => selectedItems.has(item.id)) ? 'Unselect All' : 'Select All'}
+                                        </button>
+                                    )}
+                                </div>
                                 <div className="space-y-3">
                                     {completedItems.map((item) => (
                                         <div
                                             key={item.id}
-                                            className="bg-gray-900 rounded-lg border border-gray-800 p-4 opacity-60 hover:opacity-100 transition-all"
+                                            className={`bg-gray-900 rounded-lg border p-4 opacity-60 hover:opacity-100 transition-all ${
+                                                selectedItems.has(item.id) ? 'border-blue-500 opacity-100' : 'border-gray-800'
+                                            }`}
                                         >
                                             <div className="flex items-start gap-4">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedItems.has(item.id)}
+                                                    onChange={() => toggleItemSelection(item.id)}
+                                                    className="mt-2 w-4 h-4 rounded border-gray-700 bg-gray-800 text-blue-600 focus:ring-blue-500 focus:ring-offset-gray-900"
+                                                />
                                                 <button
                                                     onClick={() => toggleItemDone(item.id, item.is_done)}
                                                     className="mt-1 flex-shrink-0"

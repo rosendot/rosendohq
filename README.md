@@ -46,7 +46,8 @@
 * ✅ Add items with full details (quantity, unit, category, aisle, priority, notes, needed-by date)
 * ✅ Mark items as purchased/completed with automatic timestamp
 * ✅ Delete items with confirmation
-* ✅ Active/completed item sections
+* ✅ Bulk operations: select multiple items to complete or delete at once
+* ✅ Active/completed item sections with "Select All" buttons
 * ✅ Search across item names and notes
 * ✅ Category filtering
 * ✅ Priority indicators (1-3 with color coding)
@@ -62,10 +63,10 @@
 * Parallel data fetching for fast initial load
 * Client-side list switching with no API calls
 * Selective refresh only on item modifications
+* Bulk operations use single API calls (not per-item loops)
 
 **Remaining:**
 * [ ] Edit existing items
-* [ ] Bulk operations (mark all as done, delete completed)
 * [ ] CSV import/export
 
 ---
