@@ -17,6 +17,12 @@ export default function ShoppingPage() {
     const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
     const [isSelectionMode, setIsSelectionMode] = useState(false);
     const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
+    const [deleteConfirmation, setDeleteConfirmation] = useState<{
+        show: boolean;
+        itemId: string | null;
+        itemName: string;
+        isBulk: boolean;
+    }>({ show: false, itemId: null, itemName: '', isBulk: false });
     const [newItem, setNewItem] = useState({
         item_name: '',
         quantity: '',
@@ -174,12 +180,28 @@ export default function ShoppingPage() {
         }
     };
 
-    // Delete item
-    const handleDeleteItem = async (itemId: string, itemName: string) => {
-        if (!confirm(`Are you sure you want to delete "${itemName}"?`)) {
-            return;
-        }
+    // Show delete confirmation
+    const showDeleteConfirmation = (itemId: string, itemName: string) => {
+        setDeleteConfirmation({
+            show: true,
+            itemId,
+            itemName,
+            isBulk: false
+        });
+    };
 
+    // Show bulk delete confirmation
+    const showBulkDeleteConfirmation = () => {
+        setDeleteConfirmation({
+            show: true,
+            itemId: null,
+            itemName: '',
+            isBulk: true
+        });
+    };
+
+    // Delete item
+    const handleDeleteItem = async (itemId: string) => {
         try {
             const response = await fetch(`/api/shopping/items/${itemId}`, {
                 method: 'DELETE',
@@ -190,6 +212,8 @@ export default function ShoppingPage() {
             if (selectedListId) {
                 await refreshListItems(selectedListId);
             }
+
+            setDeleteConfirmation({ show: false, itemId: null, itemName: '', isBulk: false });
         } catch (err) {
             console.error('Error deleting item:', err);
             alert(err instanceof Error ? err.message : 'Failed to delete item');
@@ -355,10 +379,26 @@ export default function ShoppingPage() {
             if (selectedListId) {
                 await refreshListItems(selectedListId);
             }
+
+            setDeleteConfirmation({ show: false, itemId: null, itemName: '', isBulk: false });
         } catch (err) {
             console.error('Error deleting items:', err);
             alert(err instanceof Error ? err.message : 'Failed to delete items');
         }
+    };
+
+    // Confirm delete action
+    const confirmDelete = () => {
+        if (deleteConfirmation.isBulk) {
+            bulkDeleteItems();
+        } else if (deleteConfirmation.itemId) {
+            handleDeleteItem(deleteConfirmation.itemId);
+        }
+    };
+
+    // Cancel delete action
+    const cancelDelete = () => {
+        setDeleteConfirmation({ show: false, itemId: null, itemName: '', isBulk: false });
     };
 
     const categories = ['all', ...Array.from(new Set(items.map(item => item.category).filter((cat): cat is string => cat !== null)))];
@@ -575,7 +615,7 @@ export default function ShoppingPage() {
                                         </button>
                                     )}
                                     <button
-                                        onClick={bulkDeleteItems}
+                                        onClick={showBulkDeleteConfirmation}
                                         className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
                                     >
                                         <Trash2 className="w-4 h-4" />
@@ -679,7 +719,7 @@ export default function ShoppingPage() {
                                                                 <button
                                                                     onClick={(e) => {
                                                                         e.stopPropagation();
-                                                                        handleDeleteItem(item.id, item.item_name);
+                                                                        showDeleteConfirmation(item.id, item.item_name);
                                                                     }}
                                                                     className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                                                                     title="Delete item"
@@ -762,7 +802,7 @@ export default function ShoppingPage() {
                                                             <button
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
-                                                                    handleDeleteItem(item.id, item.item_name);
+                                                                    showDeleteConfirmation(item.id, item.item_name);
                                                                 }}
                                                                 className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                                                                 title="Delete item"
@@ -793,6 +833,42 @@ export default function ShoppingPage() {
                         )}
                     </div>
                 </div>
+
+                {/* Delete Confirmation Modal */}
+                {deleteConfirmation.show && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                        <div className="bg-gray-900 rounded-lg border border-gray-800 p-6 max-w-md w-full">
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="p-3 bg-red-500/10 rounded-lg">
+                                    <Trash2 className="w-6 h-6 text-red-400" />
+                                </div>
+                                <h2 className="text-xl font-bold text-white">Confirm Delete</h2>
+                            </div>
+
+                            <p className="text-gray-300 mb-6">
+                                {deleteConfirmation.isBulk
+                                    ? `Are you sure you want to delete ${selectedItems.size} item${selectedItems.size > 1 ? 's' : ''}? This action cannot be undone.`
+                                    : `Are you sure you want to delete "${deleteConfirmation.itemName}"? This action cannot be undone.`
+                                }
+                            </p>
+
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={cancelDelete}
+                                    className="flex-1 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={confirmDelete}
+                                    className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
+                                >
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Add Item Modal */}
                 {showAddModal && (
