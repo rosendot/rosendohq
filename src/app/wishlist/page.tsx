@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { Plus, Search, Heart, Star, ExternalLink, Tag, DollarSign, Calendar, Store, Shirt, Palette, Edit } from 'lucide-react';
 import AddItemModal from '@/app/wishlist/AddItemModal';
 import EditItemModal from '@/app/wishlist/EditItemModal';
+import DeleteConfirmationModal from '@/components/DeleteConfirmationModal';
 
 // Database-aligned types
 type WishlistStatus = 'wanted' | 'considering' | 'on_hold' | 'purchased' | 'declined';
@@ -49,6 +50,11 @@ export default function WishlistPage() {
     const [showAddModal, setShowAddModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [editingItem, setEditingItem] = useState<WishlistItem | null>(null);
+    const [deleteConfirmation, setDeleteConfirmation] = useState<{
+        show: boolean;
+        itemId: string | null;
+        itemTitle: string;
+    }>({ show: false, itemId: null, itemTitle: '' });
 
     // Fetch function
     async function fetchItems() {
@@ -87,13 +93,21 @@ export default function WishlistPage() {
         fetchItems(); // Refresh the list
     };
 
-    const handleDelete = async (itemId: string, itemTitle: string) => {
-        if (!confirm(`Are you sure you want to delete "${itemTitle}"?`)) {
-            return;
-        }
+    // Show delete confirmation
+    const showDeleteConfirmation = (itemId: string, itemTitle: string) => {
+        setDeleteConfirmation({
+            show: true,
+            itemId,
+            itemTitle
+        });
+    };
+
+    // Confirm and execute delete
+    const handleDelete = async () => {
+        if (!deleteConfirmation.itemId) return;
 
         try {
-            const response = await fetch(`/api/wishlist/${itemId}`, {
+            const response = await fetch(`/api/wishlist/${deleteConfirmation.itemId}`, {
                 method: 'DELETE',
             });
 
@@ -102,12 +116,18 @@ export default function WishlistPage() {
                 throw new Error(errorData.error || 'Failed to delete item');
             }
 
-            // Refresh the list
+            // Close modal and refresh the list
+            setDeleteConfirmation({ show: false, itemId: null, itemTitle: '' });
             fetchItems();
         } catch (err) {
             console.error('Error deleting item:', err);
             alert(err instanceof Error ? err.message : 'Failed to delete item');
         }
+    };
+
+    // Cancel delete
+    const cancelDelete = () => {
+        setDeleteConfirmation({ show: false, itemId: null, itemTitle: '' });
     };
 
     const categories = ['all', ...Array.from(new Set(items.map(item => item.category).filter(Boolean)))];
@@ -354,7 +374,7 @@ export default function WishlistPage() {
                                                 <Edit className="w-4 h-4" />
                                             </button>
                                             <button
-                                                onClick={() => handleDelete(item.id, item.title)}
+                                                onClick={() => showDeleteConfirmation(item.id, item.title)}
                                                 className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                                                 title="Delete item"
                                             >
@@ -477,6 +497,13 @@ export default function WishlistPage() {
                         setEditingItem(null);
                     }}
                     onSuccess={handleEditSuccess}
+                />
+
+                <DeleteConfirmationModal
+                    isOpen={deleteConfirmation.show}
+                    onClose={cancelDelete}
+                    onConfirm={handleDelete}
+                    itemName={deleteConfirmation.itemTitle}
                 />
             </div>
         </div >

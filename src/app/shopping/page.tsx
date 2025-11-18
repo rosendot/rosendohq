@@ -4,6 +4,8 @@
 import { useState, useEffect } from 'react';
 import { Plus, Search, ShoppingCart, CheckCircle2, Circle, Tag, Calendar, AlertCircle, Trash2, Check, X } from 'lucide-react';
 import type { ShoppingList, ShoppingListItem } from '@/types/database.types';
+import DeleteConfirmationModal from '@/components/DeleteConfirmationModal';
+import AddShoppingItemModal from '@/app/shopping/AddShoppingItemModal';
 
 export default function ShoppingPage() {
     const [lists, setLists] = useState<ShoppingList[]>([]);
@@ -23,16 +25,6 @@ export default function ShoppingPage() {
         itemName: string;
         isBulk: boolean;
     }>({ show: false, itemId: null, itemName: '', isBulk: false });
-    const [newItem, setNewItem] = useState({
-        item_name: '',
-        quantity: '',
-        unit: '',
-        category: '',
-        priority: '',
-        notes: '',
-        aisle: '',
-        needed_by: ''
-    });
 
     // Fetch all shopping lists and their items in parallel on mount
     async function fetchAllData() {
@@ -133,50 +125,10 @@ export default function ShoppingPage() {
         }
     };
 
-    // Add new item
-    const handleAddItem = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!selectedListId || !newItem.item_name.trim()) {
-            alert('Please select a list and enter an item name');
-            return;
-        }
-
-        try {
-            const response = await fetch(`/api/shopping/lists/${selectedListId}/items`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    item_name: newItem.item_name,
-                    quantity: newItem.quantity ? parseFloat(newItem.quantity) : null,
-                    unit: newItem.unit || null,
-                    category: newItem.category || null,
-                    priority: newItem.priority ? parseInt(newItem.priority) : null,
-                    notes: newItem.notes || null,
-                    aisle: newItem.aisle || null,
-                    needed_by: newItem.needed_by || null,
-                }),
-            });
-
-            if (!response.ok) throw new Error('Failed to add item');
-
-            // Reset form and close modal
-            setNewItem({
-                item_name: '',
-                quantity: '',
-                unit: '',
-                category: '',
-                priority: '',
-                notes: '',
-                aisle: '',
-                needed_by: ''
-            });
-            setShowAddModal(false);
-
-            // Refresh items for this list
-            await refreshListItems(selectedListId);
-        } catch (err) {
-            console.error('Error adding item:', err);
-            alert(err instanceof Error ? err.message : 'Failed to add item');
+    // Handle add item success
+    const handleAddSuccess = () => {
+        if (selectedListId) {
+            refreshListItems(selectedListId);
         }
     };
 
@@ -835,197 +787,21 @@ export default function ShoppingPage() {
                 </div>
 
                 {/* Delete Confirmation Modal */}
-                {deleteConfirmation.show && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-                        <div className="bg-gray-900 rounded-lg border border-gray-800 p-6 max-w-md w-full">
-                            <div className="flex items-center gap-3 mb-4">
-                                <div className="p-3 bg-red-500/10 rounded-lg">
-                                    <Trash2 className="w-6 h-6 text-red-400" />
-                                </div>
-                                <h2 className="text-xl font-bold text-white">Confirm Delete</h2>
-                            </div>
-
-                            <p className="text-gray-300 mb-6">
-                                {deleteConfirmation.isBulk
-                                    ? `Are you sure you want to delete ${selectedItems.size} item${selectedItems.size > 1 ? 's' : ''}? This action cannot be undone.`
-                                    : `Are you sure you want to delete "${deleteConfirmation.itemName}"? This action cannot be undone.`
-                                }
-                            </p>
-
-                            <div className="flex gap-3">
-                                <button
-                                    onClick={cancelDelete}
-                                    className="flex-1 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={confirmDelete}
-                                    className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
-                                >
-                                    Delete
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
+                <DeleteConfirmationModal
+                    isOpen={deleteConfirmation.show}
+                    onClose={cancelDelete}
+                    onConfirm={confirmDelete}
+                    itemName={deleteConfirmation.itemName}
+                    itemCount={deleteConfirmation.isBulk ? selectedItems.size : undefined}
+                />
 
                 {/* Add Item Modal */}
-                {showAddModal && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-                        <div className="bg-gray-900 rounded-lg border border-gray-800 p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                            <h2 className="text-2xl font-bold text-white mb-6">Add Shopping Item</h2>
-                            <form onSubmit={handleAddItem}>
-                                <div className="space-y-4">
-                                    {/* Item Name */}
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-300 mb-2">
-                                            Item Name *
-                                        </label>
-                                        <input
-                                            type="text"
-                                            required
-                                            value={newItem.item_name}
-                                            onChange={(e) => setNewItem({ ...newItem, item_name: e.target.value })}
-                                            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            placeholder="e.g., Milk, Bread, Eggs"
-                                        />
-                                    </div>
-
-                                    {/* Quantity and Unit */}
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-300 mb-2">
-                                                Quantity
-                                            </label>
-                                            <input
-                                                type="number"
-                                                step="0.01"
-                                                value={newItem.quantity}
-                                                onChange={(e) => setNewItem({ ...newItem, quantity: e.target.value })}
-                                                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                placeholder="e.g., 2"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-300 mb-2">
-                                                Unit
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={newItem.unit}
-                                                onChange={(e) => setNewItem({ ...newItem, unit: e.target.value })}
-                                                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                placeholder="e.g., lbs, pcs, bottles"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    {/* Category and Aisle */}
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-300 mb-2">
-                                                Category
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={newItem.category}
-                                                onChange={(e) => setNewItem({ ...newItem, category: e.target.value })}
-                                                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                placeholder="e.g., Dairy, Produce"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-300 mb-2">
-                                                Aisle
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={newItem.aisle}
-                                                onChange={(e) => setNewItem({ ...newItem, aisle: e.target.value })}
-                                                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                placeholder="e.g., Aisle 5"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    {/* Priority and Needed By */}
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-300 mb-2">
-                                                Priority
-                                            </label>
-                                            <select
-                                                value={newItem.priority}
-                                                onChange={(e) => setNewItem({ ...newItem, priority: e.target.value })}
-                                                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            >
-                                                <option value="">None</option>
-                                                <option value="1">1 - High</option>
-                                                <option value="2">2 - Medium</option>
-                                                <option value="3">3 - Low</option>
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-300 mb-2">
-                                                Needed By
-                                            </label>
-                                            <input
-                                                type="date"
-                                                value={newItem.needed_by}
-                                                onChange={(e) => setNewItem({ ...newItem, needed_by: e.target.value })}
-                                                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    {/* Notes */}
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-300 mb-2">
-                                            Notes
-                                        </label>
-                                        <textarea
-                                            value={newItem.notes}
-                                            onChange={(e) => setNewItem({ ...newItem, notes: e.target.value })}
-                                            rows={3}
-                                            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            placeholder="Any additional details..."
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* Modal Actions */}
-                                <div className="flex gap-3 mt-6">
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setShowAddModal(false);
-                                            setNewItem({
-                                                item_name: '',
-                                                quantity: '',
-                                                unit: '',
-                                                category: '',
-                                                priority: '',
-                                                notes: '',
-                                                aisle: '',
-                                                needed_by: ''
-                                            });
-                                        }}
-                                        className="flex-1 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors"
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
-                                    >
-                                        Add Item
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                )}
+                <AddShoppingItemModal
+                    isOpen={showAddModal}
+                    onClose={() => setShowAddModal(false)}
+                    onSuccess={handleAddSuccess}
+                    listId={selectedListId}
+                />
             </div>
         </div>
     );
