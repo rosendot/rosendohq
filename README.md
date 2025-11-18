@@ -42,14 +42,30 @@
 **Status:** Fully functional with real data
 
 **Features:**
-* List management with item counts
-* Active/completed item sections
-* Search, filter, and priority indicators
-* Quick stats dashboard
+* ✅ Multiple list management with sidebar navigation
+* ✅ Add items with full details (quantity, unit, category, aisle, priority, notes, needed-by date)
+* ✅ Mark items as purchased/completed with automatic timestamp
+* ✅ Delete items with confirmation
+* ✅ Active/completed item sections
+* ✅ Search across item names and notes
+* ✅ Category filtering
+* ✅ Priority indicators (1-3 with color coding)
+* ✅ Quick stats dashboard (total, active, completed, high priority)
+* ✅ Optimized loading: all lists and items fetched in parallel on mount
+* ✅ Instant list switching (no API calls)
 
 **Live Data:** 2 lists, 87 items
 
+**Database:** `shopping_list`, `shopping_list_item`
+
+**Performance:**
+* Parallel data fetching for fast initial load
+* Client-side list switching with no API calls
+* Selective refresh only on item modifications
+
 **Remaining:**
+* [ ] Edit existing items
+* [ ] Bulk operations (mark all as done, delete completed)
 * [ ] CSV import/export
 
 ---
@@ -65,6 +81,8 @@
 * Search functionality
 
 **Live Data:** 3 items with pricing
+
+**Database:** `wishlist_item`
 
 **Remaining:**
 * [ ] CSV import/export
