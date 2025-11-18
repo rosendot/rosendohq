@@ -4,6 +4,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Plus, Film, Tv, Star, Search, Trash2, Edit2, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { MediaItem, MediaType, MediaStatus } from '@/types/database.types';
+import DeleteConfirmationModal from '@/components/DeleteConfirmationModal';
 
 const MEDIA_TYPES: { value: MediaType; label: string; icon: typeof Film }[] = [
     { value: 'movie', label: 'Movies', icon: Film },
@@ -30,7 +31,7 @@ function MediaCarousel({
     title: string;
     items: MediaItem[];
     onEdit: (item: MediaItem) => void;
-    onDelete: (id: string) => void;
+    onDelete: (id: string, title: string) => void;
     emptyMessage: string;
 }) {
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -128,7 +129,7 @@ function MediaCard({
 }: {
     item: MediaItem;
     onEdit: (item: MediaItem) => void;
-    onDelete: (id: string) => void;
+    onDelete: (id: string, title: string) => void;
 }) {
     const Icon = item.type === 'movie' ? Film : Tv;
     const statusObj = STATUSES.find(s => s.value === item.status);
@@ -152,7 +153,7 @@ function MediaCard({
                             <Edit2 className="w-3.5 h-3.5 text-gray-400" />
                         </button>
                         <button
-                            onClick={() => onDelete(item.id)}
+                            onClick={() => onDelete(item.id, item.title)}
                             className="p-1.5 hover:bg-gray-800 rounded transition-colors"
                         >
                             <Trash2 className="w-3.5 h-3.5 text-red-400" />
@@ -253,6 +254,11 @@ export default function MediaTrackerPage() {
     const [showAddModal, setShowAddModal] = useState(false);
     const [editingItem, setEditingItem] = useState<MediaItem | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
+    const [deleteConfirmation, setDeleteConfirmation] = useState<{
+        show: boolean;
+        itemId: string | null;
+        itemTitle: string;
+    }>({ show: false, itemId: null, itemTitle: '' });
 
     const [formData, setFormData] = useState({
         title: '',
@@ -304,6 +310,12 @@ export default function MediaTrackerPage() {
 
                 if (!response.ok) throw new Error('Failed to update');
 
+                const updatedItem = await response.json();
+
+                // Update locally instead of refetching
+                setItems(prevItems =>
+                    prevItems.map(item => item.id === updatedItem.id ? updatedItem : item)
+                );
             } else {
                 const response = await fetch('/api/media', {
                     method: 'POST',
@@ -320,33 +332,58 @@ export default function MediaTrackerPage() {
                 });
 
                 if (!response.ok) throw new Error('Failed to create');
+
+                const newItem = await response.json();
+
+                // Add locally instead of refetching
+                setItems(prevItems => [newItem, ...prevItems]);
             }
 
             setShowAddModal(false);
             setEditingItem(null);
             resetForm();
-            fetchItems();
         } catch (error) {
             console.error('Error saving media:', error);
             alert('Failed to save media item');
         }
     };
 
-    const handleDelete = async (id: string) => {
-        if (!confirm('Are you sure you want to delete this item?')) return;
+    // Show delete confirmation
+    const showDeleteConfirmation = (itemId: string, itemTitle: string) => {
+        setDeleteConfirmation({
+            show: true,
+            itemId,
+            itemTitle
+        });
+    };
+
+    // Confirm and execute delete
+    const confirmDelete = async () => {
+        if (!deleteConfirmation.itemId) return;
+
+        const itemIdToDelete = deleteConfirmation.itemId;
 
         try {
-            const response = await fetch(`/api/media/${id}`, {
+            const response = await fetch(`/api/media/${itemIdToDelete}`, {
                 method: 'DELETE',
             });
 
             if (!response.ok) throw new Error('Failed to delete');
 
-            fetchItems();
+            // Remove item locally without refetching
+            setItems(prevItems => prevItems.filter(item => item.id !== itemIdToDelete));
+
+            // Close modal
+            setDeleteConfirmation({ show: false, itemId: null, itemTitle: '' });
         } catch (error) {
             console.error('Error deleting media:', error);
             alert('Failed to delete media item');
         }
+    };
+
+    // Cancel delete
+    const cancelDelete = () => {
+        setDeleteConfirmation({ show: false, itemId: null, itemTitle: '' });
     };
 
     const handleEdit = (item: MediaItem) => {
@@ -462,7 +499,7 @@ export default function MediaTrackerPage() {
                     title={`Continue Watching (${watchingItems.length})`}
                     items={watchingItems}
                     onEdit={handleEdit}
-                    onDelete={handleDelete}
+                    onDelete={showDeleteConfirmation}
                     emptyMessage="No media currently watching. Start something from your plan to watch list!"
                 />
 
@@ -470,7 +507,7 @@ export default function MediaTrackerPage() {
                     title={`Plan to Watch (${plannedItems.length})`}
                     items={plannedItems}
                     onEdit={handleEdit}
-                    onDelete={handleDelete}
+                    onDelete={showDeleteConfirmation}
                     emptyMessage="Your plan to watch list is empty. Add some media to get started!"
                 />
 
@@ -478,7 +515,7 @@ export default function MediaTrackerPage() {
                     title={`Completed (${completedItems.length})`}
                     items={completedItems}
                     onEdit={handleEdit}
-                    onDelete={handleDelete}
+                    onDelete={showDeleteConfirmation}
                     emptyMessage="No completed media yet. Finish watching something!"
                 />
 
@@ -487,7 +524,7 @@ export default function MediaTrackerPage() {
                         title={`On Hold (${onHoldItems.length})`}
                         items={onHoldItems}
                         onEdit={handleEdit}
-                        onDelete={handleDelete}
+                        onDelete={showDeleteConfirmation}
                         emptyMessage=""
                     />
                 )}
@@ -497,7 +534,7 @@ export default function MediaTrackerPage() {
                         title={`Dropped (${droppedItems.length})`}
                         items={droppedItems}
                         onEdit={handleEdit}
-                        onDelete={handleDelete}
+                        onDelete={showDeleteConfirmation}
                         emptyMessage=""
                     />
                 )}
@@ -638,6 +675,14 @@ export default function MediaTrackerPage() {
                     </div>
                 </div>
             )}
+
+            {/* Delete Confirmation Modal */}
+            <DeleteConfirmationModal
+                isOpen={deleteConfirmation.show}
+                onClose={cancelDelete}
+                onConfirm={confirmDelete}
+                itemName={deleteConfirmation.itemTitle}
+            />
         </div>
     );
 }
