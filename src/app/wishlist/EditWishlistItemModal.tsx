@@ -29,7 +29,7 @@ interface EditItemModalProps {
     isOpen: boolean;
     item: WishlistItem | null;
     onClose: () => void;
-    onSuccess: () => void;
+    onSuccess: (updatedItem: WishlistItem) => void;
 }
 
 const STATUSES: { value: WishlistStatus; label: string }[] = [
@@ -142,8 +142,10 @@ export default function EditItemModal({ isOpen, item, onClose, onSuccess }: Edit
                 throw new Error(errorData.error || 'Failed to update item');
             }
 
+            const updatedItem = await response.json();
+
             // Success!
-            onSuccess();
+            onSuccess(updatedItem);
             onClose();
         } catch (err) {
             console.error('Error updating item:', err);

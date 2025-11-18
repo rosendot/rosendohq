@@ -6,10 +6,29 @@ import { X, Plus, Loader2 } from 'lucide-react';
 
 type WishlistStatus = 'wanted' | 'considering' | 'on_hold' | 'purchased' | 'declined';
 
+interface WishlistItem {
+    id: string;
+    title: string;
+    category?: string;
+    status: WishlistStatus;
+    url?: string;
+    notes?: string;
+    priority?: number;
+    price_cents?: number;
+    currency?: string;
+    image_url?: string;
+    purchased_at?: string;
+    vendor?: string;
+    brand?: string;
+    color?: string;
+    size?: string;
+    created_at: string;
+}
+
 interface AddItemModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSuccess: () => void;
+    onSuccess: (newItem: WishlistItem) => void;
 }
 
 const STATUSES: { value: WishlistStatus; label: string }[] = [
@@ -114,9 +133,11 @@ export default function AddItemModal({ isOpen, onClose, onSuccess }: AddItemModa
                 throw new Error(errorData.error || 'Failed to add item');
             }
 
+            const newItem = await response.json();
+
             // Success!
             resetForm();
-            onSuccess();
+            onSuccess(newItem);
             onClose();
         } catch (err) {
             console.error('Error adding item:', err);

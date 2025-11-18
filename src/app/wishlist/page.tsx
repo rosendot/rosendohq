@@ -77,9 +77,9 @@ export default function WishlistPage() {
         fetchItems();
     }, []);
 
-    // Add success handler
-    const handleAddSuccess = () => {
-        fetchItems(); // Refresh the list
+    // Add success handler - add item locally without refetching
+    const handleAddSuccess = (newItem: WishlistItem) => {
+        setItems(prevItems => [newItem, ...prevItems]);
     };
 
     // Add edit handler
@@ -88,9 +88,11 @@ export default function WishlistPage() {
         setShowEditModal(true);
     };
 
-    // Add edit success handler
-    const handleEditSuccess = () => {
-        fetchItems(); // Refresh the list
+    // Add edit success handler - update item locally without refetching
+    const handleEditSuccess = (updatedItem: WishlistItem) => {
+        setItems(prevItems =>
+            prevItems.map(item => item.id === updatedItem.id ? updatedItem : item)
+        );
     };
 
     // Show delete confirmation
@@ -106,8 +108,10 @@ export default function WishlistPage() {
     const handleDelete = async () => {
         if (!deleteConfirmation.itemId) return;
 
+        const itemIdToDelete = deleteConfirmation.itemId;
+
         try {
-            const response = await fetch(`/api/wishlist/${deleteConfirmation.itemId}`, {
+            const response = await fetch(`/api/wishlist/${itemIdToDelete}`, {
                 method: 'DELETE',
             });
 
@@ -116,9 +120,11 @@ export default function WishlistPage() {
                 throw new Error(errorData.error || 'Failed to delete item');
             }
 
-            // Close modal and refresh the list
+            // Remove item locally without refetching
+            setItems(prevItems => prevItems.filter(item => item.id !== itemIdToDelete));
+
+            // Close modal
             setDeleteConfirmation({ show: false, itemId: null, itemTitle: '' });
-            fetchItems();
         } catch (err) {
             console.error('Error deleting item:', err);
             alert(err instanceof Error ? err.message : 'Failed to delete item');
