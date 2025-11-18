@@ -15,6 +15,8 @@ export default function ShoppingPage() {
     const [error, setError] = useState<string | null>(null);
     const [showAddModal, setShowAddModal] = useState(false);
     const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+    const [isSelectionMode, setIsSelectionMode] = useState(false);
+    const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
     const [newItem, setNewItem] = useState({
         item_name: '',
         quantity: '',
@@ -89,7 +91,15 @@ export default function ShoppingPage() {
     // Clear selection when switching lists
     useEffect(() => {
         setSelectedItems(new Set());
+        setIsSelectionMode(false);
     }, [selectedListId]);
+
+    // Exit selection mode when no items are selected
+    useEffect(() => {
+        if (selectedItems.size === 0 && isSelectionMode) {
+            setIsSelectionMode(false);
+        }
+    }, [selectedItems, isSelectionMode]);
 
     // Get items for the currently selected list
     const items = selectedListId ? (allItems[selectedListId] || []) : [];
@@ -234,6 +244,30 @@ export default function ShoppingPage() {
     // Clear selection
     const clearSelection = () => {
         setSelectedItems(new Set());
+        setIsSelectionMode(false);
+    };
+
+    // Long press handlers to enter selection mode
+    const handleLongPressStart = (itemId: string) => {
+        const timer = setTimeout(() => {
+            setIsSelectionMode(true);
+            setSelectedItems(new Set([itemId]));
+        }, 500); // 500ms long press
+        setLongPressTimer(timer);
+    };
+
+    const handleLongPressEnd = () => {
+        if (longPressTimer) {
+            clearTimeout(longPressTimer);
+            setLongPressTimer(null);
+        }
+    };
+
+    // Handle item tap based on mode
+    const handleItemTap = (itemId: string) => {
+        if (isSelectionMode) {
+            toggleItemSelection(itemId);
+        }
     };
 
     // Bulk complete selected items
@@ -556,7 +590,7 @@ export default function ShoppingPage() {
                             <div className="mb-6">
                                 <div className="flex items-center justify-between mb-4">
                                     <h3 className="text-lg font-semibold text-white">To Buy ({activeItems.length})</h3>
-                                    {activeItems.length > 0 && (
+                                    {isSelectionMode && activeItems.length > 0 && (
                                         <button
                                             onClick={toggleSelectAllActive}
                                             className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
@@ -569,23 +603,37 @@ export default function ShoppingPage() {
                                     {activeItems.map((item) => (
                                         <div
                                             key={item.id}
-                                            className={`bg-gray-900 rounded-lg border p-4 hover:border-gray-700 transition-all ${
-                                                selectedItems.has(item.id) ? 'border-blue-500' : 'border-gray-800'
+                                            className={`bg-gray-900 rounded-lg border p-4 transition-all ${
+                                                selectedItems.has(item.id) ? 'border-blue-500 bg-blue-500/10' : 'border-gray-800'
                                             }`}
+                                            onTouchStart={() => handleLongPressStart(item.id)}
+                                            onTouchEnd={handleLongPressEnd}
+                                            onMouseDown={() => handleLongPressStart(item.id)}
+                                            onMouseUp={handleLongPressEnd}
+                                            onMouseLeave={handleLongPressEnd}
+                                            onClick={() => handleItemTap(item.id)}
                                         >
                                             <div className="flex items-start gap-4">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={selectedItems.has(item.id)}
-                                                    onChange={() => toggleItemSelection(item.id)}
-                                                    className="mt-2 w-4 h-4 rounded border-gray-700 bg-gray-800 text-blue-600 focus:ring-blue-500 focus:ring-offset-gray-900"
-                                                />
-                                                <button
-                                                    onClick={() => toggleItemDone(item.id, item.is_done)}
-                                                    className="mt-1 flex-shrink-0"
-                                                >
-                                                    <Circle className="w-6 h-6 text-gray-400 hover:text-blue-400 transition-colors" />
-                                                </button>
+                                                {isSelectionMode && (
+                                                    <div className="mt-1 flex-shrink-0 w-6 h-6 flex items-center justify-center">
+                                                        {selectedItems.has(item.id) ? (
+                                                            <CheckCircle2 className="w-6 h-6 text-blue-400" />
+                                                        ) : (
+                                                            <Circle className="w-6 h-6 text-gray-600" />
+                                                        )}
+                                                    </div>
+                                                )}
+                                                {!isSelectionMode && (
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            toggleItemDone(item.id, item.is_done);
+                                                        }}
+                                                        className="mt-1 flex-shrink-0"
+                                                    >
+                                                        <Circle className="w-6 h-6 text-gray-400 hover:text-blue-400 transition-colors" />
+                                                    </button>
+                                                )}
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex items-start justify-between gap-4">
                                                         <div className="flex-1">
@@ -627,13 +675,18 @@ export default function ShoppingPage() {
                                                                     {new Date(item.needed_by).toLocaleDateString()}
                                                                 </div>
                                                             )}
-                                                            <button
-                                                                onClick={() => handleDeleteItem(item.id, item.item_name)}
-                                                                className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-                                                                title="Delete item"
-                                                            >
-                                                                <Trash2 className="w-4 h-4" />
-                                                            </button>
+                                                            {!isSelectionMode && (
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handleDeleteItem(item.id, item.item_name);
+                                                                    }}
+                                                                    className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                                                                    title="Delete item"
+                                                                >
+                                                                    <Trash2 className="w-4 h-4" />
+                                                                </button>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -649,7 +702,7 @@ export default function ShoppingPage() {
                             <div>
                                 <div className="flex items-center justify-between mb-4">
                                     <h3 className="text-lg font-semibold text-white">Completed ({completedItems.length})</h3>
-                                    {completedItems.length > 0 && (
+                                    {isSelectionMode && completedItems.length > 0 && (
                                         <button
                                             onClick={toggleSelectAllCompleted}
                                             className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
@@ -662,23 +715,39 @@ export default function ShoppingPage() {
                                     {completedItems.map((item) => (
                                         <div
                                             key={item.id}
-                                            className={`bg-gray-900 rounded-lg border p-4 opacity-60 hover:opacity-100 transition-all ${
-                                                selectedItems.has(item.id) ? 'border-blue-500 opacity-100' : 'border-gray-800'
+                                            className={`bg-gray-900 rounded-lg border p-4 transition-all ${
+                                                selectedItems.has(item.id)
+                                                    ? 'border-blue-500 bg-blue-500/10 opacity-100'
+                                                    : 'border-gray-800 opacity-60 hover:opacity-100'
                                             }`}
+                                            onTouchStart={() => handleLongPressStart(item.id)}
+                                            onTouchEnd={handleLongPressEnd}
+                                            onMouseDown={() => handleLongPressStart(item.id)}
+                                            onMouseUp={handleLongPressEnd}
+                                            onMouseLeave={handleLongPressEnd}
+                                            onClick={() => handleItemTap(item.id)}
                                         >
                                             <div className="flex items-start gap-4">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={selectedItems.has(item.id)}
-                                                    onChange={() => toggleItemSelection(item.id)}
-                                                    className="mt-2 w-4 h-4 rounded border-gray-700 bg-gray-800 text-blue-600 focus:ring-blue-500 focus:ring-offset-gray-900"
-                                                />
-                                                <button
-                                                    onClick={() => toggleItemDone(item.id, item.is_done)}
-                                                    className="mt-1 flex-shrink-0"
-                                                >
-                                                    <CheckCircle2 className="w-6 h-6 text-green-400 hover:text-gray-400 transition-colors" />
-                                                </button>
+                                                {isSelectionMode && (
+                                                    <div className="mt-1 flex-shrink-0 w-6 h-6 flex items-center justify-center">
+                                                        {selectedItems.has(item.id) ? (
+                                                            <CheckCircle2 className="w-6 h-6 text-blue-400" />
+                                                        ) : (
+                                                            <Circle className="w-6 h-6 text-gray-600" />
+                                                        )}
+                                                    </div>
+                                                )}
+                                                {!isSelectionMode && (
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            toggleItemDone(item.id, item.is_done);
+                                                        }}
+                                                        className="mt-1 flex-shrink-0"
+                                                    >
+                                                        <CheckCircle2 className="w-6 h-6 text-green-400 hover:text-gray-400 transition-colors" />
+                                                    </button>
+                                                )}
                                                 <div className="flex-1">
                                                     <div className="flex items-start justify-between gap-4">
                                                         <div className="flex-1">
@@ -689,13 +758,18 @@ export default function ShoppingPage() {
                                                                 </p>
                                                             )}
                                                         </div>
-                                                        <button
-                                                            onClick={() => handleDeleteItem(item.id, item.item_name)}
-                                                            className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-                                                            title="Delete item"
-                                                        >
-                                                            <Trash2 className="w-4 h-4" />
-                                                        </button>
+                                                        {!isSelectionMode && (
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleDeleteItem(item.id, item.item_name);
+                                                                }}
+                                                                className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                                                                title="Delete item"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </div>
