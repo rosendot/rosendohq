@@ -3,8 +3,8 @@
 
 import { useState, useEffect } from 'react';
 import { Plus, Search, Heart, Star, ExternalLink, Tag, DollarSign, Calendar, Store, Shirt, Palette, Edit } from 'lucide-react';
-import AddItemModal from '@/app/wishlist/AddItemModal';
-import EditItemModal from '@/app/wishlist/EditItemModal';
+import AddWishlistItemModal from '@/app/wishlist/AddWishlistItemModal';
+import EditWishlistItemModal from '@/app/wishlist/EditWishlistItemModal';
 import DeleteConfirmationModal from '@/components/DeleteConfirmationModal';
 
 // Database-aligned types
@@ -483,13 +483,13 @@ export default function WishlistPage() {
                     </div>
                 )}
 
-                <AddItemModal
+                <AddWishlistItemModal
                     isOpen={showAddModal}
                     onClose={() => setShowAddModal(false)}
                     onSuccess={handleAddSuccess}
                 />
 
-                <EditItemModal
+                <EditWishlistItemModal
                     isOpen={showEditModal}
                     item={editingItem}
                     onClose={() => {
