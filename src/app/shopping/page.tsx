@@ -2,10 +2,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Search, ShoppingCart, CheckCircle2, Circle, Tag, Calendar, AlertCircle, Trash2, Check, X } from 'lucide-react';
+import { Plus, Search, ShoppingCart, CheckCircle2, Circle, Tag, Calendar, AlertCircle, Trash2, Check, X, Edit2 } from 'lucide-react';
 import type { ShoppingList, ShoppingListItem } from '@/types/database.types';
 import DeleteConfirmationModal from '@/components/DeleteConfirmationModal';
 import AddShoppingItemModal from '@/app/shopping/AddShoppingItemModal';
+import EditShoppingItemModal from '@/app/shopping/EditShoppingItemModal';
 
 export default function ShoppingPage() {
     const [lists, setLists] = useState<ShoppingList[]>([]);
@@ -16,6 +17,8 @@ export default function ShoppingPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [showAddModal, setShowAddModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [editingItem, setEditingItem] = useState<ShoppingListItem | null>(null);
     const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
     const [isSelectionMode, setIsSelectionMode] = useState(false);
     const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
@@ -127,6 +130,19 @@ export default function ShoppingPage() {
 
     // Handle add item success
     const handleAddSuccess = () => {
+        if (selectedListId) {
+            refreshListItems(selectedListId);
+        }
+    };
+
+    // Handle edit item
+    const handleEditItem = (item: ShoppingListItem) => {
+        setEditingItem(item);
+        setShowEditModal(true);
+    };
+
+    // Handle edit success
+    const handleEditSuccess = () => {
         if (selectedListId) {
             refreshListItems(selectedListId);
         }
@@ -668,16 +684,28 @@ export default function ShoppingPage() {
                                                                 </div>
                                                             )}
                                                             {!isSelectionMode && (
-                                                                <button
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        showDeleteConfirmation(item.id, item.item_name);
-                                                                    }}
-                                                                    className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-                                                                    title="Delete item"
-                                                                >
-                                                                    <Trash2 className="w-4 h-4" />
-                                                                </button>
+                                                                <>
+                                                                    <button
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            handleEditItem(item);
+                                                                        }}
+                                                                        className="p-2 text-gray-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
+                                                                        title="Edit item"
+                                                                    >
+                                                                        <Edit2 className="w-4 h-4" />
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            showDeleteConfirmation(item.id, item.item_name);
+                                                                        }}
+                                                                        className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                                                                        title="Delete item"
+                                                                    >
+                                                                        <Trash2 className="w-4 h-4" />
+                                                                    </button>
+                                                                </>
                                                             )}
                                                         </div>
                                                     </div>
@@ -751,16 +779,28 @@ export default function ShoppingPage() {
                                                             )}
                                                         </div>
                                                         {!isSelectionMode && (
-                                                            <button
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    showDeleteConfirmation(item.id, item.item_name);
-                                                                }}
-                                                                className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-                                                                title="Delete item"
-                                                            >
-                                                                <Trash2 className="w-4 h-4" />
-                                                            </button>
+                                                            <div className="flex items-center gap-2">
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handleEditItem(item);
+                                                                    }}
+                                                                    className="p-2 text-gray-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
+                                                                    title="Edit item"
+                                                                >
+                                                                    <Edit2 className="w-4 h-4" />
+                                                                </button>
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        showDeleteConfirmation(item.id, item.item_name);
+                                                                    }}
+                                                                    className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                                                                    title="Delete item"
+                                                                >
+                                                                    <Trash2 className="w-4 h-4" />
+                                                                </button>
+                                                            </div>
                                                         )}
                                                     </div>
                                                 </div>
@@ -801,6 +841,17 @@ export default function ShoppingPage() {
                     onClose={() => setShowAddModal(false)}
                     onSuccess={handleAddSuccess}
                     listId={selectedListId}
+                />
+
+                {/* Edit Item Modal */}
+                <EditShoppingItemModal
+                    isOpen={showEditModal}
+                    onClose={() => {
+                        setShowEditModal(false);
+                        setEditingItem(null);
+                    }}
+                    onSuccess={handleEditSuccess}
+                    item={editingItem}
                 />
             </div>
         </div>

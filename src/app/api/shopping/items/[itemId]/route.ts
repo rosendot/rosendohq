@@ -21,6 +21,7 @@ export async function PATCH(
         if (body.priority !== undefined) updateData.priority = body.priority;
         if (body.needed_by !== undefined) updateData.needed_by = body.needed_by;
         if (body.aisle !== undefined) updateData.aisle = body.aisle?.trim() || null;
+        if (body.store_preference !== undefined) updateData.store_preference = body.store_preference?.trim() || null;
         if (body.last_purchased_at !== undefined) updateData.last_purchased_at = body.last_purchased_at;
 
         const { data, error } = await supabase
