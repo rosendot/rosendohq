@@ -20,6 +20,35 @@ const STATUSES: { value: MediaStatus; label: string; color: string }[] = [
     { value: 'dropped', label: 'Dropped', color: 'bg-red-600' }
 ];
 
+// Platform colors matching brand colors
+const getPlatformColor = (platform: string | null): string => {
+    if (!platform) return 'bg-gray-600';
+
+    const platformLower = platform.toLowerCase();
+
+    // Streaming platforms with brand colors
+    if (platformLower.includes('netflix')) return 'bg-red-600';
+    if (platformLower.includes('hulu')) return 'bg-green-500';
+    if (platformLower.includes('disney') || platformLower.includes('disney+')) return 'bg-blue-500';
+    if (platformLower.includes('prime') || platformLower.includes('amazon')) return 'bg-sky-400';
+    if (platformLower.includes('max') || platformLower.includes('hbo')) return 'bg-purple-600';
+    if (platformLower.includes('apple') || platformLower.includes('apple tv')) return 'bg-gray-800';
+    if (platformLower.includes('peacock')) return 'bg-yellow-500';
+    if (platformLower.includes('paramount')) return 'bg-blue-600';
+    if (platformLower.includes('crunchyroll')) return 'bg-orange-500';
+    if (platformLower.includes('funimation')) return 'bg-purple-500';
+    if (platformLower.includes('hidive')) return 'bg-blue-400';
+    if (platformLower.includes('youtube')) return 'bg-red-500';
+    if (platformLower.includes('tubi')) return 'bg-orange-400';
+    if (platformLower.includes('pluto')) return 'bg-yellow-400';
+    if (platformLower.includes('showtime')) return 'bg-red-700';
+    if (platformLower.includes('starz')) return 'bg-gray-900';
+    if (platformLower.includes('amc')) return 'bg-gray-700';
+
+    // Default color for unknown platforms
+    return 'bg-gray-600';
+};
+
 // Horizontal Carousel Component
 function MediaCarousel({
     title,
@@ -175,11 +204,17 @@ function MediaCard({
             {/* Card Header with Status */}
             <div className="p-4 pb-3">
                 <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-1 min-w-0 flex-wrap">
                         <Icon className="w-4 h-4 text-blue-400 flex-shrink-0" />
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusObj?.color} flex-shrink-0`}>
                             {statusObj?.label}
                         </span>
+                        {/* Platform Badge */}
+                        {item.platform && (
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPlatformColor(item.platform)} flex-shrink-0`}>
+                                {item.platform}
+                            </span>
+                        )}
                     </div>
                     {/* Mobile-friendly buttons - always visible on mobile, hover on desktop */}
                     <div className="flex gap-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
@@ -204,14 +239,6 @@ function MediaCard({
                 <h3 className="text-lg font-bold mb-2 line-clamp-2 min-h-[3.5rem]">
                     {item.title}
                 </h3>
-
-                {/* Platform */}
-                {item.platform && (
-                    <p className="text-xs text-gray-400 mb-3 flex items-center gap-1">
-                        <span className="w-1 h-1 bg-gray-600 rounded-full"></span>
-                        {item.platform}
-                    </p>
-                )}
 
                 {/* Rating */}
                 {item.rating && (
