@@ -202,7 +202,6 @@ function MediaCard({
     onQuickRate: (itemId: string, rating: number) => void;
 }) {
     const Icon = item.type === 'movie' ? Film : Tv;
-    const statusObj = STATUSES.find(s => s.value === item.status);
 
     return (
         <div className="min-w-[280px] max-w-[280px] bg-gray-900 border border-gray-800 rounded-lg overflow-hidden hover:border-gray-700 transition-all group">
