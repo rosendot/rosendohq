@@ -55,12 +55,14 @@ function MediaCarousel({
     items,
     onEdit,
     onDelete,
+    onQuickRate,
     emptyMessage
 }: {
     title: string;
     items: MediaItem[];
     onEdit: (item: MediaItem) => void;
     onDelete: (id: string, title: string) => void;
+    onQuickRate: (itemId: string, rating: number) => void;
     emptyMessage: string;
 }) {
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -179,6 +181,7 @@ function MediaCarousel({
                         item={item}
                         onEdit={onEdit}
                         onDelete={onDelete}
+                        onQuickRate={onQuickRate}
                     />
                 ))}
             </div>
@@ -190,11 +193,13 @@ function MediaCarousel({
 function MediaCard({
     item,
     onEdit,
-    onDelete
+    onDelete,
+    onQuickRate
 }: {
     item: MediaItem;
     onEdit: (item: MediaItem) => void;
     onDelete: (id: string, title: string) => void;
+    onQuickRate: (itemId: string, rating: number) => void;
 }) {
     const Icon = item.type === 'movie' ? Film : Tv;
     const statusObj = STATUSES.find(s => s.value === item.status);
@@ -240,20 +245,27 @@ function MediaCard({
                     {item.title}
                 </h3>
 
-                {/* Rating */}
-                {item.rating && (
-                    <div className="flex items-center gap-1 mb-3">
-                        {[...Array(5)].map((_, i) => (
-                            <Star
-                                key={i}
-                                className={`w-3.5 h-3.5 ${i < item.rating!
-                                    ? 'fill-yellow-500 text-yellow-500'
-                                    : 'text-gray-700'
-                                    }`}
-                            />
+                {/* Rating - Quick rate on hover/mobile */}
+                <div className="mb-3">
+                    <div className="flex items-center gap-0.5">
+                        {[1, 2, 3, 4, 5].map((rating) => (
+                            <button
+                                key={rating}
+                                type="button"
+                                onClick={() => onQuickRate(item.id, rating === item.rating ? 0 : rating)}
+                                className="p-0.5 hover:bg-gray-800 rounded transition-colors"
+                                aria-label={`Rate ${rating} stars`}
+                            >
+                                <Star
+                                    className={`w-4 h-4 ${rating <= (item.rating || 0)
+                                        ? 'fill-yellow-500 text-yellow-500'
+                                        : 'text-gray-700 hover:text-yellow-500/50'
+                                        }`}
+                                />
+                            </button>
                         ))}
                     </div>
-                )}
+                </div>
 
                 {/* Progress Display - Different for each status */}
                 {(item.type === 'show' || item.type === 'anime') && (
@@ -510,6 +522,31 @@ export default function MediaTrackerPage() {
         setDeleteConfirmation({ show: false, itemId: null, itemTitle: '' });
     };
 
+    // Quick rate handler
+    const handleQuickRate = async (itemId: string, rating: number) => {
+        try {
+            const response = await fetch(`/api/media/${itemId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    rating: rating || null,
+                }),
+            });
+
+            if (!response.ok) throw new Error('Failed to update rating');
+
+            const updatedItem = await response.json();
+
+            // Update locally
+            setItems(prevItems =>
+                prevItems.map(item => item.id === updatedItem.id ? updatedItem : item)
+            );
+        } catch (error) {
+            console.error('Error updating rating:', error);
+            alert('Failed to update rating');
+        }
+    };
+
     const handleEdit = (item: MediaItem) => {
         setEditingItem(item);
         setFormData({
@@ -630,6 +667,7 @@ export default function MediaTrackerPage() {
                     items={watchingItems}
                     onEdit={handleEdit}
                     onDelete={showDeleteConfirmation}
+                    onQuickRate={handleQuickRate}
                     emptyMessage="No media currently watching. Start something from your plan to watch list!"
                 />
 
@@ -638,6 +676,7 @@ export default function MediaTrackerPage() {
                     items={plannedItems}
                     onEdit={handleEdit}
                     onDelete={showDeleteConfirmation}
+                    onQuickRate={handleQuickRate}
                     emptyMessage="Your plan to watch list is empty. Add some media to get started!"
                 />
 
@@ -646,6 +685,7 @@ export default function MediaTrackerPage() {
                     items={completedItems}
                     onEdit={handleEdit}
                     onDelete={showDeleteConfirmation}
+                    onQuickRate={handleQuickRate}
                     emptyMessage="No completed media yet. Finish watching something!"
                 />
 
@@ -655,6 +695,7 @@ export default function MediaTrackerPage() {
                         items={onHoldItems}
                         onEdit={handleEdit}
                         onDelete={showDeleteConfirmation}
+                        onQuickRate={handleQuickRate}
                         emptyMessage=""
                     />
                 )}
@@ -665,6 +706,7 @@ export default function MediaTrackerPage() {
                         items={droppedItems}
                         onEdit={handleEdit}
                         onDelete={showDeleteConfirmation}
+                        onQuickRate={handleQuickRate}
                         emptyMessage=""
                     />
                 )}
