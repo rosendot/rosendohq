@@ -73,15 +73,6 @@ export default function CarTrackerPage() {
     const currentVehicle = vehicles.find(v => v.id === selectedVehicle);
     const maintenanceRecords = selectedVehicle ? (maintenanceRecordsByVehicle[selectedVehicle] || []) : [];
     const odometerLogs = selectedVehicle ? (odometerLogsByVehicle[selectedVehicle] || []) : [];
-    const currentMileage = odometerLogs[0]?.mileage || 0;
-
-    // Calculate stats
-    const totalCost = maintenanceRecords.reduce((sum, r) => sum + (r.cost_cents || 0), 0);
-    const avgCost = maintenanceRecords.length > 0 ? totalCost / maintenanceRecords.length : 0;
-    const recordsThisYear = maintenanceRecords.filter(r => {
-        const recordYear = new Date(r.service_date).getFullYear();
-        return recordYear === new Date().getFullYear();
-    }).length;
 
     // Form state
     const [formData, setFormData] = useState<MaintenanceRecordInsert>({
@@ -411,67 +402,14 @@ export default function CarTrackerPage() {
                     </div>
                 ) : (
                     <>
-                        {/* Stats Cards */}
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                            <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <p className="text-gray-400 text-sm font-medium">Total Vehicles</p>
-                                        <p className="text-3xl font-bold text-white mt-1">{vehicles.length}</p>
-                                    </div>
-                                    <div className="p-3 bg-blue-500/10 rounded-lg">
-                                        <Car className="w-8 h-8 text-blue-400" />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <p className="text-gray-400 text-sm font-medium">Current Mileage</p>
-                                        <p className="text-3xl font-bold text-white mt-1">
-                                            {currentMileage.toLocaleString()}
-                                        </p>
-                                    </div>
-                                    <div className="p-3 bg-green-500/10 rounded-lg">
-                                        <Gauge className="w-8 h-8 text-green-400" />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <p className="text-gray-400 text-sm font-medium">Records This Year</p>
-                                        <p className="text-3xl font-bold text-white mt-1">{recordsThisYear}</p>
-                                    </div>
-                                    <div className="p-3 bg-purple-500/10 rounded-lg">
-                                        <Wrench className="w-8 h-8 text-purple-400" />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <p className="text-gray-400 text-sm font-medium">Total Spent</p>
-                                        <p className="text-3xl font-bold text-white mt-1">
-                                            ${(totalCost / 100).toFixed(2)}
-                                        </p>
-                                    </div>
-                                    <div className="p-3 bg-red-500/10 rounded-lg">
-                                        <DollarSign className="w-8 h-8 text-red-400" />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
                         {/* Main Content Area */}
                         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                             {/* Vehicle Sidebar */}
                             <div className="lg:col-span-1">
                                 <div className="bg-gray-900 rounded-lg border border-gray-800 p-4">
-                                    <h2 className="text-lg font-semibold text-white mb-4">Vehicles</h2>
+                                    <h2 className="text-lg font-semibold text-white mb-4">
+                                        Vehicles ({vehicles.length})
+                                    </h2>
                                     <div className="space-y-2">
                                         {vehicles.map(vehicle => (
                                             <div
@@ -541,6 +479,40 @@ export default function CarTrackerPage() {
                                                     <Edit className="w-4 h-4" />
                                                     Edit Vehicle
                                                 </button>
+                                            </div>
+
+                                            {/* Vehicle Stats */}
+                                            <div className="grid grid-cols-3 gap-4 mb-6 p-4 bg-gray-800/50 rounded-lg border border-gray-700">
+                                                <div>
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <Gauge className="w-4 h-4 text-green-400" />
+                                                        <p className="text-gray-400 text-sm">Current Mileage</p>
+                                                    </div>
+                                                    <p className="text-2xl font-bold text-white">
+                                                        {odometerLogs[0]?.mileage?.toLocaleString() || '0'}
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <Wrench className="w-4 h-4 text-purple-400" />
+                                                        <p className="text-gray-400 text-sm">Records This Year</p>
+                                                    </div>
+                                                    <p className="text-2xl font-bold text-white">
+                                                        {maintenanceRecords.filter(r => {
+                                                            const recordYear = new Date(r.service_date).getFullYear();
+                                                            return recordYear === new Date().getFullYear();
+                                                        }).length}
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <DollarSign className="w-4 h-4 text-red-400" />
+                                                        <p className="text-gray-400 text-sm">Total Spent</p>
+                                                    </div>
+                                                    <p className="text-2xl font-bold text-white">
+                                                        ${(maintenanceRecords.reduce((sum, r) => sum + (r.cost_cents || 0), 0) / 100).toFixed(2)}
+                                                    </p>
+                                                </div>
                                             </div>
 
                                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -651,22 +623,6 @@ export default function CarTrackerPage() {
                                                     <Plus className="w-4 h-4" />
                                                     Add Record
                                                 </button>
-                                            </div>
-
-                                            {/* Quick Stats */}
-                                            <div className="grid grid-cols-2 gap-4 mb-6">
-                                                <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-                                                    <p className="text-gray-400 text-sm mb-1">Total Spent</p>
-                                                    <p className="text-2xl font-bold text-white">
-                                                        ${(totalCost / 100).toFixed(2)}
-                                                    </p>
-                                                </div>
-                                                <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-                                                    <p className="text-gray-400 text-sm mb-1">Average Cost</p>
-                                                    <p className="text-2xl font-bold text-white">
-                                                        ${(avgCost / 100).toFixed(2)}
-                                                    </p>
-                                                </div>
                                             </div>
 
                                             {/* Records Timeline */}
