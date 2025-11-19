@@ -377,6 +377,7 @@ export default function MediaTrackerPage() {
     const [showAddModal, setShowAddModal] = useState(false);
     const [editingItem, setEditingItem] = useState<MediaItem | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
+    const [selectedType, setSelectedType] = useState<MediaType | 'all'>('all');
     const [deleteConfirmation, setDeleteConfirmation] = useState<{
         show: boolean;
         itemId: string | null;
@@ -579,10 +580,12 @@ export default function MediaTrackerPage() {
 
     // Filter and group items
     const filteredItems = items.filter(item => {
-        if (!searchQuery) return true;
-        return item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        const matchesSearch = !searchQuery ||
+            item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
             item.notes?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             item.platform?.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesType = selectedType === 'all' || item.type === selectedType;
+        return matchesSearch && matchesType;
     });
 
     const watchingItems = filteredItems.filter(item => item.status === 'watching');
@@ -591,8 +594,9 @@ export default function MediaTrackerPage() {
     const onHoldItems = filteredItems.filter(item => item.status === 'on_hold');
     const droppedItems = filteredItems.filter(item => item.status === 'dropped');
 
-    // Stats
+    // Stats for tab counts
     const totalByType = {
+        all: items.length,
         movie: items.filter(i => i.type === 'movie').length,
         show: items.filter(i => i.type === 'show').length,
         anime: items.filter(i => i.type === 'anime').length,
@@ -630,25 +634,8 @@ export default function MediaTrackerPage() {
                     </div>
                 </div>
 
-                {/* Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    {MEDIA_TYPES.map(({ value, label, icon: Icon }) => (
-                        <div key={value} className="bg-gray-900 rounded-lg border border-gray-800 p-6">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-gray-400 text-sm font-medium">{label}</p>
-                                    <p className="text-3xl font-bold text-white mt-1">{totalByType[value]}</p>
-                                </div>
-                                <div className="p-3 bg-blue-500/10 rounded-lg">
-                                    <Icon className="w-8 h-8 text-blue-400" />
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-
                 {/* Search */}
-                <div className="relative mb-8">
+                <div className="relative mb-6">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input
                         type="text"
@@ -657,6 +644,34 @@ export default function MediaTrackerPage() {
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="w-full pl-10 pr-4 py-3 bg-gray-900 border border-gray-800 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                     />
+                </div>
+
+                {/* Type Filter Tabs */}
+                <div className="flex flex-wrap gap-3 mb-8">
+                    <button
+                        onClick={() => setSelectedType('all')}
+                        className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                            selectedType === 'all'
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-gray-900 text-gray-300 border border-gray-800 hover:bg-gray-800'
+                        }`}
+                    >
+                        All ({totalByType.all})
+                    </button>
+                    {MEDIA_TYPES.map(({ value, label, icon: Icon }) => (
+                        <button
+                            key={value}
+                            onClick={() => setSelectedType(value)}
+                            className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
+                                selectedType === value
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-gray-900 text-gray-300 border border-gray-800 hover:bg-gray-800'
+                            }`}
+                        >
+                            <Icon className="w-4 h-4" />
+                            {label} ({totalByType[value]})
+                        </button>
+                    ))}
                 </div>
             </div>
 
