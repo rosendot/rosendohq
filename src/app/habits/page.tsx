@@ -174,12 +174,51 @@ export default function HabitsPage() {
     const isToday = selectedDate === new Date().toISOString().split('T')[0];
 
     return (
-        <div className="min-h-screen bg-black text-white p-6">
-            <div className="max-w-6xl mx-auto">
+        <div className="min-h-screen bg-gray-950 text-white">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Header */}
                 <div className="mb-8">
-                    <h1 className="text-4xl font-bold mb-2">Habits & Goals</h1>
+                    <h1 className="text-3xl font-bold text-white mb-2">Habits & Goals</h1>
                     <p className="text-gray-400">Track your daily habits and long-term goals</p>
+                </div>
+
+                {/* Stats */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-gray-400 text-sm font-medium">Total Habits</p>
+                                <p className="text-3xl font-bold text-white mt-1">{totalCount}</p>
+                            </div>
+                            <div className="p-3 bg-blue-500/10 rounded-lg">
+                                <Check className="w-8 h-8 text-blue-400" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-gray-400 text-sm font-medium">Completed</p>
+                                <p className="text-3xl font-bold text-white mt-1">{completedCount}</p>
+                            </div>
+                            <div className="p-3 bg-green-500/10 rounded-lg">
+                                <Check className="w-8 h-8 text-green-400" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-gray-400 text-sm font-medium">Active Goals</p>
+                                <p className="text-3xl font-bold text-white mt-1">{goals.filter(g => g.status === 'active').length}</p>
+                            </div>
+                            <div className="p-3 bg-purple-500/10 rounded-lg">
+                                <Target className="w-8 h-8 text-purple-400" />
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Tabs */}
@@ -187,27 +226,27 @@ export default function HabitsPage() {
                     <button
                         onClick={() => setActiveTab('today')}
                         className={`px-6 py-3 font-medium transition-colors relative ${activeTab === 'today'
-                            ? 'text-violet-400'
+                            ? 'text-blue-400'
                             : 'text-gray-400 hover:text-gray-300'
                             }`}
                     >
                         <Calendar className="w-5 h-5 inline mr-2" />
                         Today
                         {activeTab === 'today' && (
-                            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-violet-400" />
+                            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-400" />
                         )}
                     </button>
                     <button
                         onClick={() => setActiveTab('goals')}
                         className={`px-6 py-3 font-medium transition-colors relative ${activeTab === 'goals'
-                            ? 'text-violet-400'
+                            ? 'text-blue-400'
                             : 'text-gray-400 hover:text-gray-300'
                             }`}
                     >
                         <Target className="w-5 h-5 inline mr-2" />
                         Goals
                         {activeTab === 'goals' && (
-                            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-violet-400" />
+                            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-400" />
                         )}
                     </button>
                 </div>
@@ -238,7 +277,7 @@ export default function HabitsPage() {
                                     {!isToday && (
                                         <button
                                             onClick={goToToday}
-                                            className="text-sm text-violet-400 hover:text-violet-300 mt-1"
+                                            className="text-sm text-blue-400 hover:text-blue-300 mt-1"
                                         >
                                             Go to today
                                         </button>
@@ -266,7 +305,7 @@ export default function HabitsPage() {
                                 </div>
                                 <div className="w-full bg-gray-800 rounded-full h-3 overflow-hidden">
                                     <div
-                                        className="bg-gradient-to-r from-violet-500 to-violet-600 h-full rounded-full transition-all duration-500"
+                                        className="bg-gradient-to-r from-blue-500 to-blue-600 h-full rounded-full transition-all duration-500"
                                         style={{ width: `${completionPercentage}%` }}
                                     />
                                 </div>
