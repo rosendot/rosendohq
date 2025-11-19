@@ -664,11 +664,19 @@ export default function ShoppingPage() {
                                             </div>
                                             {/* Category Items */}
                                             <div className="space-y-3">
-                                                {categoryItems.map((item) => (
+                                                {categoryItems.map((item) => {
+                                                    const priority = item.priority || 3;
+                                                    const priorityBorder = priority === 1 ? 'border-red-500/50' :
+                                                        priority === 2 ? 'border-orange-500/40' :
+                                                        priority === 3 ? 'border-yellow-500/30' :
+                                                        priority === 4 ? 'border-lime-500/40' :
+                                                        'border-green-500/50';
+
+                                                    return (
                                         <div
                                             key={item.id}
                                             className={`bg-gray-900 rounded-lg border p-4 transition-all ${
-                                                selectedItems.has(item.id) ? 'border-blue-500 bg-blue-500/10' : 'border-gray-800'
+                                                selectedItems.has(item.id) ? 'border-blue-500 bg-blue-500/10' : priorityBorder
                                             }`}
                                             onTouchStart={() => handleLongPressStart(item.id)}
                                             onTouchEnd={handleLongPressEnd}
@@ -702,17 +710,11 @@ export default function ShoppingPage() {
                                                     <div className="flex items-start justify-between gap-4">
                                                         <div className="flex-1">
                                                             <h4 className="text-white font-medium">{item.item_name}</h4>
+                                                            {(item.quantity || item.aisle) && (
                                                             <div className="flex flex-wrap gap-2 mt-2">
                                                                 {item.quantity && (
                                                                     <span className="px-2 py-1 bg-gray-800 text-gray-300 rounded text-xs">
                                                                         {item.quantity} {item.unit || ''}
-                                                                    </span>
-                                                                )}
-                                                                {item.priority && item.priority <= 2 && (
-                                                                    <span className={`px-2 py-1 rounded text-xs font-medium ${item.priority === 1 ? 'bg-red-500/20 text-red-400 border border-red-500/20' :
-                                                                        'bg-orange-500/20 text-orange-400 border border-orange-500/20'
-                                                                        }`}>
-                                                                        Priority {item.priority}
                                                                     </span>
                                                                 )}
                                                                 {item.aisle && (
@@ -721,6 +723,7 @@ export default function ShoppingPage() {
                                                                     </span>
                                                                 )}
                                                             </div>
+                                                            )}
                                                             {item.notes && (
                                                                 <p className="text-gray-400 text-sm mt-2">{item.notes}</p>
                                                             )}
@@ -761,7 +764,8 @@ export default function ShoppingPage() {
                                                 </div>
                                             </div>
                                         </div>
-                                                ))}
+                                                    );
+                                                })}
                                             </div>
                                         </div>
                                     ))}
