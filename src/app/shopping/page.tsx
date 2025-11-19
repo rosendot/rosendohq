@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Search, ShoppingCart, CheckCircle2, Circle, Tag, Calendar, AlertCircle, Trash2, Check, X, Edit2 } from 'lucide-react';
+import { Plus, Search, ShoppingCart, CheckCircle2, Circle, Calendar, AlertCircle, Trash2, Check, X, Edit2 } from 'lucide-react';
 import type { ShoppingList, ShoppingListItem } from '@/types/database.types';
 import DeleteConfirmationModal from '@/components/DeleteConfirmationModal';
 import AddShoppingItemModal from '@/app/shopping/AddShoppingItemModal';
@@ -381,6 +381,48 @@ export default function ShoppingPage() {
     const activeItems = filteredItems.filter(i => !i.is_done);
     const completedItems = filteredItems.filter(i => i.is_done);
 
+    // Group active items by category
+    const groupedActiveItems = activeItems.reduce((acc, item) => {
+        const category = item.category || 'Uncategorized';
+        if (!acc[category]) {
+            acc[category] = [];
+        }
+        acc[category].push(item);
+        return acc;
+    }, {} as Record<string, ShoppingListItem[]>);
+
+    // Sort categories by a weighted score: (avgPriority * 0.6) + (itemCount * 0.4)
+    // Lower priority numbers are more important (1 = highest priority)
+    // We want categories with high priority items AND more items to come first
+    const sortedCategories = Object.entries(groupedActiveItems).sort(([, itemsA], [, itemsB]) => {
+        // Calculate average priority (lower is better, so we invert it)
+        const avgPriorityA = itemsA.reduce((sum, item) => sum + (item.priority || 3), 0) / itemsA.length;
+        const avgPriorityB = itemsB.reduce((sum, item) => sum + (item.priority || 3), 0) / itemsB.length;
+
+        // Normalize item counts (cap at 20 items for scoring)
+        const itemCountA = Math.min(itemsA.length, 20);
+        const itemCountB = Math.min(itemsB.length, 20);
+
+        // Calculate weighted score (lower priority number = better, more items = better)
+        // Priority weight: 0.6, Item count weight: 0.4
+        const scoreA = (avgPriorityA * 0.6) + ((20 - itemCountA) * 0.4);
+        const scoreB = (avgPriorityB * 0.6) + ((20 - itemCountB) * 0.4);
+
+        return scoreA - scoreB;
+    });
+
+    // Within each category, sort items by priority (then by name)
+    sortedCategories.forEach(([, items]) => {
+        items.sort((a, b) => {
+            const priorityA = a.priority || 3;
+            const priorityB = b.priority || 3;
+            if (priorityA !== priorityB) {
+                return priorityA - priorityB;
+            }
+            return a.item_name.localeCompare(b.item_name);
+        });
+    });
+
     // Determine if selected items are from active or completed section
     const selectedActiveCount = Array.from(selectedItems).filter(id =>
         activeItems.some(item => item.id === id)
@@ -593,7 +635,7 @@ export default function ShoppingPage() {
                             </div>
                         )}
 
-                        {/* Active Items */}
+                        {/* Active Items - Grouped by Category */}
                         {activeItems.length > 0 && (
                             <div className="mb-6">
                                 <div className="flex items-center justify-between mb-4">
@@ -607,8 +649,22 @@ export default function ShoppingPage() {
                                         </button>
                                     )}
                                 </div>
-                                <div className="space-y-3">
-                                    {activeItems.map((item) => (
+                                <div className="space-y-6">
+                                    {sortedCategories.map(([category, categoryItems]) => (
+                                        <div key={category}>
+                                            {/* Category Header */}
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <h4 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">
+                                                    {category}
+                                                </h4>
+                                                <div className="h-px flex-1 bg-gray-800"></div>
+                                                <span className="text-xs text-gray-500">
+                                                    {categoryItems.length} item{categoryItems.length !== 1 ? 's' : ''}
+                                                </span>
+                                            </div>
+                                            {/* Category Items */}
+                                            <div className="space-y-3">
+                                                {categoryItems.map((item) => (
                                         <div
                                             key={item.id}
                                             className={`bg-gray-900 rounded-lg border p-4 transition-all ${
@@ -647,21 +703,14 @@ export default function ShoppingPage() {
                                                         <div className="flex-1">
                                                             <h4 className="text-white font-medium">{item.item_name}</h4>
                                                             <div className="flex flex-wrap gap-2 mt-2">
-                                                                {item.category && (
-                                                                    <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-xs font-medium border border-blue-500/20">
-                                                                        <Tag className="w-3 h-3" />
-                                                                        {item.category}
-                                                                    </span>
-                                                                )}
                                                                 {item.quantity && (
                                                                     <span className="px-2 py-1 bg-gray-800 text-gray-300 rounded text-xs">
                                                                         {item.quantity} {item.unit || ''}
                                                                     </span>
                                                                 )}
-                                                                {item.priority && (
+                                                                {item.priority && item.priority <= 2 && (
                                                                     <span className={`px-2 py-1 rounded text-xs font-medium ${item.priority === 1 ? 'bg-red-500/20 text-red-400 border border-red-500/20' :
-                                                                        item.priority === 2 ? 'bg-orange-500/20 text-orange-400 border border-orange-500/20' :
-                                                                            'bg-yellow-500/20 text-yellow-400 border border-yellow-500/20'
+                                                                        'bg-orange-500/20 text-orange-400 border border-orange-500/20'
                                                                         }`}>
                                                                         Priority {item.priority}
                                                                     </span>
@@ -710,6 +759,9 @@ export default function ShoppingPage() {
                                                         </div>
                                                     </div>
                                                 </div>
+                                            </div>
+                                        </div>
+                                                ))}
                                             </div>
                                         </div>
                                     ))}
