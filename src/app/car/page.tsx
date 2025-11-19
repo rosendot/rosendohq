@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Car, Plus, Wrench, DollarSign, Calendar, Gauge, X } from 'lucide-react';
+import { Car, Plus, Wrench, DollarSign, Calendar, Gauge, X, Trash2, Edit } from 'lucide-react';
 import type { Vehicle, MaintenanceRecord, OdometerLog, MaintenanceRecordInsert, VehicleInsert } from '@/types/database.types';
 
 export default function CarTrackerPage() {
@@ -245,6 +245,51 @@ export default function CarTrackerPage() {
         }
     };
 
+    const handleDeleteVehicle = async (vehicleId: string) => {
+        if (!confirm('Are you sure you want to delete this vehicle? This will also delete all associated maintenance records.')) {
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/car/vehicles/${vehicleId}`, {
+                method: 'DELETE',
+            });
+
+            if (!res.ok) throw new Error('Failed to delete vehicle');
+
+            // Remove from list
+            setVehicles(prev => prev.filter(v => v.id !== vehicleId));
+
+            // Clear selection if deleted vehicle was selected
+            if (selectedVehicle === vehicleId) {
+                setSelectedVehicle(vehicles[0]?.id || null);
+            }
+        } catch (error) {
+            console.error('Error deleting vehicle:', error);
+            alert('Failed to delete vehicle');
+        }
+    };
+
+    const handleDeleteRecord = async (recordId: string) => {
+        if (!confirm('Are you sure you want to delete this maintenance record?')) {
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/car/maintenance/records/${recordId}`, {
+                method: 'DELETE',
+            });
+
+            if (!res.ok) throw new Error('Failed to delete record');
+
+            // Remove from list
+            setMaintenanceRecords(prev => prev.filter(r => r.id !== recordId));
+        } catch (error) {
+            console.error('Error deleting record:', error);
+            alert('Failed to delete maintenance record');
+        }
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-950 text-gray-100 flex items-center justify-center">
@@ -351,28 +396,46 @@ export default function CarTrackerPage() {
                                     <h2 className="text-lg font-semibold text-white mb-4">Vehicles</h2>
                                     <div className="space-y-2">
                                         {vehicles.map(vehicle => (
-                                            <button
+                                            <div
                                                 key={vehicle.id}
-                                                onClick={() => setSelectedVehicle(vehicle.id)}
-                                                className={`w-full text-left p-4 rounded-lg transition-all ${selectedVehicle === vehicle.id
-                                                    ? 'bg-blue-600 text-white'
-                                                    : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                                                className={`relative rounded-lg transition-all group ${selectedVehicle === vehicle.id
+                                                    ? 'bg-blue-600'
+                                                    : 'bg-gray-800 hover:bg-gray-700'
                                                     }`}
                                             >
-                                                <div className="flex items-center gap-3">
-                                                    <Car className="w-5 h-5 flex-shrink-0" />
-                                                    <div className="min-w-0 flex-1">
-                                                        <p className="font-medium truncate">
-                                                            {vehicle.year} {vehicle.make} {vehicle.model}
-                                                        </p>
-                                                        {vehicle.nickname && (
-                                                            <p className="text-sm opacity-75 truncate">
-                                                                {vehicle.nickname}
+                                                <button
+                                                    onClick={() => setSelectedVehicle(vehicle.id)}
+                                                    className="w-full text-left p-4 pr-12"
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <Car className={`w-5 h-5 flex-shrink-0 ${selectedVehicle === vehicle.id ? 'text-white' : 'text-gray-300'}`} />
+                                                        <div className="min-w-0 flex-1">
+                                                            <p className={`font-medium truncate ${selectedVehicle === vehicle.id ? 'text-white' : 'text-gray-300'}`}>
+                                                                {vehicle.year} {vehicle.make} {vehicle.model}
                                                             </p>
-                                                        )}
+                                                            {vehicle.nickname && (
+                                                                <p className={`text-sm opacity-75 truncate ${selectedVehicle === vehicle.id ? 'text-white' : 'text-gray-300'}`}>
+                                                                    {vehicle.nickname}
+                                                                </p>
+                                                            )}
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            </button>
+                                                </button>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleDeleteVehicle(vehicle.id);
+                                                    }}
+                                                    className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded transition-all
+                                                        ${selectedVehicle === vehicle.id
+                                                            ? 'opacity-0 group-hover:opacity-100 hover:bg-red-500/20 text-white'
+                                                            : 'opacity-0 group-hover:opacity-100 hover:bg-red-600/20 text-red-400'
+                                                        }`}
+                                                    title="Delete vehicle"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
                                         ))}
                                     </div>
                                 </div>
@@ -395,13 +458,14 @@ export default function CarTrackerPage() {
                                                 </div>
                                                 <button
                                                     onClick={() => openEditVehicleModal(currentVehicle)}
-                                                    className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg text-sm font-medium transition-colors"
+                                                    className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
                                                 >
+                                                    <Edit className="w-4 h-4" />
                                                     Edit Vehicle
                                                 </button>
                                             </div>
 
-                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                                                 {currentVehicle.color && (
                                                     <div>
                                                         <p className="text-gray-400 text-sm mb-1">Color</p>
@@ -429,6 +493,68 @@ export default function CarTrackerPage() {
                                                     </div>
                                                 )}
                                             </div>
+
+                                            {/* Additional Vehicle Information */}
+                                            {(currentVehicle.purchase_price_cents || currentVehicle.purchase_mileage || currentVehicle.insurance_provider) && (
+                                                <div className="pt-6 border-t border-gray-800">
+                                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                                        {currentVehicle.purchase_price_cents && (
+                                                            <div>
+                                                                <p className="text-gray-400 text-sm mb-1">Purchase Price</p>
+                                                                <p className="text-white font-medium">
+                                                                    ${(currentVehicle.purchase_price_cents / 100).toLocaleString()}
+                                                                </p>
+                                                            </div>
+                                                        )}
+                                                        {currentVehicle.purchase_mileage && (
+                                                            <div>
+                                                                <p className="text-gray-400 text-sm mb-1">Purchase Mileage</p>
+                                                                <p className="text-white font-medium">
+                                                                    {currentVehicle.purchase_mileage.toLocaleString()} mi
+                                                                </p>
+                                                            </div>
+                                                        )}
+                                                        {currentVehicle.insurance_provider && (
+                                                            <div>
+                                                                <p className="text-gray-400 text-sm mb-1">Insurance</p>
+                                                                <p className="text-white font-medium">{currentVehicle.insurance_provider}</p>
+                                                                {currentVehicle.insurance_policy_number && (
+                                                                    <p className="text-gray-400 text-xs mt-1">
+                                                                        Policy: {currentVehicle.insurance_policy_number}
+                                                                    </p>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                        {currentVehicle.insurance_renewal_date && (
+                                                            <div>
+                                                                <p className="text-gray-400 text-sm mb-1">Insurance Renewal</p>
+                                                                <p className="text-white font-medium">
+                                                                    {new Date(currentVehicle.insurance_renewal_date).toLocaleDateString()}
+                                                                </p>
+                                                            </div>
+                                                        )}
+                                                        {currentVehicle.insurance_premium_cents && (
+                                                            <div>
+                                                                <p className="text-gray-400 text-sm mb-1">Insurance Premium</p>
+                                                                <p className="text-white font-medium">
+                                                                    ${(currentVehicle.insurance_premium_cents / 100).toFixed(2)}/period
+                                                                </p>
+                                                            </div>
+                                                        )}
+                                                        <div>
+                                                            <p className="text-gray-400 text-sm mb-1">Status</p>
+                                                            <span className={`inline-flex px-2 py-1 text-xs font-medium rounded ${
+                                                                currentVehicle.status === 'active' ? 'bg-green-500/10 text-green-400' :
+                                                                currentVehicle.status === 'sold' ? 'bg-blue-500/10 text-blue-400' :
+                                                                currentVehicle.status === 'traded' ? 'bg-purple-500/10 text-purple-400' :
+                                                                'bg-red-500/10 text-red-400'
+                                                            }`}>
+                                                                {currentVehicle.status.charAt(0).toUpperCase() + currentVehicle.status.slice(1)}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
 
                                         {/* Maintenance Records */}
@@ -471,13 +597,22 @@ export default function CarTrackerPage() {
                                                     {maintenanceRecords.map(record => (
                                                         <div
                                                             key={record.id}
-                                                            className="bg-gray-800 rounded-lg p-5 border border-gray-700 hover:border-gray-600 transition-colors"
+                                                            className="bg-gray-800 rounded-lg p-5 border border-gray-700 hover:border-gray-600 transition-colors group"
                                                         >
                                                             <div className="flex items-start justify-between mb-3">
                                                                 <div className="flex-1">
-                                                                    <h4 className="text-lg font-semibold text-white mb-1">
-                                                                        {record.item}
-                                                                    </h4>
+                                                                    <div className="flex items-center gap-3 mb-1">
+                                                                        <h4 className="text-lg font-semibold text-white">
+                                                                            {record.item}
+                                                                        </h4>
+                                                                        <button
+                                                                            onClick={() => handleDeleteRecord(record.id)}
+                                                                            className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-red-600/20 text-red-400 rounded transition-all"
+                                                                            title="Delete record"
+                                                                        >
+                                                                            <Trash2 className="w-4 h-4" />
+                                                                        </button>
+                                                                    </div>
                                                                     <div className="flex items-center gap-4 text-sm text-gray-400">
                                                                         <div className="flex items-center gap-1">
                                                                             <Calendar className="w-4 h-4" />
