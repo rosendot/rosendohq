@@ -229,22 +229,42 @@ function MediaCard({
                 )}
 
                 {/* Progress Bar (for shows/anime with episodes) */}
-                {item.total_episodes && item.total_episodes > 0 && (
+                {(item.type === 'show' || item.type === 'anime') && (
                     <div className="mb-3">
+                        {/* Season and Episode Info */}
                         <div className="flex justify-between text-xs mb-1.5">
                             <span className="text-gray-400">Progress</span>
                             <span className="font-medium text-gray-300">
-                                {item.current_episode || 0} / {item.total_episodes}
+                                {item.current_season && item.total_seasons ? (
+                                    <>
+                                        S{item.current_season}/{item.total_seasons}
+                                        {item.episodes_in_season && (
+                                            <> • Ep {item.current_episode || 0}/{item.episodes_in_season}</>
+                                        )}
+                                    </>
+                                ) : item.total_episodes && item.total_episodes > 0 ? (
+                                    <>Ep {item.current_episode || 0}/{item.total_episodes}</>
+                                ) : (
+                                    <>Ep {item.current_episode || 0}</>
+                                )}
                             </span>
                         </div>
-                        <div className="w-full bg-gray-800 rounded-full h-1.5">
-                            <div
-                                className="bg-blue-500 h-1.5 rounded-full transition-all"
-                                style={{
-                                    width: `${Math.min(((item.current_episode || 0) / item.total_episodes) * 100, 100)}%`
-                                }}
-                            ></div>
-                        </div>
+
+                        {/* Progress Bar - Shows per-season progress if available, otherwise overall */}
+                        {((item.episodes_in_season && item.episodes_in_season > 0) || (item.total_episodes && item.total_episodes > 0)) && (
+                            <div className="w-full bg-gray-800 rounded-full h-1.5">
+                                <div
+                                    className="bg-blue-500 h-1.5 rounded-full transition-all"
+                                    style={{
+                                        width: `${Math.min(
+                                            ((item.current_episode || 0) /
+                                            (item.episodes_in_season || item.total_episodes || 1)) * 100,
+                                            100
+                                        )}%`
+                                    }}
+                                ></div>
+                            </div>
+                        )}
                     </div>
                 )}
 
@@ -306,6 +326,9 @@ export default function MediaTrackerPage() {
         platform: '',
         current_episode: 0,
         total_episodes: 0,
+        current_season: 0,
+        total_seasons: 0,
+        episodes_in_season: 0,
         rating: 0,
         notes: ''
     });
@@ -344,6 +367,9 @@ export default function MediaTrackerPage() {
                         notes: formData.notes || null,
                         total_episodes: formData.total_episodes || null,
                         current_episode: formData.current_episode || 0,
+                        current_season: formData.current_season || null,
+                        total_seasons: formData.total_seasons || null,
+                        episodes_in_season: formData.episodes_in_season || null,
                     }),
                 });
 
@@ -367,6 +393,9 @@ export default function MediaTrackerPage() {
                         notes: formData.notes || null,
                         total_episodes: formData.total_episodes || null,
                         current_episode: formData.current_episode || 0,
+                        current_season: formData.current_season || null,
+                        total_seasons: formData.total_seasons || null,
+                        episodes_in_season: formData.episodes_in_season || null,
                     }),
                 });
 
@@ -434,6 +463,9 @@ export default function MediaTrackerPage() {
             platform: item.platform || '',
             current_episode: item.current_episode || 0,
             total_episodes: item.total_episodes || 0,
+            current_season: item.current_season || 0,
+            total_seasons: item.total_seasons || 0,
+            episodes_in_season: item.episodes_in_season || 0,
             rating: item.rating || 0,
             notes: item.notes || ''
         });
@@ -448,6 +480,9 @@ export default function MediaTrackerPage() {
             platform: '',
             current_episode: 0,
             total_episodes: 0,
+            current_season: 0,
+            total_seasons: 0,
+            episodes_in_season: 0,
             rating: 0,
             notes: ''
         });
@@ -638,9 +673,40 @@ export default function MediaTrackerPage() {
                                 />
                             </div>
 
+                            {/* Season tracking (for shows/anime) */}
+                            {(formData.type === 'show' || formData.type === 'anime') && (
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium mb-2">Current Season</label>
+                                        <input
+                                            type="number"
+                                            value={formData.current_season}
+                                            onChange={(e) => setFormData({ ...formData, current_season: parseInt(e.target.value) || 0 })}
+                                            min="0"
+                                            placeholder="e.g., 2"
+                                            className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white text-base focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium mb-2">Total Seasons</label>
+                                        <input
+                                            type="number"
+                                            value={formData.total_seasons}
+                                            onChange={(e) => setFormData({ ...formData, total_seasons: parseInt(e.target.value) || 0 })}
+                                            min="0"
+                                            placeholder="e.g., 4"
+                                            className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white text-base focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium mb-2">Current Episode</label>
+                                    <label className="block text-sm font-medium mb-2">
+                                        {(formData.type === 'show' || formData.type === 'anime') ? 'Current Episode (in Season)' : 'Current Episode'}
+                                    </label>
                                     <input
                                         type="number"
                                         value={formData.current_episode}
@@ -651,16 +717,40 @@ export default function MediaTrackerPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium mb-2">Total Episodes</label>
+                                    <label className="block text-sm font-medium mb-2">
+                                        {(formData.type === 'show' || formData.type === 'anime') ? 'Episodes in Season' : 'Total Episodes'}
+                                    </label>
                                     <input
                                         type="number"
-                                        value={formData.total_episodes}
-                                        onChange={(e) => setFormData({ ...formData, total_episodes: parseInt(e.target.value) || 0 })}
+                                        value={(formData.type === 'show' || formData.type === 'anime') ? formData.episodes_in_season : formData.total_episodes}
+                                        onChange={(e) => {
+                                            const value = parseInt(e.target.value) || 0;
+                                            if (formData.type === 'show' || formData.type === 'anime') {
+                                                setFormData({ ...formData, episodes_in_season: value });
+                                            } else {
+                                                setFormData({ ...formData, total_episodes: value });
+                                            }
+                                        }}
                                         min="0"
                                         className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white text-base focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
                                     />
                                 </div>
                             </div>
+
+                            {/* Overall total episodes for shows/anime */}
+                            {(formData.type === 'show' || formData.type === 'anime') && (
+                                <div>
+                                    <label className="block text-sm font-medium mb-2">Total Episodes (Overall)</label>
+                                    <input
+                                        type="number"
+                                        value={formData.total_episodes}
+                                        onChange={(e) => setFormData({ ...formData, total_episodes: parseInt(e.target.value) || 0 })}
+                                        min="0"
+                                        placeholder="Total across all seasons (optional)"
+                                        className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white text-base focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div>
+                            )}
 
                             <div>
                                 <label className="block text-sm font-medium mb-2">Rating</label>

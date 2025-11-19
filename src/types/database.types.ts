@@ -86,6 +86,9 @@ export interface MediaItem {
     rating: number | null; // 1-5
     started_at: string | null;
     completed_at: string | null;
+    current_season: number | null;
+    total_seasons: number | null;
+    episodes_in_season: number | null;
     created_at: string;
     updated_at: string;
 }
