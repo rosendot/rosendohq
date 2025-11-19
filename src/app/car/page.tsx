@@ -8,57 +8,64 @@ import type { Vehicle, MaintenanceRecord, OdometerLog, MaintenanceRecordInsert, 
 export default function CarTrackerPage() {
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
     const [selectedVehicle, setSelectedVehicle] = useState<string | null>(null);
-    const [maintenanceRecords, setMaintenanceRecords] = useState<MaintenanceRecord[]>([]);
-    const [odometerLogs, setOdometerLogs] = useState<OdometerLog[]>([]);
+    const [maintenanceRecordsByVehicle, setMaintenanceRecordsByVehicle] = useState<Record<string, MaintenanceRecord[]>>({});
+    const [odometerLogsByVehicle, setOdometerLogsByVehicle] = useState<Record<string, OdometerLog[]>>({});
     const [loading, setLoading] = useState(true);
     const [showAddRecordModal, setShowAddRecordModal] = useState(false);
     const [showVehicleModal, setShowVehicleModal] = useState(false);
     const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
 
-    // Fetch vehicles on mount
+    // Fetch all data on mount
     useEffect(() => {
-        async function fetchVehicles() {
+        async function fetchAllData() {
             try {
-                const res = await fetch('/api/car/vehicles');
-                const data = await res.json();
-                setVehicles(data);
-                if (data.length > 0) {
-                    setSelectedVehicle(data[0].id);
+                const [vehiclesRes, maintenanceRes, odometerRes] = await Promise.all([
+                    fetch('/api/car/vehicles'),
+                    fetch('/api/car/maintenance/records'),
+                    fetch('/api/car/odometer')
+                ]);
+
+                const vehiclesData: Vehicle[] = await vehiclesRes.json();
+                const maintenanceData: MaintenanceRecord[] = await maintenanceRes.json();
+                const odometerData: OdometerLog[] = await odometerRes.json();
+
+                // Group records and logs by vehicle_id
+                const recordsByVehicle: Record<string, MaintenanceRecord[]> = {};
+                const logsByVehicle: Record<string, OdometerLog[]> = {};
+
+                maintenanceData.forEach(record => {
+                    if (!recordsByVehicle[record.vehicle_id]) {
+                        recordsByVehicle[record.vehicle_id] = [];
+                    }
+                    recordsByVehicle[record.vehicle_id].push(record);
+                });
+
+                odometerData.forEach(log => {
+                    if (!logsByVehicle[log.vehicle_id]) {
+                        logsByVehicle[log.vehicle_id] = [];
+                    }
+                    logsByVehicle[log.vehicle_id].push(log);
+                });
+
+                setVehicles(vehiclesData);
+                setMaintenanceRecordsByVehicle(recordsByVehicle);
+                setOdometerLogsByVehicle(logsByVehicle);
+
+                if (vehiclesData.length > 0) {
+                    setSelectedVehicle(vehiclesData[0].id);
                 }
             } catch (error) {
-                console.error('Error fetching vehicles:', error);
+                console.error('Error fetching data:', error);
             } finally {
                 setLoading(false);
             }
         }
-        fetchVehicles();
+        fetchAllData();
     }, []);
 
-    // Fetch maintenance records and odometer logs when vehicle changes
-    useEffect(() => {
-        if (!selectedVehicle) return;
-
-        async function fetchVehicleData() {
-            try {
-                const [maintenanceRes, odometerRes] = await Promise.all([
-                    fetch(`/api/car/maintenance/records?vehicleId=${selectedVehicle}`),
-                    fetch(`/api/car/odometer?vehicleId=${selectedVehicle}`)
-                ]);
-
-                const maintenanceData = await maintenanceRes.json();
-                const odometerData = await odometerRes.json();
-
-                setMaintenanceRecords(maintenanceData);
-                setOdometerLogs(odometerData);
-            } catch (error) {
-                console.error('Error fetching vehicle data:', error);
-            }
-        }
-
-        fetchVehicleData();
-    }, [selectedVehicle]);
-
     const currentVehicle = vehicles.find(v => v.id === selectedVehicle);
+    const maintenanceRecords = selectedVehicle ? (maintenanceRecordsByVehicle[selectedVehicle] || []) : [];
+    const odometerLogs = selectedVehicle ? (odometerLogsByVehicle[selectedVehicle] || []) : [];
     const currentMileage = odometerLogs[0]?.mileage || 0;
 
     // Calculate stats
@@ -113,7 +120,15 @@ export default function CarTrackerPage() {
             if (!res.ok) throw new Error('Failed to add record');
 
             const newRecord = await res.json();
-            setMaintenanceRecords(prev => [newRecord, ...prev]);
+
+            // Update local state
+            if (selectedVehicle) {
+                setMaintenanceRecordsByVehicle(prev => ({
+                    ...prev,
+                    [selectedVehicle]: [newRecord, ...(prev[selectedVehicle] || [])]
+                }));
+            }
+
             setShowAddRecordModal(false);
 
             // Reset form
@@ -235,6 +250,16 @@ export default function CarTrackerPage() {
                 // Add to list
                 setVehicles(prev => [savedVehicle, ...prev]);
                 setSelectedVehicle(savedVehicle.id);
+
+                // Initialize empty arrays for new vehicle
+                setMaintenanceRecordsByVehicle(prev => ({
+                    ...prev,
+                    [savedVehicle.id]: []
+                }));
+                setOdometerLogsByVehicle(prev => ({
+                    ...prev,
+                    [savedVehicle.id]: []
+                }));
             }
 
             setShowVehicleModal(false);
@@ -260,9 +285,23 @@ export default function CarTrackerPage() {
             // Remove from list
             setVehicles(prev => prev.filter(v => v.id !== vehicleId));
 
+            // Remove associated records and logs
+            setMaintenanceRecordsByVehicle(prev => {
+                const newState = { ...prev };
+                delete newState[vehicleId];
+                return newState;
+            });
+
+            setOdometerLogsByVehicle(prev => {
+                const newState = { ...prev };
+                delete newState[vehicleId];
+                return newState;
+            });
+
             // Clear selection if deleted vehicle was selected
             if (selectedVehicle === vehicleId) {
-                setSelectedVehicle(vehicles[0]?.id || null);
+                const remainingVehicles = vehicles.filter(v => v.id !== vehicleId);
+                setSelectedVehicle(remainingVehicles[0]?.id || null);
             }
         } catch (error) {
             console.error('Error deleting vehicle:', error);
@@ -282,8 +321,13 @@ export default function CarTrackerPage() {
 
             if (!res.ok) throw new Error('Failed to delete record');
 
-            // Remove from list
-            setMaintenanceRecords(prev => prev.filter(r => r.id !== recordId));
+            // Remove from local state
+            if (selectedVehicle) {
+                setMaintenanceRecordsByVehicle(prev => ({
+                    ...prev,
+                    [selectedVehicle]: (prev[selectedVehicle] || []).filter(r => r.id !== recordId)
+                }));
+            }
         } catch (error) {
             console.error('Error deleting record:', error);
             alert('Failed to delete maintenance record');
