@@ -242,8 +242,9 @@ export interface MaintenanceRecord {
 }
 
 // Insert types for Car Tracker
-export type VehicleInsert = Omit<Vehicle, 'id' | 'created_at'> & {
+export type VehicleInsert = Omit<Vehicle, 'id' | 'owner_id' | 'created_at'> & {
     id?: string;
+    owner_id?: string;
     created_at?: string;
 };
 

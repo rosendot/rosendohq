@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { Car, Plus, Wrench, DollarSign, Calendar, Gauge, X } from 'lucide-react';
-import type { Vehicle, MaintenanceRecord, OdometerLog, MaintenanceRecordInsert } from '@/types/database.types';
+import type { Vehicle, MaintenanceRecord, OdometerLog, MaintenanceRecordInsert, VehicleInsert } from '@/types/database.types';
 
 export default function CarTrackerPage() {
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -12,6 +12,8 @@ export default function CarTrackerPage() {
     const [odometerLogs, setOdometerLogs] = useState<OdometerLog[]>([]);
     const [loading, setLoading] = useState(true);
     const [showAddRecordModal, setShowAddRecordModal] = useState(false);
+    const [showVehicleModal, setShowVehicleModal] = useState(false);
+    const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
 
     // Fetch vehicles on mount
     useEffect(() => {
@@ -138,6 +140,111 @@ export default function CarTrackerPage() {
         }
     };
 
+    // Vehicle form state
+    const [vehicleFormData, setVehicleFormData] = useState<VehicleInsert>({
+        make: null,
+        model: null,
+        year: null,
+        vin: null,
+        nickname: null,
+        license_plate: null,
+        color: null,
+        purchase_date: null,
+        purchase_price_cents: null,
+        purchase_mileage: null,
+        status: 'active',
+        insurance_provider: null,
+        insurance_policy_number: null,
+        insurance_renewal_date: null,
+        insurance_premium_cents: null,
+    });
+
+    const openAddVehicleModal = () => {
+        setEditingVehicle(null);
+        setVehicleFormData({
+            make: null,
+            model: null,
+            year: null,
+            vin: null,
+            nickname: null,
+            license_plate: null,
+            color: null,
+            purchase_date: null,
+            purchase_price_cents: null,
+            purchase_mileage: null,
+            status: 'active',
+            insurance_provider: null,
+            insurance_policy_number: null,
+            insurance_renewal_date: null,
+            insurance_premium_cents: null,
+        });
+        setShowVehicleModal(true);
+    };
+
+    const openEditVehicleModal = (vehicle: Vehicle) => {
+        setEditingVehicle(vehicle);
+        setVehicleFormData({
+            make: vehicle.make,
+            model: vehicle.model,
+            year: vehicle.year,
+            vin: vehicle.vin,
+            nickname: vehicle.nickname,
+            license_plate: vehicle.license_plate,
+            color: vehicle.color,
+            purchase_date: vehicle.purchase_date,
+            purchase_price_cents: vehicle.purchase_price_cents,
+            purchase_mileage: vehicle.purchase_mileage,
+            status: vehicle.status,
+            insurance_provider: vehicle.insurance_provider,
+            insurance_policy_number: vehicle.insurance_policy_number,
+            insurance_renewal_date: vehicle.insurance_renewal_date,
+            insurance_premium_cents: vehicle.insurance_premium_cents,
+        });
+        setShowVehicleModal(true);
+    };
+
+    const handleVehicleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        try {
+            let res;
+            if (editingVehicle) {
+                // Update existing vehicle
+                res = await fetch(`/api/car/vehicles/${editingVehicle.id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(vehicleFormData),
+                });
+            } else {
+                // Create new vehicle
+                res = await fetch('/api/car/vehicles', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(vehicleFormData),
+                });
+            }
+
+            if (!res.ok) throw new Error('Failed to save vehicle');
+
+            const savedVehicle = await res.json();
+
+            if (editingVehicle) {
+                // Update in list
+                setVehicles(prev => prev.map(v => v.id === savedVehicle.id ? savedVehicle : v));
+            } else {
+                // Add to list
+                setVehicles(prev => [savedVehicle, ...prev]);
+                setSelectedVehicle(savedVehicle.id);
+            }
+
+            setShowVehicleModal(false);
+            setEditingVehicle(null);
+        } catch (error) {
+            console.error('Error saving vehicle:', error);
+            alert('Failed to save vehicle');
+        }
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-950 text-gray-100 flex items-center justify-center">
@@ -159,7 +266,10 @@ export default function CarTrackerPage() {
                             <h1 className="text-3xl font-bold text-white mb-2">Car Tracker</h1>
                             <p className="text-gray-400">Track vehicle maintenance and expenses</p>
                         </div>
-                        <button className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2">
+                        <button
+                            onClick={openAddVehicleModal}
+                            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                        >
                             <Plus className="w-5 h-5" />
                             Add Vehicle
                         </button>
@@ -283,7 +393,10 @@ export default function CarTrackerPage() {
                                                         <p className="text-lg text-gray-400">{currentVehicle.nickname}</p>
                                                     )}
                                                 </div>
-                                                <button className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg text-sm font-medium transition-colors">
+                                                <button
+                                                    onClick={() => openEditVehicleModal(currentVehicle)}
+                                                    className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg text-sm font-medium transition-colors"
+                                                >
                                                     Edit Vehicle
                                                 </button>
                                             </div>
@@ -567,6 +680,263 @@ export default function CarTrackerPage() {
                                     className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
                                 >
                                     Add Record
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Add/Edit Vehicle Modal */}
+            {showVehicleModal && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+                    <div className="bg-gray-900 rounded-lg border border-gray-800 max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+                        <div className="sticky top-0 bg-gray-900 border-b border-gray-800 p-6 flex items-center justify-between">
+                            <h2 className="text-xl font-semibold text-white">
+                                {editingVehicle ? 'Edit Vehicle' : 'Add Vehicle'}
+                            </h2>
+                            <button
+                                onClick={() => {
+                                    setShowVehicleModal(false);
+                                    setEditingVehicle(null);
+                                }}
+                                className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
+                            >
+                                <X className="w-5 h-5 text-gray-400" />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleVehicleSubmit} className="p-6 space-y-6">
+                            {/* Basic Information */}
+                            <div>
+                                <h3 className="text-lg font-semibold text-white mb-4">Basic Information</h3>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                                            Make
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={vehicleFormData.make || ''}
+                                            onChange={(e) => setVehicleFormData({ ...vehicleFormData, make: e.target.value || null })}
+                                            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            placeholder="e.g., Toyota, Honda"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                                            Model
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={vehicleFormData.model || ''}
+                                            onChange={(e) => setVehicleFormData({ ...vehicleFormData, model: e.target.value || null })}
+                                            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            placeholder="e.g., Camry, Accord"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                                            Year
+                                        </label>
+                                        <input
+                                            type="number"
+                                            value={vehicleFormData.year || ''}
+                                            onChange={(e) => setVehicleFormData({ ...vehicleFormData, year: e.target.value ? parseInt(e.target.value) : null })}
+                                            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            placeholder="e.g., 2020"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                                            Color
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={vehicleFormData.color || ''}
+                                            onChange={(e) => setVehicleFormData({ ...vehicleFormData, color: e.target.value || null })}
+                                            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            placeholder="e.g., Blue, Red"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                                            Nickname
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={vehicleFormData.nickname || ''}
+                                            onChange={(e) => setVehicleFormData({ ...vehicleFormData, nickname: e.target.value || null })}
+                                            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            placeholder="Optional friendly name"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                                            License Plate
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={vehicleFormData.license_plate || ''}
+                                            onChange={(e) => setVehicleFormData({ ...vehicleFormData, license_plate: e.target.value || null })}
+                                            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            placeholder="e.g., ABC-1234"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* VIN */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300 mb-2">
+                                    VIN (Vehicle Identification Number)
+                                </label>
+                                <input
+                                    type="text"
+                                    value={vehicleFormData.vin || ''}
+                                    onChange={(e) => setVehicleFormData({ ...vehicleFormData, vin: e.target.value || null })}
+                                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="17-character VIN"
+                                    maxLength={17}
+                                />
+                            </div>
+
+                            {/* Purchase Information */}
+                            <div>
+                                <h3 className="text-lg font-semibold text-white mb-4">Purchase Information</h3>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                                            Purchase Date
+                                        </label>
+                                        <input
+                                            type="date"
+                                            value={vehicleFormData.purchase_date || ''}
+                                            onChange={(e) => setVehicleFormData({ ...vehicleFormData, purchase_date: e.target.value || null })}
+                                            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                                            Purchase Price
+                                        </label>
+                                        <div className="relative">
+                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">$</span>
+                                            <input
+                                                type="number"
+                                                step="0.01"
+                                                value={vehicleFormData.purchase_price_cents ? (vehicleFormData.purchase_price_cents / 100).toFixed(2) : ''}
+                                                onChange={(e) => setVehicleFormData({ ...vehicleFormData, purchase_price_cents: e.target.value ? Math.round(parseFloat(e.target.value) * 100) : null })}
+                                                className="w-full pl-8 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                placeholder="0.00"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                                            Purchase Mileage
+                                        </label>
+                                        <input
+                                            type="number"
+                                            value={vehicleFormData.purchase_mileage || ''}
+                                            onChange={(e) => setVehicleFormData({ ...vehicleFormData, purchase_mileage: e.target.value ? parseInt(e.target.value) : null })}
+                                            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            placeholder="Mileage at purchase"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                                            Status
+                                        </label>
+                                        <select
+                                            value={vehicleFormData.status}
+                                            onChange={(e) => setVehicleFormData({ ...vehicleFormData, status: e.target.value as 'active' | 'sold' | 'traded' | 'totaled' })}
+                                            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        >
+                                            <option value="active">Active</option>
+                                            <option value="sold">Sold</option>
+                                            <option value="traded">Traded</option>
+                                            <option value="totaled">Totaled</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Insurance Information */}
+                            <div>
+                                <h3 className="text-lg font-semibold text-white mb-4">Insurance Information</h3>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                                            Insurance Provider
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={vehicleFormData.insurance_provider || ''}
+                                            onChange={(e) => setVehicleFormData({ ...vehicleFormData, insurance_provider: e.target.value || null })}
+                                            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            placeholder="e.g., State Farm, Geico"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                                            Policy Number
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={vehicleFormData.insurance_policy_number || ''}
+                                            onChange={(e) => setVehicleFormData({ ...vehicleFormData, insurance_policy_number: e.target.value || null })}
+                                            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            placeholder="Policy number"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                                            Renewal Date
+                                        </label>
+                                        <input
+                                            type="date"
+                                            value={vehicleFormData.insurance_renewal_date || ''}
+                                            onChange={(e) => setVehicleFormData({ ...vehicleFormData, insurance_renewal_date: e.target.value || null })}
+                                            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                                            Premium (per billing period)
+                                        </label>
+                                        <div className="relative">
+                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">$</span>
+                                            <input
+                                                type="number"
+                                                step="0.01"
+                                                value={vehicleFormData.insurance_premium_cents ? (vehicleFormData.insurance_premium_cents / 100).toFixed(2) : ''}
+                                                onChange={(e) => setVehicleFormData({ ...vehicleFormData, insurance_premium_cents: e.target.value ? Math.round(parseFloat(e.target.value) * 100) : null })}
+                                                className="w-full pl-8 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                placeholder="0.00"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="flex gap-3 pt-4 border-t border-gray-800">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setShowVehicleModal(false);
+                                        setEditingVehicle(null);
+                                    }}
+                                    className="flex-1 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+                                >
+                                    {editingVehicle ? 'Update Vehicle' : 'Add Vehicle'}
                                 </button>
                             </div>
                         </form>
