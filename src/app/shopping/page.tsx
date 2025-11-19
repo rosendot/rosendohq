@@ -709,32 +709,39 @@ export default function ShoppingPage() {
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex items-start justify-between gap-4">
                                                         <div className="flex-1">
-                                                            <h4 className="text-white font-medium">{item.item_name}</h4>
-                                                            {(item.quantity || item.aisle) && (
-                                                            <div className="flex flex-wrap gap-2 mt-2">
+                                                            <div className="flex items-baseline gap-3">
+                                                                <h4 className="text-white font-medium">{item.item_name}</h4>
                                                                 {item.quantity && (
-                                                                    <span className="px-2 py-1 bg-gray-800 text-gray-300 rounded text-xs">
-                                                                        {item.quantity} {item.unit || ''}
-                                                                    </span>
-                                                                )}
-                                                                {item.aisle && (
-                                                                    <span className="px-2 py-1 bg-purple-500/20 text-purple-400 rounded text-xs border border-purple-500/20">
-                                                                        {item.aisle}
+                                                                    <span className="text-lg font-semibold text-blue-400">
+                                                                        ×{item.quantity}{item.unit ? ` ${item.unit}` : ''}
                                                                     </span>
                                                                 )}
                                                             </div>
-                                                            )}
+                                                            <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1.5 text-xs">
+                                                                {item.aisle && (
+                                                                    <div className="flex items-center gap-1 text-purple-400">
+                                                                        <span className="opacity-60">📍</span>
+                                                                        <span>{item.aisle}</span>
+                                                                    </div>
+                                                                )}
+                                                                {item.store_preference && (
+                                                                    <div className="flex items-center gap-1 text-green-400">
+                                                                        <span className="opacity-60">🏪</span>
+                                                                        <span>{item.store_preference}</span>
+                                                                    </div>
+                                                                )}
+                                                                {item.needed_by && (
+                                                                    <div className="flex items-center gap-1 text-orange-400">
+                                                                        <Calendar className="w-3 h-3 opacity-60" />
+                                                                        <span>Need by {new Date(item.needed_by).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                                                                    </div>
+                                                                )}
+                                                            </div>
                                                             {item.notes && (
-                                                                <p className="text-gray-400 text-sm mt-2">{item.notes}</p>
+                                                                <p className="text-gray-400 text-sm mt-2 italic">{item.notes}</p>
                                                             )}
                                                         </div>
-                                                        <div className="flex items-center gap-2">
-                                                            {item.needed_by && (
-                                                                <div className="flex items-center gap-1 text-xs text-gray-500">
-                                                                    <Calendar className="w-3 h-3" />
-                                                                    {new Date(item.needed_by).toLocaleDateString()}
-                                                                </div>
-                                                            )}
+                                                        <div className="flex items-start gap-2">
                                                             {!isSelectionMode && (
                                                                 <>
                                                                     <button
