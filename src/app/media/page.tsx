@@ -37,6 +37,10 @@ function MediaCarousel({
     const scrollRef = useRef<HTMLDivElement>(null);
     const [canScrollLeft, setCanScrollLeft] = useState(false);
     const [canScrollRight, setCanScrollRight] = useState(false);
+    const [touchStart, setTouchStart] = useState<number | null>(null);
+    const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
+    const minSwipeDistance = 50;
 
     const checkScroll = () => {
         if (scrollRef.current) {
@@ -63,6 +67,33 @@ function MediaCarousel({
         }
     };
 
+    const onTouchStart = (e: React.TouchEvent) => {
+        setTouchEnd(null);
+        setTouchStart(e.targetTouches[0].clientX);
+    };
+
+    const onTouchMove = (e: React.TouchEvent) => {
+        setTouchEnd(e.targetTouches[0].clientX);
+    };
+
+    const onTouchEnd = () => {
+        if (!touchStart || !touchEnd) return;
+
+        const distance = touchStart - touchEnd;
+        const isLeftSwipe = distance > minSwipeDistance;
+        const isRightSwipe = distance < -minSwipeDistance;
+
+        if (isLeftSwipe && canScrollRight) {
+            scroll('right');
+        }
+        if (isRightSwipe && canScrollLeft) {
+            scroll('left');
+        }
+
+        setTouchStart(null);
+        setTouchEnd(null);
+    };
+
     if (items.length === 0) {
         return (
             <div className="mb-12">
@@ -75,29 +106,31 @@ function MediaCarousel({
     }
 
     return (
-        <div className="mb-12">
-            <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-bold">{title}</h2>
+        <div className="mb-8 sm:mb-12">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+                <h2 className="text-xl sm:text-2xl font-bold">{title}</h2>
                 <div className="flex gap-2">
                     <button
                         onClick={() => scroll('left')}
                         disabled={!canScrollLeft}
-                        className={`p-2 rounded-lg transition-colors ${canScrollLeft
-                            ? 'bg-gray-800 hover:bg-gray-700'
+                        className={`p-2 sm:p-2 rounded-lg transition-colors ${canScrollLeft
+                            ? 'bg-gray-800 hover:bg-gray-700 active:bg-gray-600'
                             : 'bg-gray-900 text-gray-600 cursor-not-allowed'
                             }`}
+                        aria-label="Scroll left"
                     >
-                        <ChevronLeft className="w-5 h-5" />
+                        <ChevronLeft className="w-5 h-5 sm:w-5 sm:h-5" />
                     </button>
                     <button
                         onClick={() => scroll('right')}
                         disabled={!canScrollRight}
-                        className={`p-2 rounded-lg transition-colors ${canScrollRight
-                            ? 'bg-gray-800 hover:bg-gray-700'
+                        className={`p-2 sm:p-2 rounded-lg transition-colors ${canScrollRight
+                            ? 'bg-gray-800 hover:bg-gray-700 active:bg-gray-600'
                             : 'bg-gray-900 text-gray-600 cursor-not-allowed'
                             }`}
+                        aria-label="Scroll right"
                     >
-                        <ChevronRight className="w-5 h-5" />
+                        <ChevronRight className="w-5 h-5 sm:w-5 sm:h-5" />
                     </button>
                 </div>
             </div>
@@ -105,6 +138,9 @@ function MediaCarousel({
             <div
                 ref={scrollRef}
                 onScroll={checkScroll}
+                onTouchStart={onTouchStart}
+                onTouchMove={onTouchMove}
+                onTouchEnd={onTouchEnd}
                 className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-4"
                 style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
@@ -145,18 +181,21 @@ function MediaCard({
                             {statusObj?.label}
                         </span>
                     </div>
-                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {/* Mobile-friendly buttons - always visible on mobile, hover on desktop */}
+                    <div className="flex gap-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
                         <button
                             onClick={() => onEdit(item)}
-                            className="p-1.5 hover:bg-gray-800 rounded transition-colors"
+                            className="p-2 hover:bg-gray-800 rounded-lg transition-colors active:bg-gray-700"
+                            aria-label="Edit item"
                         >
-                            <Edit2 className="w-3.5 h-3.5 text-gray-400" />
+                            <Edit2 className="w-4 h-4 text-gray-400" />
                         </button>
                         <button
                             onClick={() => onDelete(item.id, item.title)}
-                            className="p-1.5 hover:bg-gray-800 rounded transition-colors"
+                            className="p-2 hover:bg-gray-800 rounded-lg transition-colors active:bg-gray-700"
+                            aria-label="Delete item"
                         >
-                            <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                            <Trash2 className="w-4 h-4 text-red-400" />
                         </button>
                     </div>
                 </div>
@@ -447,11 +486,11 @@ export default function MediaTrackerPage() {
         <div className="min-h-screen bg-gray-950 text-white">
             {/* Header */}
             <div className="border-b border-gray-800 bg-gray-950 sticky top-0 z-10">
-                <div className="max-w-7xl mx-auto px-8 py-6">
-                    <div className="flex justify-between items-center mb-6">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 sm:mb-6">
                         <div>
-                            <h1 className="text-4xl font-bold mb-2">Media Tracker</h1>
-                            <p className="text-gray-400">Track anime, shows, and movies</p>
+                            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-1 sm:mb-2">Media Tracker</h1>
+                            <p className="text-sm sm:text-base text-gray-400">Track anime, shows, and movies</p>
                         </div>
                         <button
                             onClick={() => {
@@ -459,42 +498,42 @@ export default function MediaTrackerPage() {
                                 resetForm();
                                 setShowAddModal(true);
                             }}
-                            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg transition-colors"
+                            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 px-6 py-3 rounded-lg transition-colors font-medium"
                         >
                             <Plus className="w-5 h-5" />
-                            Add Media
+                            <span>Add Media</span>
                         </button>
                     </div>
 
                     {/* Type Stats */}
-                    <div className="grid grid-cols-3 gap-4 mb-6">
+                    <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-4 sm:mb-6">
                         {MEDIA_TYPES.map(({ value, label, icon: Icon }) => (
-                            <div key={value} className="bg-gray-900/50 border border-gray-800 rounded-lg p-4">
-                                <div className="flex items-center gap-2 mb-1">
-                                    <Icon className="w-4 h-4 text-blue-400" />
-                                    <h3 className="text-gray-400 text-xs font-medium">{label}</h3>
+                            <div key={value} className="bg-gray-900/50 border border-gray-800 rounded-lg p-3 sm:p-4">
+                                <div className="flex items-center gap-1 sm:gap-2 mb-1">
+                                    <Icon className="w-3 h-3 sm:w-4 sm:h-4 text-blue-400" />
+                                    <h3 className="text-gray-400 text-[10px] sm:text-xs font-medium">{label}</h3>
                                 </div>
-                                <p className="text-2xl font-bold">{totalByType[value]}</p>
+                                <p className="text-xl sm:text-2xl font-bold">{totalByType[value]}</p>
                             </div>
                         ))}
                     </div>
 
                     {/* Search */}
                     <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
                         <input
                             type="text"
                             placeholder="Search your library..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-3 bg-gray-900 border border-gray-800 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                            className="w-full pl-9 sm:pl-10 pr-4 py-3 bg-gray-900 border border-gray-800 rounded-lg text-white text-base placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
                         />
                     </div>
                 </div>
             </div>
 
             {/* Carousels */}
-            <div className="max-w-7xl mx-auto px-8 py-8">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
                 <MediaCarousel
                     title={`Continue Watching (${watchingItems.length})`}
                     items={watchingItems}
@@ -540,22 +579,22 @@ export default function MediaTrackerPage() {
                 )}
             </div>
 
-            {/* Add/Edit Modal - Same as before */}
+            {/* Add/Edit Modal - Mobile Optimized */}
             {showAddModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
-                    <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 max-w-md w-full my-8">
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-0 sm:p-4 z-50 overflow-y-auto">
+                    <div className="bg-gray-900 border-0 sm:border border-gray-800 rounded-none sm:rounded-lg p-6 max-w-md w-full min-h-screen sm:min-h-0 my-0 sm:my-8">
                         <h2 className="text-2xl font-bold mb-6">
                             {editingItem ? 'Edit Media' : 'Add New Media'}
                         </h2>
 
-                        <form onSubmit={handleSubmit} className="space-y-4">
+                        <form onSubmit={handleSubmit} className="space-y-5">
                             <div>
                                 <label className="block text-sm font-medium mb-2">Title *</label>
                                 <input
                                     type="text"
                                     value={formData.title}
                                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                                    className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white text-base focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
                                     required
                                 />
                             </div>
@@ -566,7 +605,7 @@ export default function MediaTrackerPage() {
                                     <select
                                         value={formData.type}
                                         onChange={(e) => setFormData({ ...formData, type: e.target.value as MediaType })}
-                                        className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                                        className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white text-base focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
                                     >
                                         {MEDIA_TYPES.map(({ value, label }) => (
                                             <option key={value} value={value}>{label}</option>
@@ -579,7 +618,7 @@ export default function MediaTrackerPage() {
                                     <select
                                         value={formData.status}
                                         onChange={(e) => setFormData({ ...formData, status: e.target.value as MediaStatus })}
-                                        className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                                        className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white text-base focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
                                     >
                                         {STATUSES.map(({ value, label }) => (
                                             <option key={value} value={value}>{label}</option>
@@ -595,7 +634,7 @@ export default function MediaTrackerPage() {
                                     value={formData.platform}
                                     onChange={(e) => setFormData({ ...formData, platform: e.target.value })}
                                     placeholder="Netflix, Crunchyroll, etc."
-                                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                                    className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white text-base focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
                                 />
                             </div>
 
@@ -607,7 +646,7 @@ export default function MediaTrackerPage() {
                                         value={formData.current_episode}
                                         onChange={(e) => setFormData({ ...formData, current_episode: parseInt(e.target.value) || 0 })}
                                         min="0"
-                                        className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                                        className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white text-base focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
                                     />
                                 </div>
 
@@ -618,23 +657,23 @@ export default function MediaTrackerPage() {
                                         value={formData.total_episodes}
                                         onChange={(e) => setFormData({ ...formData, total_episodes: parseInt(e.target.value) || 0 })}
                                         min="0"
-                                        className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                                        className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white text-base focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
                                     />
                                 </div>
                             </div>
 
                             <div>
                                 <label className="block text-sm font-medium mb-2">Rating</label>
-                                <div className="flex gap-2">
+                                <div className="flex gap-3 justify-center sm:justify-start">
                                     {[1, 2, 3, 4, 5].map((rating) => (
                                         <button
                                             key={rating}
                                             type="button"
                                             onClick={() => setFormData({ ...formData, rating })}
-                                            className="p-2 hover:bg-gray-800 rounded transition-colors"
+                                            className="p-3 hover:bg-gray-800 rounded-lg transition-colors active:bg-gray-700"
                                         >
                                             <Star
-                                                className={`w-6 h-6 ${rating <= formData.rating ? 'fill-yellow-500 text-yellow-500' : 'text-gray-600'}`}
+                                                className={`w-7 h-7 ${rating <= formData.rating ? 'fill-yellow-500 text-yellow-500' : 'text-gray-600'}`}
                                             />
                                         </button>
                                     ))}
@@ -647,18 +686,12 @@ export default function MediaTrackerPage() {
                                     value={formData.notes}
                                     onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                                     rows={3}
-                                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500 resize-none"
+                                    className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white text-base focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500 resize-none"
                                     placeholder="Your thoughts, reminders, etc."
                                 />
                             </div>
 
-                            <div className="flex gap-3 pt-4">
-                                <button
-                                    type="submit"
-                                    className="flex-1 bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg font-medium transition-colors"
-                                >
-                                    {editingItem ? 'Update' : 'Add Media'}
-                                </button>
+                            <div className="flex flex-col-reverse sm:flex-row gap-3 pt-4">
                                 <button
                                     type="button"
                                     onClick={() => {
@@ -666,9 +699,15 @@ export default function MediaTrackerPage() {
                                         setEditingItem(null);
                                         resetForm();
                                     }}
-                                    className="px-6 py-3 bg-gray-800 hover:bg-gray-700 rounded-lg font-medium transition-colors"
+                                    className="w-full sm:w-auto px-6 py-4 sm:py-3 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded-lg font-medium transition-colors text-base"
                                 >
                                     Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="w-full sm:flex-1 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 px-6 py-4 sm:py-3 rounded-lg font-medium transition-colors text-base"
+                                >
+                                    {editingItem ? 'Update' : 'Add Media'}
                                 </button>
                             </div>
                         </form>
