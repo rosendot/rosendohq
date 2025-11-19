@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Search, Heart, Star, ExternalLink, Tag, DollarSign, Calendar, Store, Shirt, Palette, Edit } from 'lucide-react';
+import { Plus, Search, Heart, ExternalLink, Tag, DollarSign, Calendar, Store, Shirt, Palette, Edit } from 'lucide-react';
 import AddWishlistItemModal from '@/app/wishlist/AddWishlistItemModal';
 import EditWishlistItemModal from '@/app/wishlist/EditWishlistItemModal';
 import DeleteConfirmationModal from '@/components/DeleteConfirmationModal';
@@ -147,16 +147,6 @@ export default function WishlistPage() {
         return matchesCategory && matchesStatus && matchesSearch;
     });
 
-    const stats = {
-        total: items.length,
-        wanted: items.filter(i => i.status === 'wanted').length,
-        purchased: items.filter(i => i.status === 'purchased').length,
-        highPriority: items.filter(i => i.priority === 1).length,
-        totalValue: items
-            .filter(i => i.status === 'wanted' && i.price_cents)
-            .reduce((sum, i) => sum + (i.price_cents || 0), 0) / 100,
-    };
-
     const getPriorityColor = (priority?: number) => {
         if (!priority) return 'bg-gray-500/20 text-gray-400 border-gray-500/20';
         switch (priority) {
@@ -226,71 +216,6 @@ export default function WishlistPage() {
                             <Plus className="w-5 h-5" />
                             Add Item
                         </button>
-                    </div>
-                </div>
-
-                {/* Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
-                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-gray-400 text-sm font-medium">Total Items</p>
-                                <p className="text-3xl font-bold text-white mt-1">{stats.total}</p>
-                            </div>
-                            <div className="p-3 bg-purple-500/10 rounded-lg">
-                                <Heart className="w-8 h-8 text-purple-400" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-gray-400 text-sm font-medium">Wanted</p>
-                                <p className="text-3xl font-bold text-white mt-1">{stats.wanted}</p>
-                            </div>
-                            <div className="p-3 bg-blue-500/10 rounded-lg">
-                                <Star className="w-8 h-8 text-blue-400" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-gray-400 text-sm font-medium">Purchased</p>
-                                <p className="text-3xl font-bold text-white mt-1">{stats.purchased}</p>
-                            </div>
-                            <div className="p-3 bg-green-500/10 rounded-lg">
-                                <Tag className="w-8 h-8 text-green-400" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-gray-400 text-sm font-medium">High Priority</p>
-                                <p className="text-3xl font-bold text-white mt-1">{stats.highPriority}</p>
-                            </div>
-                            <div className="p-3 bg-red-500/10 rounded-lg">
-                                <ExternalLink className="w-8 h-8 text-red-400" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-gray-400 text-sm font-medium">Total Value</p>
-                                <p className="text-3xl font-bold text-white mt-1">
-                                    ${stats.totalValue.toFixed(0)}
-                                </p>
-                            </div>
-                            <div className="p-3 bg-emerald-500/10 rounded-lg">
-                                <DollarSign className="w-8 h-8 text-emerald-400" />
-                            </div>
-                        </div>
                     </div>
                 </div>
 
