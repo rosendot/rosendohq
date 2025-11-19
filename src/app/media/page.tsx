@@ -206,14 +206,11 @@ function MediaCard({
 
     return (
         <div className="min-w-[280px] max-w-[280px] bg-gray-900 border border-gray-800 rounded-lg overflow-hidden hover:border-gray-700 transition-all group">
-            {/* Card Header with Status */}
+            {/* Card Header */}
             <div className="p-4 pb-3">
                 <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-2 flex-1 min-w-0 flex-wrap">
                         <Icon className="w-4 h-4 text-blue-400 flex-shrink-0" />
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusObj?.color} flex-shrink-0`}>
-                            {statusObj?.label}
-                        </span>
                         {/* Platform Badge */}
                         {item.platform && (
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPlatformColor(item.platform)} flex-shrink-0`}>
