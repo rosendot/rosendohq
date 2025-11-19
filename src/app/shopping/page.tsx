@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Search, ShoppingCart, CheckCircle2, Circle, Calendar, AlertCircle, Trash2, Check, X, Edit2 } from 'lucide-react';
+import { Plus, Search, ShoppingCart, CheckCircle2, Circle, Calendar, Trash2, Check, X, Edit2 } from 'lucide-react';
 import type { ShoppingList, ShoppingListItem } from '@/types/database.types';
 import DeleteConfirmationModal from '@/components/DeleteConfirmationModal';
 import AddShoppingItemModal from '@/app/shopping/AddShoppingItemModal';
@@ -431,13 +431,6 @@ export default function ShoppingPage() {
         completedItems.some(item => item.id === id)
     ).length;
 
-    const stats = {
-        total: items.length,
-        active: items.filter(i => !i.is_done).length,
-        completed: items.filter(i => i.is_done).length,
-        highPriority: items.filter(i => i.priority === 1 && !i.is_done).length,
-    };
-
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-950 text-gray-100 flex items-center justify-center">
@@ -485,78 +478,42 @@ export default function ShoppingPage() {
                     </div>
                 </div>
 
-                {/* Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-gray-400 text-sm font-medium">Total Items</p>
-                                <p className="text-3xl font-bold text-white mt-1">{stats.total}</p>
-                            </div>
-                            <div className="p-3 bg-purple-500/10 rounded-lg">
-                                <ShoppingCart className="w-8 h-8 text-purple-400" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-gray-400 text-sm font-medium">To Buy</p>
-                                <p className="text-3xl font-bold text-white mt-1">{stats.active}</p>
-                            </div>
-                            <div className="p-3 bg-blue-500/10 rounded-lg">
-                                <Circle className="w-8 h-8 text-blue-400" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-gray-400 text-sm font-medium">Completed</p>
-                                <p className="text-3xl font-bold text-white mt-1">{stats.completed}</p>
-                            </div>
-                            <div className="p-3 bg-green-500/10 rounded-lg">
-                                <CheckCircle2 className="w-8 h-8 text-green-400" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-gray-400 text-sm font-medium">High Priority</p>
-                                <p className="text-3xl font-bold text-white mt-1">{stats.highPriority}</p>
-                            </div>
-                            <div className="p-3 bg-red-500/10 rounded-lg">
-                                <AlertCircle className="w-8 h-8 text-red-400" />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                     {/* Sidebar - Lists */}
                     <div className="lg:col-span-1">
                         <div className="bg-gray-900 rounded-lg border border-gray-800 p-4">
                             <h2 className="text-lg font-semibold text-white mb-4">Lists</h2>
                             <div className="space-y-2">
-                                {lists.map((list) => (
-                                    <button
-                                        key={list.id}
-                                        onClick={() => setSelectedListId(list.id)}
-                                        className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${selectedListId === list.id
-                                            ? 'bg-blue-600 text-white'
-                                            : 'bg-gray-800 text-gray-300 hover:bg-gray-750'
-                                            }`}
-                                    >
-                                        <div className="font-medium">{list.name}</div>
-                                        {list.notes && (
-                                            <div className="text-sm text-gray-400 mt-1">{list.notes}</div>
-                                        )}
-                                    </button>
-                                ))}
+                                {lists.map((list) => {
+                                    const listItems = allItems[list.id] || [];
+                                    const itemCount = listItems.length;
+
+                                    return (
+                                        <button
+                                            key={list.id}
+                                            onClick={() => setSelectedListId(list.id)}
+                                            className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${selectedListId === list.id
+                                                ? 'bg-blue-600 text-white'
+                                                : 'bg-gray-800 text-gray-300 hover:bg-gray-750'
+                                                }`}
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                <div className="font-medium">{list.name}</div>
+                                                <span className={`text-xs px-2 py-0.5 rounded-full ${selectedListId === list.id
+                                                    ? 'bg-white/20 text-white'
+                                                    : 'bg-gray-700 text-gray-400'
+                                                    }`}>
+                                                    {itemCount}
+                                                </span>
+                                            </div>
+                                            {list.notes && (
+                                                <div className={`text-sm mt-1 ${selectedListId === list.id ? 'text-blue-100' : 'text-gray-400'}`}>
+                                                    {list.notes}
+                                                </div>
+                                            )}
+                                        </button>
+                                    );
+                                })}
                             </div>
                         </div>
                     </div>
