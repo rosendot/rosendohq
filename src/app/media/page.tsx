@@ -228,44 +228,73 @@ function MediaCard({
                     </div>
                 )}
 
-                {/* Progress Bar (for shows/anime with episodes) */}
+                {/* Progress Display - Different for each status */}
                 {(item.type === 'show' || item.type === 'anime') && (
-                    <div className="mb-3">
-                        {/* Season and Episode Info */}
-                        <div className="flex justify-between text-xs mb-1.5">
-                            <span className="text-gray-400">Progress</span>
-                            <span className="font-medium text-gray-300">
-                                {item.current_season && item.total_seasons ? (
-                                    <>
-                                        S{item.current_season}/{item.total_seasons}
-                                        {item.episodes_in_season && (
-                                            <> • Ep {item.current_episode || 0}/{item.episodes_in_season}</>
+                    <>
+                        {/* Plan to Watch - Show overview */}
+                        {item.status === 'planned' && (item.total_seasons || item.total_episodes) && (
+                            <div className="mb-3">
+                                <div className="flex justify-between text-xs">
+                                    <span className="text-gray-400">Length</span>
+                                    <span className="font-medium text-gray-300">
+                                        {item.total_seasons && (
+                                            <>
+                                                {item.total_seasons} Season{item.total_seasons !== 1 ? 's' : ''}
+                                                {item.total_episodes && <> • {item.total_episodes} Episodes</>}
+                                            </>
                                         )}
-                                    </>
-                                ) : item.total_episodes && item.total_episodes > 0 ? (
-                                    <>Ep {item.current_episode || 0}/{item.total_episodes}</>
-                                ) : (
-                                    <>Ep {item.current_episode || 0}</>
-                                )}
-                            </span>
-                        </div>
-
-                        {/* Progress Bar - Shows per-season progress if available, otherwise overall */}
-                        {((item.episodes_in_season && item.episodes_in_season > 0) || (item.total_episodes && item.total_episodes > 0)) && (
-                            <div className="w-full bg-gray-800 rounded-full h-1.5">
-                                <div
-                                    className="bg-blue-500 h-1.5 rounded-full transition-all"
-                                    style={{
-                                        width: `${Math.min(
-                                            ((item.current_episode || 0) /
-                                            (item.episodes_in_season || item.total_episodes || 1)) * 100,
-                                            100
-                                        )}%`
-                                    }}
-                                ></div>
+                                        {!item.total_seasons && item.total_episodes && (
+                                            <>{item.total_episodes} Episodes</>
+                                        )}
+                                    </span>
+                                </div>
                             </div>
                         )}
-                    </div>
+
+                        {/* Watching/On Hold - Show current progress */}
+                        {(item.status === 'watching' || item.status === 'on_hold') && (item.current_season || item.current_episode) && (
+                            <div className="mb-3">
+                                <div className="flex justify-between text-xs mb-1.5">
+                                    <span className="text-gray-400">Progress</span>
+                                    <span className="font-medium text-gray-300">
+                                        {item.current_season && item.total_seasons ? (
+                                            <>
+                                                S{item.current_season}/{item.total_seasons} • Ep {item.current_episode || 0}
+                                                {item.episodes_in_season && <> / {item.episodes_in_season}</>}
+                                            </>
+                                        ) : item.current_season ? (
+                                            <>
+                                                S{item.current_season} • Ep {item.current_episode || 0}
+                                                {item.episodes_in_season && <> / {item.episodes_in_season}</>}
+                                            </>
+                                        ) : (
+                                            <>
+                                                Ep {item.current_episode || 0}
+                                                {item.episodes_in_season && <> / {item.episodes_in_season}</>}
+                                            </>
+                                        )}
+                                    </span>
+                                </div>
+
+                                {/* Progress Bar - Shows per-season progress if available */}
+                                {item.episodes_in_season && item.episodes_in_season > 0 && (
+                                    <div className="w-full bg-gray-800 rounded-full h-1.5">
+                                        <div
+                                            className="bg-blue-500 h-1.5 rounded-full transition-all"
+                                            style={{
+                                                width: `${Math.min(
+                                                    ((item.current_episode || 0) / item.episodes_in_season) * 100,
+                                                    100
+                                                )}%`
+                                            }}
+                                        ></div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Completed - No progress display needed */}
+                    </>
                 )}
 
                 {/* Dates */}
