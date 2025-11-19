@@ -4,6 +4,7 @@
 import { useState, useEffect } from 'react';
 import { Car, Plus, Wrench, DollarSign, Calendar, Gauge, X, Trash2, Edit } from 'lucide-react';
 import type { Vehicle, MaintenanceRecord, OdometerLog, MaintenanceRecordInsert, VehicleInsert } from '@/types/database.types';
+import DeleteConfirmationModal from '@/components/DeleteConfirmationModal';
 
 export default function CarTrackerPage() {
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -14,6 +15,12 @@ export default function CarTrackerPage() {
     const [showAddRecordModal, setShowAddRecordModal] = useState(false);
     const [showVehicleModal, setShowVehicleModal] = useState(false);
     const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
+    const [deleteConfirmation, setDeleteConfirmation] = useState<{
+        show: boolean;
+        type: 'vehicle' | 'record' | null;
+        id: string | null;
+        name: string;
+    }>({ show: false, type: null, id: null, name: '' });
 
     // Fetch all data on mount
     useEffect(() => {
@@ -270,11 +277,17 @@ export default function CarTrackerPage() {
         }
     };
 
-    const handleDeleteVehicle = async (vehicleId: string) => {
-        if (!confirm('Are you sure you want to delete this vehicle? This will also delete all associated maintenance records.')) {
-            return;
-        }
+    const showDeleteVehicleConfirmation = (vehicle: Vehicle) => {
+        const vehicleName = `${vehicle.year} ${vehicle.make} ${vehicle.model}`;
+        setDeleteConfirmation({
+            show: true,
+            type: 'vehicle',
+            id: vehicle.id,
+            name: vehicleName
+        });
+    };
 
+    const handleDeleteVehicle = async (vehicleId: string) => {
         try {
             const res = await fetch(`/api/car/vehicles/${vehicleId}`, {
                 method: 'DELETE',
@@ -303,17 +316,24 @@ export default function CarTrackerPage() {
                 const remainingVehicles = vehicles.filter(v => v.id !== vehicleId);
                 setSelectedVehicle(remainingVehicles[0]?.id || null);
             }
+
+            setDeleteConfirmation({ show: false, type: null, id: null, name: '' });
         } catch (error) {
             console.error('Error deleting vehicle:', error);
             alert('Failed to delete vehicle');
         }
     };
 
-    const handleDeleteRecord = async (recordId: string) => {
-        if (!confirm('Are you sure you want to delete this maintenance record?')) {
-            return;
-        }
+    const showDeleteRecordConfirmation = (record: MaintenanceRecord) => {
+        setDeleteConfirmation({
+            show: true,
+            type: 'record',
+            id: record.id,
+            name: record.item
+        });
+    };
 
+    const handleDeleteRecord = async (recordId: string) => {
         try {
             const res = await fetch(`/api/car/maintenance/records/${recordId}`, {
                 method: 'DELETE',
@@ -328,10 +348,24 @@ export default function CarTrackerPage() {
                     [selectedVehicle]: (prev[selectedVehicle] || []).filter(r => r.id !== recordId)
                 }));
             }
+
+            setDeleteConfirmation({ show: false, type: null, id: null, name: '' });
         } catch (error) {
             console.error('Error deleting record:', error);
             alert('Failed to delete maintenance record');
         }
+    };
+
+    const confirmDelete = () => {
+        if (deleteConfirmation.type === 'vehicle' && deleteConfirmation.id) {
+            handleDeleteVehicle(deleteConfirmation.id);
+        } else if (deleteConfirmation.type === 'record' && deleteConfirmation.id) {
+            handleDeleteRecord(deleteConfirmation.id);
+        }
+    };
+
+    const cancelDelete = () => {
+        setDeleteConfirmation({ show: false, type: null, id: null, name: '' });
     };
 
     if (loading) {
@@ -468,7 +502,7 @@ export default function CarTrackerPage() {
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        handleDeleteVehicle(vehicle.id);
+                                                        showDeleteVehicleConfirmation(vehicle);
                                                     }}
                                                     className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded transition-all
                                                         ${selectedVehicle === vehicle.id
@@ -650,7 +684,7 @@ export default function CarTrackerPage() {
                                                                             {record.item}
                                                                         </h4>
                                                                         <button
-                                                                            onClick={() => handleDeleteRecord(record.id)}
+                                                                            onClick={() => showDeleteRecordConfirmation(record)}
                                                                             className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-red-600/20 text-red-400 rounded transition-all"
                                                                             title="Delete record"
                                                                         >
@@ -1122,6 +1156,19 @@ export default function CarTrackerPage() {
                     </div>
                 </div>
             )}
+
+            {/* Delete Confirmation Modal */}
+            <DeleteConfirmationModal
+                isOpen={deleteConfirmation.show}
+                onClose={cancelDelete}
+                onConfirm={confirmDelete}
+                itemName={deleteConfirmation.name}
+                title={deleteConfirmation.type === 'vehicle' ? 'Delete Vehicle' : 'Delete Maintenance Record'}
+                message={deleteConfirmation.type === 'vehicle'
+                    ? `Are you sure you want to delete "${deleteConfirmation.name}"? This will also delete all associated maintenance records and odometer logs. This action cannot be undone.`
+                    : undefined
+                }
+            />
         </div>
     );
 }
