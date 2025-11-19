@@ -2,8 +2,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Car, Plus, Wrench, DollarSign, Calendar, Gauge } from 'lucide-react';
-import type { Vehicle, MaintenanceRecord, OdometerLog } from '@/types/database.types';
+import { Car, Plus, Wrench, DollarSign, Calendar, Gauge, X } from 'lucide-react';
+import type { Vehicle, MaintenanceRecord, OdometerLog, MaintenanceRecordInsert } from '@/types/database.types';
 
 export default function CarTrackerPage() {
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -11,6 +11,7 @@ export default function CarTrackerPage() {
     const [maintenanceRecords, setMaintenanceRecords] = useState<MaintenanceRecord[]>([]);
     const [odometerLogs, setOdometerLogs] = useState<OdometerLog[]>([]);
     const [loading, setLoading] = useState(true);
+    const [showAddRecordModal, setShowAddRecordModal] = useState(false);
 
     // Fetch vehicles on mount
     useEffect(() => {
@@ -65,6 +66,77 @@ export default function CarTrackerPage() {
         const recordYear = new Date(r.service_date).getFullYear();
         return recordYear === new Date().getFullYear();
     }).length;
+
+    // Form state
+    const [formData, setFormData] = useState<MaintenanceRecordInsert>({
+        vehicle_id: selectedVehicle || '',
+        item: '',
+        service_date: new Date().toISOString().split('T')[0],
+        mileage: null,
+        cost_cents: null,
+        vendor: null,
+        notes: null,
+        warranty_work: false,
+        is_diy: false,
+        template_id: null,
+        receipt_file_id: null,
+        next_due_date: null,
+        next_due_mileage: null,
+        parts_cost_cents: null,
+        labor_cost_cents: null,
+    });
+
+    // Update vehicle_id in form when selectedVehicle changes
+    useEffect(() => {
+        if (selectedVehicle) {
+            setFormData(prev => ({ ...prev, vehicle_id: selectedVehicle }));
+        }
+    }, [selectedVehicle]);
+
+    const handleAddRecord = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        if (!selectedVehicle) {
+            alert('Please select a vehicle');
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/car/maintenance/records', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData),
+            });
+
+            if (!res.ok) throw new Error('Failed to add record');
+
+            const newRecord = await res.json();
+            setMaintenanceRecords(prev => [newRecord, ...prev]);
+            setShowAddRecordModal(false);
+
+            // Reset form
+            setFormData({
+                vehicle_id: selectedVehicle,
+                item: '',
+                service_date: new Date().toISOString().split('T')[0],
+                mileage: null,
+                cost_cents: null,
+                vendor: null,
+                notes: null,
+                warranty_work: false,
+                is_diy: false,
+                template_id: null,
+                receipt_file_id: null,
+                next_due_date: null,
+                next_due_mileage: null,
+                parts_cost_cents: null,
+                labor_cost_cents: null,
+            });
+        } catch (error) {
+            console.error('Error adding record:', error);
+            alert('Failed to add maintenance record');
+        }
+    };
 
     if (loading) {
         return (
@@ -255,7 +327,10 @@ export default function CarTrackerPage() {
                                                         {maintenanceRecords.length} record{maintenanceRecords.length !== 1 ? 's' : ''}
                                                     </p>
                                                 </div>
-                                                <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+                                                <button
+                                                    onClick={() => setShowAddRecordModal(true)}
+                                                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+                                                >
                                                     <Plus className="w-4 h-4" />
                                                     Add Record
                                                 </button>
@@ -352,6 +427,152 @@ export default function CarTrackerPage() {
                     </>
                 )}
             </div>
+
+            {/* Add Record Modal */}
+            {showAddRecordModal && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+                    <div className="bg-gray-900 rounded-lg border border-gray-800 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                        <div className="sticky top-0 bg-gray-900 border-b border-gray-800 p-6 flex items-center justify-between">
+                            <h2 className="text-xl font-semibold text-white">Add Maintenance Record</h2>
+                            <button
+                                onClick={() => setShowAddRecordModal(false)}
+                                className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
+                            >
+                                <X className="w-5 h-5 text-gray-400" />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleAddRecord} className="p-6 space-y-4">
+                            {/* Item Name */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300 mb-2">
+                                    Service Item *
+                                </label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={formData.item}
+                                    onChange={(e) => setFormData({ ...formData, item: e.target.value })}
+                                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="e.g., Oil Change, Tire Rotation"
+                                />
+                            </div>
+
+                            {/* Service Date and Mileage */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                                        Service Date *
+                                    </label>
+                                    <input
+                                        type="date"
+                                        required
+                                        value={formData.service_date}
+                                        onChange={(e) => setFormData({ ...formData, service_date: e.target.value })}
+                                        className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                                        Mileage
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={formData.mileage || ''}
+                                        onChange={(e) => setFormData({ ...formData, mileage: e.target.value ? parseInt(e.target.value) : null })}
+                                        className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="Current mileage"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Cost */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300 mb-2">
+                                    Total Cost
+                                </label>
+                                <div className="relative">
+                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">$</span>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        value={formData.cost_cents ? (formData.cost_cents / 100).toFixed(2) : ''}
+                                        onChange={(e) => setFormData({ ...formData, cost_cents: e.target.value ? Math.round(parseFloat(e.target.value) * 100) : null })}
+                                        className="w-full pl-8 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="0.00"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Vendor */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300 mb-2">
+                                    Vendor/Shop
+                                </label>
+                                <input
+                                    type="text"
+                                    value={formData.vendor || ''}
+                                    onChange={(e) => setFormData({ ...formData, vendor: e.target.value || null })}
+                                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="Shop or mechanic name"
+                                />
+                            </div>
+
+                            {/* Notes */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300 mb-2">
+                                    Notes
+                                </label>
+                                <textarea
+                                    value={formData.notes || ''}
+                                    onChange={(e) => setFormData({ ...formData, notes: e.target.value || null })}
+                                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[100px]"
+                                    placeholder="Additional details, parts used, issues found..."
+                                />
+                            </div>
+
+                            {/* Checkboxes */}
+                            <div className="flex gap-6">
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={formData.is_diy}
+                                        onChange={(e) => setFormData({ ...formData, is_diy: e.target.checked })}
+                                        className="w-4 h-4 rounded border-gray-700 bg-gray-800 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                                    />
+                                    <span className="text-sm text-gray-300">DIY (Did it myself)</span>
+                                </label>
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={formData.warranty_work}
+                                        onChange={(e) => setFormData({ ...formData, warranty_work: e.target.checked })}
+                                        className="w-4 h-4 rounded border-gray-700 bg-gray-800 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                                    />
+                                    <span className="text-sm text-gray-300">Warranty Work</span>
+                                </label>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="flex gap-3 pt-4 border-t border-gray-800">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowAddRecordModal(false)}
+                                    className="flex-1 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+                                >
+                                    Add Record
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
