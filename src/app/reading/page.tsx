@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { BookOpen } from 'lucide-react';
 import { Book, BookStatus, BookFormat } from '@/types/database.types';
 
 export default function ReadingTracker() {
@@ -103,58 +104,94 @@ export default function ReadingTracker() {
 
     return (
         <div className="min-h-screen bg-gray-950">
-            {/* Header */}
-            <div className="bg-gray-950 border-b border-gray-800">
-                <div className="max-w-7xl mx-auto px-8 py-6">
-                    <div className="flex items-center justify-between mb-4">
-                        <h1 className="text-3xl font-bold text-white">Reading Tracker</h1>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {/* Header */}
+                <div className="mb-8">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h1 className="text-3xl font-bold text-white mb-2">Reading Tracker</h1>
+                            <p className="text-gray-400">Track your reading progress</p>
+                        </div>
                         <button
                             onClick={() => openModal()}
-                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
                         >
-                            + Add Book
+                            <BookOpen className="w-5 h-5" />
+                            Add Book
                         </button>
                     </div>
+                </div>
 
-                    {/* Search and Filters */}
-                    <div className="flex gap-3">
-                        <input
-                            type="text"
-                            placeholder="Search books, authors, notes..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="flex-1 px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                        <select
-                            value={filterStatus}
-                            onChange={(e) => setFilterStatus(e.target.value as BookStatus | 'all')}
-                            className="px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                            <option value="all">All Status</option>
-                            <option value="reading">Reading</option>
-                            <option value="planned">Planned</option>
-                            <option value="finished">Finished</option>
-                            <option value="on_hold">On Hold</option>
-                            <option value="dropped">Dropped</option>
-                        </select>
-                        <select
-                            value={filterFormat}
-                            onChange={(e) => setFilterFormat(e.target.value as BookFormat | 'all')}
-                            className="px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                            <option value="all">All Formats</option>
-                            <option value="physical">Physical</option>
-                            <option value="ebook">eBook</option>
-                            <option value="audiobook">Audiobook</option>
-                        </select>
+                {/* Stats */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-gray-400 text-sm font-medium">Reading</p>
+                                <p className="text-3xl font-bold text-white mt-1">{groupedBooks.reading.length}</p>
+                            </div>
+                            <div className="p-3 bg-blue-500/10 rounded-lg">
+                                <BookOpen className="w-8 h-8 text-blue-400" />
+                            </div>
+                        </div>
                     </div>
 
-                    {/* Stats */}
-                    <div className="flex gap-4 mt-4 text-sm text-gray-400">
-                        <span>Reading: {groupedBooks.reading.length}</span>
-                        <span>Planned: {groupedBooks.planned.length}</span>
-                        <span>Finished: {groupedBooks.finished.length}</span>
+                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-gray-400 text-sm font-medium">Planned</p>
+                                <p className="text-3xl font-bold text-white mt-1">{groupedBooks.planned.length}</p>
+                            </div>
+                            <div className="p-3 bg-purple-500/10 rounded-lg">
+                                <BookOpen className="w-8 h-8 text-purple-400" />
+                            </div>
+                        </div>
                     </div>
+
+                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-gray-400 text-sm font-medium">Finished</p>
+                                <p className="text-3xl font-bold text-white mt-1">{groupedBooks.finished.length}</p>
+                            </div>
+                            <div className="p-3 bg-green-500/10 rounded-lg">
+                                <BookOpen className="w-8 h-8 text-green-400" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Search and Filters */}
+                <div className="flex flex-col sm:flex-row gap-3 mb-8">
+                    <input
+                        type="text"
+                        placeholder="Search books, authors, notes..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="flex-1 px-4 py-3 bg-gray-900 border border-gray-800 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    />
+                    <select
+                        value={filterStatus}
+                        onChange={(e) => setFilterStatus(e.target.value as BookStatus | 'all')}
+                        className="px-4 py-3 bg-gray-900 border border-gray-800 rounded-lg text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    >
+                        <option value="all">All Status</option>
+                        <option value="reading">Reading</option>
+                        <option value="planned">Planned</option>
+                        <option value="finished">Finished</option>
+                        <option value="on_hold">On Hold</option>
+                        <option value="dropped">Dropped</option>
+                    </select>
+                    <select
+                        value={filterFormat}
+                        onChange={(e) => setFilterFormat(e.target.value as BookFormat | 'all')}
+                        className="px-4 py-3 bg-gray-900 border border-gray-800 rounded-lg text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    >
+                        <option value="all">All Formats</option>
+                        <option value="physical">Physical</option>
+                        <option value="ebook">eBook</option>
+                        <option value="audiobook">Audiobook</option>
+                    </select>
                 </div>
             </div>
 
