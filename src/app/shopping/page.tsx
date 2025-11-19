@@ -128,6 +128,41 @@ export default function ShoppingPage() {
         }
     };
 
+    // Quick priority rating handler
+    const handleQuickPriority = async (itemId: string, newPriority: number, currentPriority: number | null) => {
+        try {
+            // If clicking the same priority, clear it (set to default 3)
+            const priorityToSet = newPriority === currentPriority ? 3 : newPriority;
+
+            const response = await fetch(`/api/shopping/items/${itemId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    priority: priorityToSet,
+                }),
+            });
+
+            if (!response.ok) throw new Error('Failed to update priority');
+
+            // Optimistically update local state
+            if (selectedListId) {
+                setAllItems(prev => ({
+                    ...prev,
+                    [selectedListId]: prev[selectedListId].map(item =>
+                        item.id === itemId ? { ...item, priority: priorityToSet } : item
+                    )
+                }));
+            }
+        } catch (err) {
+            console.error('Error updating priority:', err);
+            alert(err instanceof Error ? err.message : 'Failed to update priority');
+            // Refresh on error to ensure consistency
+            if (selectedListId) {
+                await refreshListItems(selectedListId);
+            }
+        }
+    };
+
     // Handle add item success
     const handleAddSuccess = () => {
         if (selectedListId) {
@@ -674,6 +709,46 @@ export default function ShoppingPage() {
                                                                     </span>
                                                                 )}
                                                             </div>
+                                                            {/* Quick Priority Rating */}
+                                                            {!isSelectionMode && (
+                                                                <div className="flex items-center gap-2 mt-2">
+                                                                    <span className="text-xs text-gray-500 font-medium">Priority:</span>
+                                                                    <div className="flex items-center gap-1">
+                                                                        {[1, 2, 3, 4, 5].map((priorityLevel) => {
+                                                                            const isActive = priorityLevel === (item.priority || 3);
+                                                                            const buttonColor = priorityLevel === 1 ? 'hover:bg-red-500/20 hover:text-red-400' :
+                                                                                priorityLevel === 2 ? 'hover:bg-orange-500/20 hover:text-orange-400' :
+                                                                                priorityLevel === 3 ? 'hover:bg-yellow-500/20 hover:text-yellow-400' :
+                                                                                priorityLevel === 4 ? 'hover:bg-lime-500/20 hover:text-lime-400' :
+                                                                                'hover:bg-green-500/20 hover:text-green-400';
+                                                                            const activeColor = priorityLevel === 1 ? 'bg-red-500/30 text-red-300' :
+                                                                                priorityLevel === 2 ? 'bg-orange-500/30 text-orange-300' :
+                                                                                priorityLevel === 3 ? 'bg-yellow-500/30 text-yellow-300' :
+                                                                                priorityLevel === 4 ? 'bg-lime-500/30 text-lime-300' :
+                                                                                'bg-green-500/30 text-green-300';
+
+                                                                            return (
+                                                                                <button
+                                                                                    key={priorityLevel}
+                                                                                    type="button"
+                                                                                    onClick={(e) => {
+                                                                                        e.stopPropagation();
+                                                                                        handleQuickPriority(item.id, priorityLevel, item.priority);
+                                                                                    }}
+                                                                                    className={`w-7 h-7 rounded-md text-xs font-bold transition-all ${
+                                                                                        isActive
+                                                                                            ? activeColor
+                                                                                            : `text-gray-600 ${buttonColor}`
+                                                                                    }`}
+                                                                                    title={`Priority ${priorityLevel}${isActive ? ' (current)' : ''}`}
+                                                                                >
+                                                                                    {priorityLevel}
+                                                                                </button>
+                                                                            );
+                                                                        })}
+                                                                    </div>
+                                                                </div>
+                                                            )}
                                                             <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1.5 text-xs">
                                                                 {item.aisle && (
                                                                     <div className="flex items-center gap-1 text-purple-400">
@@ -792,6 +867,46 @@ export default function ShoppingPage() {
                                                     <div className="flex items-start justify-between gap-4">
                                                         <div className="flex-1">
                                                             <h4 className="text-gray-400 font-medium line-through">{item.item_name}</h4>
+                                                            {/* Quick Priority Rating for completed items */}
+                                                            {!isSelectionMode && (
+                                                                <div className="flex items-center gap-2 mt-2">
+                                                                    <span className="text-xs text-gray-600 font-medium">Priority:</span>
+                                                                    <div className="flex items-center gap-1">
+                                                                        {[1, 2, 3, 4, 5].map((priorityLevel) => {
+                                                                            const isActive = priorityLevel === (item.priority || 3);
+                                                                            const buttonColor = priorityLevel === 1 ? 'hover:bg-red-500/20 hover:text-red-400' :
+                                                                                priorityLevel === 2 ? 'hover:bg-orange-500/20 hover:text-orange-400' :
+                                                                                priorityLevel === 3 ? 'hover:bg-yellow-500/20 hover:text-yellow-400' :
+                                                                                priorityLevel === 4 ? 'hover:bg-lime-500/20 hover:text-lime-400' :
+                                                                                'hover:bg-green-500/20 hover:text-green-400';
+                                                                            const activeColor = priorityLevel === 1 ? 'bg-red-500/20 text-red-400' :
+                                                                                priorityLevel === 2 ? 'bg-orange-500/20 text-orange-400' :
+                                                                                priorityLevel === 3 ? 'bg-yellow-500/20 text-yellow-400' :
+                                                                                priorityLevel === 4 ? 'bg-lime-500/20 text-lime-400' :
+                                                                                'bg-green-500/20 text-green-400';
+
+                                                                            return (
+                                                                                <button
+                                                                                    key={priorityLevel}
+                                                                                    type="button"
+                                                                                    onClick={(e) => {
+                                                                                        e.stopPropagation();
+                                                                                        handleQuickPriority(item.id, priorityLevel, item.priority);
+                                                                                    }}
+                                                                                    className={`w-7 h-7 rounded-md text-xs font-bold transition-all ${
+                                                                                        isActive
+                                                                                            ? activeColor
+                                                                                            : `text-gray-700 ${buttonColor}`
+                                                                                    }`}
+                                                                                    title={`Priority ${priorityLevel}${isActive ? ' (current)' : ''}`}
+                                                                                >
+                                                                                    {priorityLevel}
+                                                                                </button>
+                                                                            );
+                                                                        })}
+                                                                    </div>
+                                                                </div>
+                                                            )}
                                                             {item.last_purchased_at && (
                                                                 <p className="text-xs text-gray-500 mt-1">
                                                                     Purchased {new Date(item.last_purchased_at).toLocaleDateString()}
