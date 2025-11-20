@@ -201,36 +201,36 @@ export default function WishlistPage() {
 
     return (
         <div className="min-h-screen bg-gray-950 text-gray-100">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4">
                 {/* Header */}
-                <div className="mb-8">
+                <div className="mb-4">
                     <div className="flex items-center justify-between">
                         <div>
-                            <h1 className="text-3xl font-bold text-white mb-2">Wishlist</h1>
-                            <p className="text-gray-400">Track items you want to purchase</p>
+                            <h1 className="text-2xl font-bold text-white mb-1">Wishlist</h1>
+                            <p className="text-gray-400 text-sm">Track items you want to purchase</p>
                         </div>
                         <button
                             onClick={() => setShowAddModal(true)}
-                            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center gap-1.5 text-sm"
                         >
-                            <Plus className="w-5 h-5" />
+                            <Plus className="w-4 h-4" />
                             Add Item
                         </button>
                     </div>
                 </div>
 
                 {/* Filters */}
-                <div className="bg-gray-900 rounded-lg border border-gray-800 p-6 mb-6">
-                    <div className="flex flex-col md:flex-row gap-4">
+                <div className="bg-gray-900 rounded-lg border border-gray-800 p-3 mb-4">
+                    <div className="flex flex-col md:flex-row gap-2">
                         {/* Search */}
                         <div className="flex-1 relative">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                            <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                             <input
                                 type="text"
                                 placeholder="Search items..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full pl-9 pr-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
                             />
                         </div>
 
@@ -238,7 +238,7 @@ export default function WishlistPage() {
                         <select
                             value={selectedCategory}
                             onChange={(e) => setSelectedCategory(e.target.value)}
-                            className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                         >
                             {categories.map(cat => (
                                 <option key={cat} value={cat}>
@@ -251,7 +251,7 @@ export default function WishlistPage() {
                         <select
                             value={selectedStatus}
                             onChange={(e) => setSelectedStatus(e.target.value as WishlistStatus | 'all')}
-                            className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                         >
                             <option value="all">All Status</option>
                             {STATUSES.map(({ value, label }) => (
@@ -263,53 +263,53 @@ export default function WishlistPage() {
 
                 {/* Items Grid */}
                 {filteredItems.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {filteredItems.map((item) => {
                             const statusConfig = getStatusConfig(item.status);
                             return (
                                 <div
                                     key={item.id}
-                                    className="bg-gray-900 rounded-lg border border-gray-800 p-6 hover:border-gray-700 transition-all"
+                                    className="bg-gray-900 rounded-lg border border-gray-800 p-4 hover:border-gray-700 transition-all"
                                 >
                                     {/* Image */}
                                     {item.image_url && (
-                                        <div className="mb-4 rounded-lg overflow-hidden bg-gray-800">
+                                        <div className="mb-3 rounded-lg overflow-hidden bg-gray-800">
                                             <img
                                                 src={item.image_url}
                                                 alt={item.title}
-                                                className="w-full h-48 object-cover"
+                                                className="w-full h-40 object-cover"
                                             />
                                         </div>
                                     )}
 
-                                    <div className="flex items-start justify-between mb-4">
+                                    <div className="flex items-start justify-between mb-3">
                                         <div className="flex-1">
-                                            <h3 className="text-lg font-semibold text-white mb-2">{item.title}</h3>
-                                            <div className="flex flex-wrap gap-2 mb-2">
+                                            <h3 className="text-base font-semibold text-white mb-1.5">{item.title}</h3>
+                                            <div className="flex flex-wrap gap-1.5 mb-1.5">
                                                 {item.category && (
-                                                    <span className="inline-block px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-xs font-medium border border-blue-500/20">
+                                                    <span className="inline-block px-1.5 py-0.5 bg-blue-500/20 text-blue-400 rounded text-xs font-medium border border-blue-500/20">
                                                         {item.category}
                                                     </span>
                                                 )}
-                                                <span className={`inline-block px-2 py-1 ${statusConfig.color}/20 text-${statusConfig.color.split('-')[1]}-400 rounded text-xs font-medium border border-${statusConfig.color.split('-')[1]}-500/20`}>
+                                                <span className={`inline-block px-1.5 py-0.5 ${statusConfig.color}/20 text-${statusConfig.color.split('-')[1]}-400 rounded text-xs font-medium border border-${statusConfig.color.split('-')[1]}-500/20`}>
                                                     {statusConfig.label}
                                                 </span>
                                             </div>
                                         </div>
-                                        <div className="flex gap-1 ml-2">
+                                        <div className="flex gap-0.5 ml-2">
                                             <button
                                                 onClick={() => handleEdit(item)}
-                                                className="p-2 text-gray-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
+                                                className="p-1.5 text-gray-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
                                                 title="Edit item"
                                             >
-                                                <Edit className="w-4 h-4" />
+                                                <Edit className="w-3.5 h-3.5" />
                                             </button>
                                             <button
                                                 onClick={() => showDeleteConfirmation(item.id, item.title)}
-                                                className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                                                className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                                                 title="Delete item"
                                             >
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                                 </svg>
                                             </button>
@@ -318,24 +318,24 @@ export default function WishlistPage() {
 
                                     {/* Brand/Color/Size - NEW */}
                                     {(item.brand || item.color || item.size) && (
-                                        <div className="mb-3 space-y-1">
+                                        <div className="mb-2 space-y-0.5">
                                             {item.brand && (
-                                                <div className="flex items-center gap-2 text-sm text-gray-400">
-                                                    <Tag className="w-4 h-4" />
+                                                <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                                                    <Tag className="w-3 h-3" />
                                                     <span className="font-medium text-gray-300">Brand:</span>
                                                     {item.brand}
                                                 </div>
                                             )}
                                             {item.color && (
-                                                <div className="flex items-center gap-2 text-sm text-gray-400">
-                                                    <Palette className="w-4 h-4" />
+                                                <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                                                    <Palette className="w-3 h-3" />
                                                     <span className="font-medium text-gray-300">Color:</span>
                                                     {item.color}
                                                 </div>
                                             )}
                                             {item.size && (
-                                                <div className="flex items-center gap-2 text-sm text-gray-400">
-                                                    <Shirt className="w-4 h-4" />
+                                                <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                                                    <Shirt className="w-3 h-3" />
                                                     <span className="font-medium text-gray-300">Size:</span>
                                                     {item.size}
                                                 </div>
@@ -345,29 +345,29 @@ export default function WishlistPage() {
 
                                     {/* Price */}
                                     {item.price_cents && (
-                                        <div className="mb-3 flex items-center gap-2 text-emerald-400 font-semibold text-xl">
-                                            <DollarSign className="w-5 h-5" />
+                                        <div className="mb-2 flex items-center gap-1.5 text-emerald-400 font-semibold text-lg">
+                                            <DollarSign className="w-4 h-4" />
                                             {formatPrice(item.price_cents, item.currency)}
                                         </div>
                                     )}
 
                                     {/* Vendor */}
                                     {item.vendor && (
-                                        <div className="mb-3 flex items-center gap-2 text-sm text-gray-400">
-                                            <Store className="w-4 h-4" />
+                                        <div className="mb-2 flex items-center gap-1.5 text-xs text-gray-400">
+                                            <Store className="w-3 h-3" />
                                             {item.vendor}
                                         </div>
                                     )}
 
                                     {/* Notes */}
                                     {item.notes && (
-                                        <p className="text-gray-400 text-sm mb-4">{item.notes}</p>
+                                        <p className="text-gray-400 text-xs mb-3">{item.notes}</p>
                                     )}
 
                                     {/* Priority & Actions */}
-                                    <div className="flex items-center gap-2 mb-4">
+                                    <div className="flex items-center gap-1.5 mb-3">
                                         {item.priority && (
-                                            <span className={`px-2 py-1 rounded text-xs font-medium border ${getPriorityColor(item.priority)}`}>
+                                            <span className={`px-1.5 py-0.5 rounded text-xs font-medium border ${getPriorityColor(item.priority)}`}>
                                                 Priority {item.priority}
                                             </span>
                                         )}
@@ -385,8 +385,8 @@ export default function WishlistPage() {
                                     </div>
 
                                     {/* Footer */}
-                                    <div className="flex items-center justify-between pt-4 border-t border-gray-800">
-                                        <div className="flex items-center gap-2 text-xs text-gray-500">
+                                    <div className="flex items-center justify-between pt-3 border-t border-gray-800">
+                                        <div className="flex items-center gap-1.5 text-xs text-gray-500">
                                             <Calendar className="w-3 h-3" />
                                             {item.purchased_at ? (
                                                 <span>Purchased {new Date(item.purchased_at).toLocaleDateString()}</span>
@@ -400,10 +400,10 @@ export default function WishlistPage() {
                         })}
                     </div>
                 ) : (
-                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-12 text-center">
-                        <Heart className="w-16 h-16 text-gray-700 mx-auto mb-4" />
-                        <h3 className="text-xl font-semibold text-white mb-2">No Items Found</h3>
-                        <p className="text-gray-400 mb-6">
+                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-8 text-center">
+                        <Heart className="w-12 h-12 text-gray-700 mx-auto mb-3" />
+                        <h3 className="text-lg font-semibold text-white mb-1">No Items Found</h3>
+                        <p className="text-gray-400 text-sm mb-4">
                             {searchQuery || selectedCategory !== 'all' || selectedStatus !== 'all'
                                 ? 'Try adjusting your filters'
                                 : 'Start adding items to your wishlist'}

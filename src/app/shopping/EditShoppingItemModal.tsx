@@ -113,28 +113,28 @@ export default function EditShoppingItemModal({
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-gray-900 rounded-lg border border-gray-800 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-gray-800">
-                    <h2 className="text-xl font-semibold text-white">Edit Item</h2>
+                <div className="flex items-center justify-between p-4 border-b border-gray-800">
+                    <h2 className="text-lg font-semibold text-white">Edit Item</h2>
                     <button
                         onClick={onClose}
                         className="text-gray-400 hover:text-gray-300 transition-colors"
                     >
-                        <X className="w-6 h-6" />
+                        <X className="w-5 h-5" />
                     </button>
                 </div>
 
                 {/* Form */}
-                <form onSubmit={handleSubmit} className="p-6">
+                <form onSubmit={handleSubmit} className="p-4">
                     {error && (
-                        <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
+                        <div className="mb-3 p-2 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-xs">
                             {error}
                         </div>
                     )}
 
-                    <div className="space-y-4">
+                    <div className="space-y-3">
                         {/* Item Name */}
                         <div>
-                            <label htmlFor="item_name" className="block text-sm font-medium text-gray-300 mb-2">
+                            <label htmlFor="item_name" className="block text-sm font-medium text-gray-300 mb-1">
                                 Item Name *
                             </label>
                             <input
@@ -143,15 +143,15 @@ export default function EditShoppingItemModal({
                                 required
                                 value={formData.item_name}
                                 onChange={(e) => setFormData({ ...formData, item_name: e.target.value })}
-                                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
                                 placeholder="e.g., Milk, Bread, Eggs"
                             />
                         </div>
 
                         {/* Quantity and Unit */}
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-2">
                             <div>
-                                <label htmlFor="quantity" className="block text-sm font-medium text-gray-300 mb-2">
+                                <label htmlFor="quantity" className="block text-sm font-medium text-gray-300 mb-1">
                                     Quantity
                                 </label>
                                 <input
@@ -161,19 +161,19 @@ export default function EditShoppingItemModal({
                                     step="0.01"
                                     value={formData.quantity}
                                     onChange={(e) => setFormData({ ...formData, quantity: parseFloat(e.target.value) || 0 })}
-                                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
                                 />
                             </div>
 
                             <div>
-                                <label htmlFor="unit" className="block text-sm font-medium text-gray-300 mb-2">
+                                <label htmlFor="unit" className="block text-sm font-medium text-gray-300 mb-1">
                                     Unit
                                 </label>
                                 <select
                                     id="unit"
                                     value={formData.unit}
                                     onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-                                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                                 >
                                     <option value="">None</option>
                                     {units.map((unit) => (
@@ -186,16 +186,16 @@ export default function EditShoppingItemModal({
                         </div>
 
                         {/* Category and Priority */}
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-2">
                             <div>
-                                <label htmlFor="category" className="block text-sm font-medium text-gray-300 mb-2">
+                                <label htmlFor="category" className="block text-sm font-medium text-gray-300 mb-1">
                                     Category
                                 </label>
                                 <select
                                     id="category"
                                     value={formData.category}
                                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                                 >
                                     <option value="">None</option>
                                     {categories.map((cat) => (
@@ -207,14 +207,14 @@ export default function EditShoppingItemModal({
                             </div>
 
                             <div>
-                                <label htmlFor="priority" className="block text-sm font-medium text-gray-300 mb-2">
+                                <label htmlFor="priority" className="block text-sm font-medium text-gray-300 mb-1">
                                     Priority (1-5)
                                 </label>
                                 <select
                                     id="priority"
                                     value={formData.priority}
                                     onChange={(e) => setFormData({ ...formData, priority: parseInt(e.target.value) })}
-                                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                                 >
                                     <option value={1}>1 - Highest</option>
                                     <option value={2}>2 - High</option>
@@ -226,9 +226,9 @@ export default function EditShoppingItemModal({
                         </div>
 
                         {/* Store and Aisle */}
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-2">
                             <div>
-                                <label htmlFor="store_preference" className="block text-sm font-medium text-gray-300 mb-2">
+                                <label htmlFor="store_preference" className="block text-sm font-medium text-gray-300 mb-1">
                                     Store Preference
                                 </label>
                                 <input
@@ -236,13 +236,13 @@ export default function EditShoppingItemModal({
                                     id="store_preference"
                                     value={formData.store_preference}
                                     onChange={(e) => setFormData({ ...formData, store_preference: e.target.value })}
-                                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
                                     placeholder="e.g., Aldi, Walmart"
                                 />
                             </div>
 
                             <div>
-                                <label htmlFor="aisle" className="block text-sm font-medium text-gray-300 mb-2">
+                                <label htmlFor="aisle" className="block text-sm font-medium text-gray-300 mb-1">
                                     Aisle/Location
                                 </label>
                                 <input
@@ -250,7 +250,7 @@ export default function EditShoppingItemModal({
                                     id="aisle"
                                     value={formData.aisle}
                                     onChange={(e) => setFormData({ ...formData, aisle: e.target.value })}
-                                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
                                     placeholder="e.g., Aisle 5, Produce"
                                 />
                             </div>
@@ -258,7 +258,7 @@ export default function EditShoppingItemModal({
 
                         {/* Needed By */}
                         <div>
-                            <label htmlFor="needed_by" className="block text-sm font-medium text-gray-300 mb-2">
+                            <label htmlFor="needed_by" className="block text-sm font-medium text-gray-300 mb-1">
                                 Needed By
                             </label>
                             <input
@@ -266,13 +266,13 @@ export default function EditShoppingItemModal({
                                 id="needed_by"
                                 value={formData.needed_by}
                                 onChange={(e) => setFormData({ ...formData, needed_by: e.target.value })}
-                                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                             />
                         </div>
 
                         {/* Notes */}
                         <div>
-                            <label htmlFor="notes" className="block text-sm font-medium text-gray-300 mb-2">
+                            <label htmlFor="notes" className="block text-sm font-medium text-gray-300 mb-1">
                                 Notes
                             </label>
                             <textarea
@@ -280,25 +280,25 @@ export default function EditShoppingItemModal({
                                 rows={3}
                                 value={formData.notes}
                                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
                                 placeholder="Any additional notes or preferences..."
                             />
                         </div>
                     </div>
 
                     {/* Actions */}
-                    <div className="flex gap-3 mt-6">
+                    <div className="flex gap-2 mt-4">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="flex-1 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors"
+                            className="flex-1 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white text-sm rounded-lg font-medium transition-colors"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
                             disabled={loading || !formData.item_name}
-                            className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-700 disabled:text-gray-400 text-white rounded-lg font-medium transition-colors"
+                            className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-700 disabled:text-gray-400 text-white text-sm rounded-lg font-medium transition-colors"
                         >
                             {loading ? 'Saving...' : 'Save Changes'}
                         </button>

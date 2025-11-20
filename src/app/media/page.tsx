@@ -127,41 +127,41 @@ function MediaCarousel({
 
     if (items.length === 0) {
         return (
-            <div className="mb-12">
-                <h2 className="text-2xl font-bold mb-4">{title}</h2>
-                <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-8 text-center">
-                    <p className="text-gray-500">{emptyMessage}</p>
+            <div className="mb-6">
+                <h2 className="text-xl font-bold mb-2">{title}</h2>
+                <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4 text-center">
+                    <p className="text-gray-500 text-sm">{emptyMessage}</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="mb-8 sm:mb-12">
-            <div className="flex items-center justify-between mb-3 sm:mb-4">
-                <h2 className="text-xl sm:text-2xl font-bold">{title}</h2>
-                <div className="flex gap-2">
+        <div className="mb-6">
+            <div className="flex items-center justify-between mb-2">
+                <h2 className="text-lg font-bold">{title}</h2>
+                <div className="flex gap-1">
                     <button
                         onClick={() => scroll('left')}
                         disabled={!canScrollLeft}
-                        className={`p-2 sm:p-2 rounded-lg transition-colors ${canScrollLeft
+                        className={`p-1.5 rounded-lg transition-colors ${canScrollLeft
                             ? 'bg-gray-800 hover:bg-gray-700 active:bg-gray-600'
                             : 'bg-gray-900 text-gray-600 cursor-not-allowed'
                             }`}
                         aria-label="Scroll left"
                     >
-                        <ChevronLeft className="w-5 h-5 sm:w-5 sm:h-5" />
+                        <ChevronLeft className="w-4 h-4" />
                     </button>
                     <button
                         onClick={() => scroll('right')}
                         disabled={!canScrollRight}
-                        className={`p-2 sm:p-2 rounded-lg transition-colors ${canScrollRight
+                        className={`p-1.5 rounded-lg transition-colors ${canScrollRight
                             ? 'bg-gray-800 hover:bg-gray-700 active:bg-gray-600'
                             : 'bg-gray-900 text-gray-600 cursor-not-allowed'
                             }`}
                         aria-label="Scroll right"
                     >
-                        <ChevronRight className="w-5 h-5 sm:w-5 sm:h-5" />
+                        <ChevronRight className="w-4 h-4" />
                     </button>
                 </div>
             </div>
@@ -172,7 +172,7 @@ function MediaCarousel({
                 onTouchStart={onTouchStart}
                 onTouchMove={onTouchMove}
                 onTouchEnd={onTouchEnd}
-                className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-4"
+                className="flex gap-2 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
                 style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
                 {items.map((item) => (
@@ -204,45 +204,45 @@ function MediaCard({
     const Icon = item.type === 'movie' ? Film : Tv;
 
     return (
-        <div className="min-w-[280px] max-w-[280px] bg-gray-900 border border-gray-800 rounded-lg overflow-hidden hover:border-gray-700 transition-all group">
+        <div className="min-w-[240px] max-w-[240px] bg-gray-900 border border-gray-800 rounded-lg overflow-hidden hover:border-gray-700 transition-all group">
             {/* Card Header */}
-            <div className="p-4 pb-3">
-                <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-2 flex-1 min-w-0 flex-wrap">
-                        <Icon className="w-4 h-4 text-blue-400 flex-shrink-0" />
+            <div className="p-3 pb-2">
+                <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-1.5 flex-1 min-w-0 flex-wrap">
+                        <Icon className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
                         {/* Platform Badge */}
                         {item.platform && (
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPlatformColor(item.platform)} flex-shrink-0`}>
+                            <span className={`px-1.5 py-0.5 rounded-full text-xs font-medium ${getPlatformColor(item.platform)} flex-shrink-0`}>
                                 {item.platform}
                             </span>
                         )}
                     </div>
                     {/* Mobile-friendly buttons - always visible on mobile, hover on desktop */}
-                    <div className="flex gap-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
+                    <div className="flex gap-0.5 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
                         <button
                             onClick={() => onEdit(item)}
-                            className="p-2 hover:bg-gray-800 rounded-lg transition-colors active:bg-gray-700"
+                            className="p-1.5 hover:bg-gray-800 rounded-lg transition-colors active:bg-gray-700"
                             aria-label="Edit item"
                         >
-                            <Edit2 className="w-4 h-4 text-gray-400" />
+                            <Edit2 className="w-3.5 h-3.5 text-gray-400" />
                         </button>
                         <button
                             onClick={() => onDelete(item.id, item.title)}
-                            className="p-2 hover:bg-gray-800 rounded-lg transition-colors active:bg-gray-700"
+                            className="p-1.5 hover:bg-gray-800 rounded-lg transition-colors active:bg-gray-700"
                             aria-label="Delete item"
                         >
-                            <Trash2 className="w-4 h-4 text-red-400" />
+                            <Trash2 className="w-3.5 h-3.5 text-red-400" />
                         </button>
                     </div>
                 </div>
 
                 {/* Title */}
-                <h3 className="text-lg font-bold mb-2 line-clamp-2 min-h-[3.5rem]">
+                <h3 className="text-base font-bold mb-1.5 line-clamp-2 min-h-[2.5rem]">
                     {item.title}
                 </h3>
 
                 {/* Rating - Quick rate on hover/mobile */}
-                <div className="mb-3">
+                <div className="mb-2">
                     <div className="flex items-center gap-0.5">
                         {[1, 2, 3, 4, 5].map((rating) => (
                             <button
@@ -253,7 +253,7 @@ function MediaCard({
                                 aria-label={`Rate ${rating} stars`}
                             >
                                 <Star
-                                    className={`w-4 h-4 ${rating <= (item.rating || 0)
+                                    className={`w-3.5 h-3.5 ${rating <= (item.rating || 0)
                                         ? 'fill-yellow-500 text-yellow-500'
                                         : 'text-gray-700 hover:text-yellow-500/50'
                                         }`}
@@ -268,7 +268,7 @@ function MediaCard({
                     <>
                         {/* Plan to Watch - Show overview */}
                         {item.status === 'planned' && (item.total_seasons || item.total_episodes) && (
-                            <div className="mb-3">
+                            <div className="mb-2">
                                 <div className="flex justify-between text-xs">
                                     <span className="text-gray-400">Length</span>
                                     <span className="font-medium text-gray-300">
@@ -288,8 +288,8 @@ function MediaCard({
 
                         {/* Watching/On Hold - Show current progress */}
                         {(item.status === 'watching' || item.status === 'on_hold') && (item.current_season || item.current_episode) && (
-                            <div className="mb-3">
-                                <div className="flex justify-between text-xs mb-1.5">
+                            <div className="mb-2">
+                                <div className="flex justify-between text-xs mb-1">
                                     <span className="text-gray-400">Progress</span>
                                     <span className="font-medium text-gray-300">
                                         {item.current_season && item.total_seasons ? (
@@ -313,9 +313,9 @@ function MediaCard({
 
                                 {/* Progress Bar - Shows per-season progress if available */}
                                 {item.episodes_in_season && item.episodes_in_season > 0 && (
-                                    <div className="w-full bg-gray-800 rounded-full h-1.5">
+                                    <div className="w-full bg-gray-800 rounded-full h-1">
                                         <div
-                                            className="bg-blue-500 h-1.5 rounded-full transition-all"
+                                            className="bg-blue-500 h-1 rounded-full transition-all"
                                             style={{
                                                 width: `${Math.min(
                                                     ((item.current_episode || 0) / item.episodes_in_season) * 100,
@@ -333,7 +333,7 @@ function MediaCard({
                 )}
 
                 {/* Dates */}
-                <div className="space-y-1.5 text-xs">
+                <div className="space-y-1 text-xs">
                     {item.started_at && (
                         <div className="flex justify-between text-gray-400">
                             <span>Started</span>
@@ -362,7 +362,7 @@ function MediaCard({
 
                 {/* Notes (truncated) */}
                 {item.notes && (
-                    <p className="text-xs text-gray-500 mt-3 pt-3 border-t border-gray-800 line-clamp-2">
+                    <p className="text-xs text-gray-500 mt-2 pt-2 border-t border-gray-800 line-clamp-2">
                         {item.notes}
                     </p>
                 )}
@@ -604,7 +604,7 @@ export default function MediaTrackerPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-950 text-white p-8 flex items-center justify-center">
+            <div className="min-h-screen bg-gray-950 text-white p-4 flex items-center justify-center">
                 <p className="text-gray-400">Loading media...</p>
             </div>
         );
@@ -612,13 +612,13 @@ export default function MediaTrackerPage() {
 
     return (
         <div className="min-h-screen bg-gray-950 text-white">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4">
                 {/* Header */}
-                <div className="mb-8">
+                <div className="mb-4">
                     <div className="flex items-center justify-between">
                         <div>
-                            <h1 className="text-3xl font-bold text-white mb-2">Media Tracker</h1>
-                            <p className="text-gray-400">Track anime, shows, and movies</p>
+                            <h1 className="text-2xl font-bold text-white mb-1">Media Tracker</h1>
+                            <p className="text-gray-400 text-sm">Track anime, shows, and movies</p>
                         </div>
                         <button
                             onClick={() => {
@@ -626,35 +626,34 @@ export default function MediaTrackerPage() {
                                 resetForm();
                                 setShowAddModal(true);
                             }}
-                            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center gap-1.5 text-sm"
                         >
-                            <Plus className="w-5 h-5" />
+                            <Plus className="w-4 h-4" />
                             Add Media
                         </button>
                     </div>
                 </div>
 
                 {/* Search */}
-                <div className="relative mb-6">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <div className="relative mb-3">
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <input
                         type="text"
                         placeholder="Search your library..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-10 pr-4 py-3 bg-gray-900 border border-gray-800 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                        className="w-full pl-9 pr-3 py-2 bg-gray-900 border border-gray-800 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                     />
                 </div>
 
                 {/* Type Filter Tabs */}
-                <div className="flex flex-wrap gap-3 mb-8">
+                <div className="flex flex-wrap gap-2 mb-4">
                     <button
                         onClick={() => setSelectedType('all')}
-                        className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                            selectedType === 'all'
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-gray-900 text-gray-300 border border-gray-800 hover:bg-gray-800'
-                        }`}
+                        className={`px-3 py-1.5 rounded-lg font-medium transition-colors text-sm ${selectedType === 'all'
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-gray-900 text-gray-300 border border-gray-800 hover:bg-gray-800'
+                            }`}
                     >
                         All ({totalByType.all})
                     </button>
@@ -662,13 +661,12 @@ export default function MediaTrackerPage() {
                         <button
                             key={value}
                             onClick={() => setSelectedType(value)}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
-                                selectedType === value
-                                    ? 'bg-blue-600 text-white'
-                                    : 'bg-gray-900 text-gray-300 border border-gray-800 hover:bg-gray-800'
-                            }`}
+                            className={`px-3 py-1.5 rounded-lg font-medium transition-colors flex items-center gap-1.5 text-sm ${selectedType === value
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-gray-900 text-gray-300 border border-gray-800 hover:bg-gray-800'
+                                }`}
                         >
-                            <Icon className="w-4 h-4" />
+                            <Icon className="w-3.5 h-3.5" />
                             {label} ({totalByType[value]})
                         </button>
                     ))}
@@ -676,7 +674,7 @@ export default function MediaTrackerPage() {
             </div>
 
             {/* Carousels */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+            <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
                 <MediaCarousel
                     title={`Continue Watching (${watchingItems.length})`}
                     items={watchingItems}
@@ -730,30 +728,30 @@ export default function MediaTrackerPage() {
             {/* Add/Edit Modal - Mobile Optimized */}
             {showAddModal && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-0 sm:p-4 z-50 overflow-y-auto">
-                    <div className="bg-gray-900 border-0 sm:border border-gray-800 rounded-none sm:rounded-lg p-6 max-w-md w-full min-h-screen sm:min-h-0 my-0 sm:my-8">
-                        <h2 className="text-2xl font-bold mb-6">
+                    <div className="bg-gray-900 border-0 sm:border border-gray-800 rounded-none sm:rounded-lg p-4 max-w-md w-full min-h-screen sm:min-h-0 my-0 sm:my-8">
+                        <h2 className="text-xl font-bold mb-4">
                             {editingItem ? 'Edit Media' : 'Add New Media'}
                         </h2>
 
-                        <form onSubmit={handleSubmit} className="space-y-5">
+                        <form onSubmit={handleSubmit} className="space-y-3">
                             <div>
-                                <label className="block text-sm font-medium mb-2">Title *</label>
+                                <label className="block text-sm font-medium mb-1">Title *</label>
                                 <input
                                     type="text"
                                     value={formData.title}
                                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                    className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white text-base focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                                     required
                                 />
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-2 gap-2">
                                 <div>
-                                    <label className="block text-sm font-medium mb-2">Type *</label>
+                                    <label className="block text-sm font-medium mb-1">Type *</label>
                                     <select
                                         value={formData.type}
                                         onChange={(e) => setFormData({ ...formData, type: e.target.value as MediaType })}
-                                        className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white text-base focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                                     >
                                         {MEDIA_TYPES.map(({ value, label }) => (
                                             <option key={value} value={value}>{label}</option>
@@ -762,11 +760,11 @@ export default function MediaTrackerPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium mb-2">Status *</label>
+                                    <label className="block text-sm font-medium mb-1">Status *</label>
                                     <select
                                         value={formData.status}
                                         onChange={(e) => setFormData({ ...formData, status: e.target.value as MediaStatus })}
-                                        className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white text-base focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                                     >
                                         {STATUSES.map(({ value, label }) => (
                                             <option key={value} value={value}>{label}</option>
@@ -776,48 +774,48 @@ export default function MediaTrackerPage() {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium mb-2">Platform</label>
+                                <label className="block text-sm font-medium mb-1">Platform</label>
                                 <input
                                     type="text"
                                     value={formData.platform}
                                     onChange={(e) => setFormData({ ...formData, platform: e.target.value })}
                                     placeholder="Netflix, Crunchyroll, etc."
-                                    className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white text-base focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                                 />
                             </div>
 
                             {/* Season tracking (for shows/anime) */}
                             {(formData.type === 'show' || formData.type === 'anime') && (
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-2 gap-2">
                                     <div>
-                                        <label className="block text-sm font-medium mb-2">Current Season</label>
+                                        <label className="block text-sm font-medium mb-1">Current Season</label>
                                         <input
                                             type="number"
                                             value={formData.current_season}
                                             onChange={(e) => setFormData({ ...formData, current_season: parseInt(e.target.value) || 0 })}
                                             min="0"
                                             placeholder="e.g., 2"
-                                            className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white text-base focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                                         />
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium mb-2">Total Seasons</label>
+                                        <label className="block text-sm font-medium mb-1">Total Seasons</label>
                                         <input
                                             type="number"
                                             value={formData.total_seasons}
                                             onChange={(e) => setFormData({ ...formData, total_seasons: parseInt(e.target.value) || 0 })}
                                             min="0"
                                             placeholder="e.g., 4"
-                                            className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white text-base focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                                         />
                                     </div>
                                 </div>
                             )}
 
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-2 gap-2">
                                 <div>
-                                    <label className="block text-sm font-medium mb-2">
+                                    <label className="block text-sm font-medium mb-1">
                                         {(formData.type === 'show' || formData.type === 'anime') ? 'Current Episode (in Season)' : 'Current Episode'}
                                     </label>
                                     <input
@@ -825,12 +823,12 @@ export default function MediaTrackerPage() {
                                         value={formData.current_episode}
                                         onChange={(e) => setFormData({ ...formData, current_episode: parseInt(e.target.value) || 0 })}
                                         min="0"
-                                        className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white text-base focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium mb-2">
+                                    <label className="block text-sm font-medium mb-1">
                                         {(formData.type === 'show' || formData.type === 'anime') ? 'Episodes in Season' : 'Total Episodes'}
                                     </label>
                                     <input
@@ -845,7 +843,7 @@ export default function MediaTrackerPage() {
                                             }
                                         }}
                                         min="0"
-                                        className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white text-base focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                                     />
                                 </div>
                             </div>
@@ -853,30 +851,30 @@ export default function MediaTrackerPage() {
                             {/* Overall total episodes for shows/anime */}
                             {(formData.type === 'show' || formData.type === 'anime') && (
                                 <div>
-                                    <label className="block text-sm font-medium mb-2">Total Episodes (Overall)</label>
+                                    <label className="block text-sm font-medium mb-1">Total Episodes (Overall)</label>
                                     <input
                                         type="number"
                                         value={formData.total_episodes}
                                         onChange={(e) => setFormData({ ...formData, total_episodes: parseInt(e.target.value) || 0 })}
                                         min="0"
                                         placeholder="Total across all seasons (optional)"
-                                        className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white text-base focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                                     />
                                 </div>
                             )}
 
                             <div>
-                                <label className="block text-sm font-medium mb-2">Rating</label>
-                                <div className="flex gap-3 justify-center sm:justify-start">
+                                <label className="block text-sm font-medium mb-1">Rating</label>
+                                <div className="flex gap-2 justify-center sm:justify-start">
                                     {[1, 2, 3, 4, 5].map((rating) => (
                                         <button
                                             key={rating}
                                             type="button"
                                             onClick={() => setFormData({ ...formData, rating })}
-                                            className="p-3 hover:bg-gray-800 rounded-lg transition-colors active:bg-gray-700"
+                                            className="p-2 hover:bg-gray-800 rounded-lg transition-colors active:bg-gray-700"
                                         >
                                             <Star
-                                                className={`w-7 h-7 ${rating <= formData.rating ? 'fill-yellow-500 text-yellow-500' : 'text-gray-600'}`}
+                                                className={`w-6 h-6 ${rating <= formData.rating ? 'fill-yellow-500 text-yellow-500' : 'text-gray-600'}`}
                                             />
                                         </button>
                                     ))}
@@ -884,17 +882,17 @@ export default function MediaTrackerPage() {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium mb-2">Notes</label>
+                                <label className="block text-sm font-medium mb-1">Notes</label>
                                 <textarea
                                     value={formData.notes}
                                     onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                                     rows={3}
-                                    className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white text-base focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500 resize-none"
+                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none"
                                     placeholder="Your thoughts, reminders, etc."
                                 />
                             </div>
 
-                            <div className="flex flex-col-reverse sm:flex-row gap-3 pt-4">
+                            <div className="flex flex-col-reverse sm:flex-row gap-2 pt-2">
                                 <button
                                     type="button"
                                     onClick={() => {
@@ -902,13 +900,13 @@ export default function MediaTrackerPage() {
                                         setEditingItem(null);
                                         resetForm();
                                     }}
-                                    className="w-full sm:w-auto px-6 py-4 sm:py-3 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded-lg font-medium transition-colors text-base"
+                                    className="w-full sm:w-auto px-4 py-2.5 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded-lg font-medium transition-colors text-sm"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
-                                    className="w-full sm:flex-1 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 px-6 py-4 sm:py-3 rounded-lg font-medium transition-colors text-base"
+                                    className="w-full sm:flex-1 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 px-4 py-2.5 rounded-lg font-medium transition-colors text-sm"
                                 >
                                     {editingItem ? 'Update' : 'Add Media'}
                                 </button>

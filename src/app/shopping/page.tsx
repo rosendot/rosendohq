@@ -495,30 +495,30 @@ export default function ShoppingPage() {
 
     return (
         <div className="min-h-screen bg-gray-950 text-gray-100">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4">
                 {/* Header */}
-                <div className="mb-8">
+                <div className="mb-4">
                     <div className="flex items-center justify-between">
                         <div>
-                            <h1 className="text-3xl font-bold text-white mb-2">Shopping Lists</h1>
-                            <p className="text-gray-400">Manage your grocery shopping</p>
+                            <h1 className="text-2xl font-bold text-white mb-1">Shopping Lists</h1>
+                            <p className="text-gray-400 text-sm">Manage your grocery shopping</p>
                         </div>
                         <button
                             onClick={() => setShowAddModal(true)}
-                            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center gap-1.5 text-sm"
                         >
-                            <Plus className="w-5 h-5" />
+                            <Plus className="w-4 h-4" />
                             Add Item
                         </button>
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
                     {/* Sidebar - Lists */}
                     <div className="lg:col-span-1">
-                        <div className="bg-gray-900 rounded-lg border border-gray-800 p-4">
-                            <h2 className="text-lg font-semibold text-white mb-4">Lists</h2>
-                            <div className="space-y-2">
+                        <div className="bg-gray-900 rounded-lg border border-gray-800 p-3">
+                            <h2 className="text-base font-semibold text-white mb-3">Lists</h2>
+                            <div className="space-y-1.5">
                                 {lists.map((list) => {
                                     const listItems = allItems[list.id] || [];
                                     const itemCount = listItems.length;
@@ -527,14 +527,14 @@ export default function ShoppingPage() {
                                         <button
                                             key={list.id}
                                             onClick={() => setSelectedListId(list.id)}
-                                            className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${selectedListId === list.id
+                                            className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${selectedListId === list.id
                                                 ? 'bg-blue-600 text-white'
                                                 : 'bg-gray-800 text-gray-300 hover:bg-gray-750'
                                                 }`}
                                         >
                                             <div className="flex items-center justify-between">
-                                                <div className="font-medium">{list.name}</div>
-                                                <span className={`text-xs px-2 py-0.5 rounded-full ${selectedListId === list.id
+                                                <div className="font-medium text-sm">{list.name}</div>
+                                                <span className={`text-xs px-1.5 py-0.5 rounded-full ${selectedListId === list.id
                                                     ? 'bg-white/20 text-white'
                                                     : 'bg-gray-700 text-gray-400'
                                                     }`}>
@@ -542,7 +542,7 @@ export default function ShoppingPage() {
                                                 </span>
                                             </div>
                                             {list.notes && (
-                                                <div className={`text-sm mt-1 ${selectedListId === list.id ? 'text-blue-100' : 'text-gray-400'}`}>
+                                                <div className={`text-xs mt-1 ${selectedListId === list.id ? 'text-blue-100' : 'text-gray-400'}`}>
                                                     {list.notes}
                                                 </div>
                                             )}
@@ -556,23 +556,23 @@ export default function ShoppingPage() {
                     {/* Main Content */}
                     <div className="lg:col-span-3">
                         {/* Filters */}
-                        <div className="bg-gray-900 rounded-lg border border-gray-800 p-6 mb-6">
-                            <div className="flex flex-col md:flex-row gap-4">
+                        <div className="bg-gray-900 rounded-lg border border-gray-800 p-3 mb-3">
+                            <div className="flex flex-col md:flex-row gap-2">
                                 <div className="flex-1 relative">
-                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                                    <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                                     <input
                                         type="text"
                                         placeholder="Search items..."
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full pl-9 pr-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
                                     />
                                 </div>
 
                                 <select
                                     value={selectedCategory}
                                     onChange={(e) => setSelectedCategory(e.target.value)}
-                                    className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                                 >
                                     {categories.map(cat => (
                                         <option key={cat} value={cat}>
@@ -585,42 +585,42 @@ export default function ShoppingPage() {
 
                         {/* Bulk Actions Toolbar */}
                         {selectedItems.size > 0 && (
-                            <div className="bg-blue-600 rounded-lg p-4 mb-6 flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <span className="text-white font-medium">
+                            <div className="bg-blue-600 rounded-lg p-3 mb-3 flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-white font-medium text-sm">
                                         {selectedItems.size} item{selectedItems.size > 1 ? 's' : ''} selected
                                     </span>
                                     <button
                                         onClick={clearSelection}
-                                        className="text-blue-200 hover:text-white transition-colors text-sm"
+                                        className="text-blue-200 hover:text-white transition-colors text-xs"
                                     >
                                         Clear
                                     </button>
                                 </div>
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-1.5">
                                     {selectedActiveCount > 0 && (
                                         <button
                                             onClick={bulkCompleteItems}
-                                            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                                            className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors flex items-center gap-1.5 text-sm"
                                         >
-                                            <Check className="w-4 h-4" />
-                                            Mark Complete
+                                            <Check className="w-3.5 h-3.5" />
+                                            Complete
                                         </button>
                                     )}
                                     {selectedCompletedCount > 0 && (
                                         <button
                                             onClick={bulkUncompleteItems}
-                                            className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                                            className="px-3 py-1.5 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg font-medium transition-colors flex items-center gap-1.5 text-sm"
                                         >
-                                            <X className="w-4 h-4" />
-                                            Mark Incomplete
+                                            <X className="w-3.5 h-3.5" />
+                                            Incomplete
                                         </button>
                                     )}
                                     <button
                                         onClick={showBulkDeleteConfirmation}
-                                        className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                                        className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors flex items-center gap-1.5 text-sm"
                                     >
-                                        <Trash2 className="w-4 h-4" />
+                                        <Trash2 className="w-3.5 h-3.5" />
                                         Delete
                                     </button>
                                 </div>
@@ -629,24 +629,24 @@ export default function ShoppingPage() {
 
                         {/* Active Items - Grouped by Category */}
                         {activeItems.length > 0 && (
-                            <div className="mb-6">
-                                <div className="flex items-center justify-between mb-4">
-                                    <h3 className="text-lg font-semibold text-white">To Buy ({activeItems.length})</h3>
+                            <div className="mb-4">
+                                <div className="flex items-center justify-between mb-3">
+                                    <h3 className="text-base font-semibold text-white">To Buy ({activeItems.length})</h3>
                                     {isSelectionMode && activeItems.length > 0 && (
                                         <button
                                             onClick={toggleSelectAllActive}
-                                            className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                                            className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
                                         >
                                             {activeItems.every(item => selectedItems.has(item.id)) ? 'Unselect All' : 'Select All'}
                                         </button>
                                     )}
                                 </div>
-                                <div className="space-y-6">
+                                <div className="space-y-4">
                                     {sortedCategories.map(([category, categoryItems]) => (
                                         <div key={category}>
                                             {/* Category Header */}
-                                            <div className="flex items-center gap-2 mb-3">
-                                                <h4 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
                                                     {category}
                                                 </h4>
                                                 <div className="h-px flex-1 bg-gray-800"></div>
@@ -655,7 +655,7 @@ export default function ShoppingPage() {
                                                 </span>
                                             </div>
                                             {/* Category Items */}
-                                            <div className="space-y-3">
+                                            <div className="space-y-2">
                                                 {categoryItems.map((item) => {
                                                     const priority = item.priority || 3;
                                                     const priorityBorder = priority === 1 ? 'border-red-500/50' :
@@ -667,7 +667,7 @@ export default function ShoppingPage() {
                                                     return (
                                         <div
                                             key={item.id}
-                                            className={`bg-gray-900 rounded-lg border p-4 transition-all ${
+                                            className={`bg-gray-900 rounded-lg border p-3 transition-all ${
                                                 selectedItems.has(item.id) ? 'border-blue-500 bg-blue-500/10' : priorityBorder
                                             }`}
                                             onTouchStart={() => handleLongPressStart(item.id)}
@@ -677,13 +677,13 @@ export default function ShoppingPage() {
                                             onMouseLeave={handleLongPressEnd}
                                             onClick={() => handleItemTap(item.id)}
                                         >
-                                            <div className="flex items-start gap-4">
+                                            <div className="flex items-start gap-3">
                                                 {isSelectionMode && (
-                                                    <div className="mt-1 flex-shrink-0 w-6 h-6 flex items-center justify-center">
+                                                    <div className="mt-0.5 flex-shrink-0 w-5 h-5 flex items-center justify-center">
                                                         {selectedItems.has(item.id) ? (
-                                                            <CheckCircle2 className="w-6 h-6 text-blue-400" />
+                                                            <CheckCircle2 className="w-5 h-5 text-blue-400" />
                                                         ) : (
-                                                            <Circle className="w-6 h-6 text-gray-600" />
+                                                            <Circle className="w-5 h-5 text-gray-600" />
                                                         )}
                                                     </div>
                                                 )}
@@ -693,27 +693,27 @@ export default function ShoppingPage() {
                                                             e.stopPropagation();
                                                             toggleItemDone(item.id, item.is_done);
                                                         }}
-                                                        className="mt-1 flex-shrink-0"
+                                                        className="mt-0.5 flex-shrink-0"
                                                     >
-                                                        <Circle className="w-6 h-6 text-gray-400 hover:text-blue-400 transition-colors" />
+                                                        <Circle className="w-5 h-5 text-gray-400 hover:text-blue-400 transition-colors" />
                                                     </button>
                                                 )}
                                                 <div className="flex-1 min-w-0">
-                                                    <div className="flex items-start justify-between gap-4">
+                                                    <div className="flex items-start justify-between gap-3">
                                                         <div className="flex-1">
-                                                            <div className="flex items-baseline gap-3">
-                                                                <h4 className="text-white font-medium">{item.item_name}</h4>
+                                                            <div className="flex items-baseline gap-2">
+                                                                <h4 className="text-white font-medium text-sm">{item.item_name}</h4>
                                                                 {item.quantity && (
-                                                                    <span className="text-lg font-semibold text-blue-400">
+                                                                    <span className="text-base font-semibold text-blue-400">
                                                                         ×{item.quantity}{item.unit ? ` ${item.unit}` : ''}
                                                                     </span>
                                                                 )}
                                                             </div>
                                                             {/* Quick Priority Rating */}
                                                             {!isSelectionMode && (
-                                                                <div className="flex items-center gap-2 mt-2">
+                                                                <div className="flex items-center gap-1.5 mt-1.5">
                                                                     <span className="text-xs text-gray-500 font-medium">Priority:</span>
-                                                                    <div className="flex items-center gap-1">
+                                                                    <div className="flex items-center gap-0.5">
                                                                         {[1, 2, 3, 4, 5].map((priorityLevel) => {
                                                                             const isActive = priorityLevel === (item.priority || 3);
                                                                             const buttonColor = priorityLevel === 1 ? 'hover:bg-red-500/20 hover:text-red-400' :
@@ -735,7 +735,7 @@ export default function ShoppingPage() {
                                                                                         e.stopPropagation();
                                                                                         handleQuickPriority(item.id, priorityLevel, item.priority);
                                                                                     }}
-                                                                                    className={`w-7 h-7 rounded-md text-xs font-bold transition-all ${
+                                                                                    className={`w-6 h-6 rounded-md text-xs font-bold transition-all ${
                                                                                         isActive
                                                                                             ? activeColor
                                                                                             : `text-gray-600 ${buttonColor}`
@@ -749,7 +749,7 @@ export default function ShoppingPage() {
                                                                     </div>
                                                                 </div>
                                                             )}
-                                                            <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1.5 text-xs">
+                                                            <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1 text-xs">
                                                                 {item.aisle && (
                                                                     <div className="flex items-center gap-1 text-purple-400">
                                                                         <span className="opacity-60">📍</span>
@@ -770,10 +770,10 @@ export default function ShoppingPage() {
                                                                 )}
                                                             </div>
                                                             {item.notes && (
-                                                                <p className="text-gray-400 text-sm mt-2 italic">{item.notes}</p>
+                                                                <p className="text-gray-400 text-xs mt-1.5 italic">{item.notes}</p>
                                                             )}
                                                         </div>
-                                                        <div className="flex items-start gap-2">
+                                                        <div className="flex items-start gap-1">
                                                             {!isSelectionMode && (
                                                                 <>
                                                                     <button
@@ -781,20 +781,20 @@ export default function ShoppingPage() {
                                                                             e.stopPropagation();
                                                                             handleEditItem(item);
                                                                         }}
-                                                                        className="p-2 text-gray-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
+                                                                        className="p-1.5 text-gray-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
                                                                         title="Edit item"
                                                                     >
-                                                                        <Edit2 className="w-4 h-4" />
+                                                                        <Edit2 className="w-3.5 h-3.5" />
                                                                     </button>
                                                                     <button
                                                                         onClick={(e) => {
                                                                             e.stopPropagation();
                                                                             showDeleteConfirmation(item.id, item.item_name);
                                                                         }}
-                                                                        className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                                                                        className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                                                                         title="Delete item"
                                                                     >
-                                                                        <Trash2 className="w-4 h-4" />
+                                                                        <Trash2 className="w-3.5 h-3.5" />
                                                                     </button>
                                                                 </>
                                                             )}
@@ -815,22 +815,22 @@ export default function ShoppingPage() {
                         {/* Completed Items */}
                         {completedItems.length > 0 && (
                             <div>
-                                <div className="flex items-center justify-between mb-4">
-                                    <h3 className="text-lg font-semibold text-white">Completed ({completedItems.length})</h3>
+                                <div className="flex items-center justify-between mb-3">
+                                    <h3 className="text-base font-semibold text-white">Completed ({completedItems.length})</h3>
                                     {isSelectionMode && completedItems.length > 0 && (
                                         <button
                                             onClick={toggleSelectAllCompleted}
-                                            className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                                            className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
                                         >
                                             {completedItems.every(item => selectedItems.has(item.id)) ? 'Unselect All' : 'Select All'}
                                         </button>
                                     )}
                                 </div>
-                                <div className="space-y-3">
+                                <div className="space-y-2">
                                     {completedItems.map((item) => (
                                         <div
                                             key={item.id}
-                                            className={`bg-gray-900 rounded-lg border p-4 transition-all ${
+                                            className={`bg-gray-900 rounded-lg border p-3 transition-all ${
                                                 selectedItems.has(item.id)
                                                     ? 'border-blue-500 bg-blue-500/10 opacity-100'
                                                     : 'border-gray-800 opacity-60 hover:opacity-100'
@@ -842,13 +842,13 @@ export default function ShoppingPage() {
                                             onMouseLeave={handleLongPressEnd}
                                             onClick={() => handleItemTap(item.id)}
                                         >
-                                            <div className="flex items-start gap-4">
+                                            <div className="flex items-start gap-3">
                                                 {isSelectionMode && (
-                                                    <div className="mt-1 flex-shrink-0 w-6 h-6 flex items-center justify-center">
+                                                    <div className="mt-0.5 flex-shrink-0 w-5 h-5 flex items-center justify-center">
                                                         {selectedItems.has(item.id) ? (
-                                                            <CheckCircle2 className="w-6 h-6 text-blue-400" />
+                                                            <CheckCircle2 className="w-5 h-5 text-blue-400" />
                                                         ) : (
-                                                            <Circle className="w-6 h-6 text-gray-600" />
+                                                            <Circle className="w-5 h-5 text-gray-600" />
                                                         )}
                                                     </div>
                                                 )}
@@ -858,20 +858,20 @@ export default function ShoppingPage() {
                                                             e.stopPropagation();
                                                             toggleItemDone(item.id, item.is_done);
                                                         }}
-                                                        className="mt-1 flex-shrink-0"
+                                                        className="mt-0.5 flex-shrink-0"
                                                     >
-                                                        <CheckCircle2 className="w-6 h-6 text-green-400 hover:text-gray-400 transition-colors" />
+                                                        <CheckCircle2 className="w-5 h-5 text-green-400 hover:text-gray-400 transition-colors" />
                                                     </button>
                                                 )}
                                                 <div className="flex-1">
-                                                    <div className="flex items-start justify-between gap-4">
+                                                    <div className="flex items-start justify-between gap-3">
                                                         <div className="flex-1">
-                                                            <h4 className="text-gray-400 font-medium line-through">{item.item_name}</h4>
+                                                            <h4 className="text-gray-400 font-medium line-through text-sm">{item.item_name}</h4>
                                                             {/* Quick Priority Rating for completed items */}
                                                             {!isSelectionMode && (
-                                                                <div className="flex items-center gap-2 mt-2">
+                                                                <div className="flex items-center gap-1.5 mt-1.5">
                                                                     <span className="text-xs text-gray-600 font-medium">Priority:</span>
-                                                                    <div className="flex items-center gap-1">
+                                                                    <div className="flex items-center gap-0.5">
                                                                         {[1, 2, 3, 4, 5].map((priorityLevel) => {
                                                                             const isActive = priorityLevel === (item.priority || 3);
                                                                             const buttonColor = priorityLevel === 1 ? 'hover:bg-red-500/20 hover:text-red-400' :
@@ -893,7 +893,7 @@ export default function ShoppingPage() {
                                                                                         e.stopPropagation();
                                                                                         handleQuickPriority(item.id, priorityLevel, item.priority);
                                                                                     }}
-                                                                                    className={`w-7 h-7 rounded-md text-xs font-bold transition-all ${
+                                                                                    className={`w-6 h-6 rounded-md text-xs font-bold transition-all ${
                                                                                         isActive
                                                                                             ? activeColor
                                                                                             : `text-gray-700 ${buttonColor}`
@@ -908,32 +908,32 @@ export default function ShoppingPage() {
                                                                 </div>
                                                             )}
                                                             {item.last_purchased_at && (
-                                                                <p className="text-xs text-gray-500 mt-1">
+                                                                <p className="text-xs text-gray-500 mt-0.5">
                                                                     Purchased {new Date(item.last_purchased_at).toLocaleDateString()}
                                                                 </p>
                                                             )}
                                                         </div>
                                                         {!isSelectionMode && (
-                                                            <div className="flex items-center gap-2">
+                                                            <div className="flex items-center gap-1">
                                                                 <button
                                                                     onClick={(e) => {
                                                                         e.stopPropagation();
                                                                         handleEditItem(item);
                                                                     }}
-                                                                    className="p-2 text-gray-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
+                                                                    className="p-1.5 text-gray-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
                                                                     title="Edit item"
                                                                 >
-                                                                    <Edit2 className="w-4 h-4" />
+                                                                    <Edit2 className="w-3.5 h-3.5" />
                                                                 </button>
                                                                 <button
                                                                     onClick={(e) => {
                                                                         e.stopPropagation();
                                                                         showDeleteConfirmation(item.id, item.item_name);
                                                                     }}
-                                                                    className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                                                                    className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                                                                     title="Delete item"
                                                                 >
-                                                                    <Trash2 className="w-4 h-4" />
+                                                                    <Trash2 className="w-3.5 h-3.5" />
                                                                 </button>
                                                             </div>
                                                         )}
@@ -948,10 +948,10 @@ export default function ShoppingPage() {
 
                         {/* Empty State */}
                         {filteredItems.length === 0 && (
-                            <div className="bg-gray-900 rounded-lg border border-gray-800 p-12 text-center">
-                                <ShoppingCart className="w-16 h-16 text-gray-700 mx-auto mb-4" />
-                                <h3 className="text-xl font-semibold text-white mb-2">No Items Found</h3>
-                                <p className="text-gray-400">
+                            <div className="bg-gray-900 rounded-lg border border-gray-800 p-8 text-center">
+                                <ShoppingCart className="w-12 h-12 text-gray-700 mx-auto mb-3" />
+                                <h3 className="text-lg font-semibold text-white mb-1">No Items Found</h3>
+                                <p className="text-gray-400 text-sm">
                                     {searchQuery || selectedCategory !== 'all'
                                         ? 'Try adjusting your filters'
                                         : 'Start adding items to your shopping list'}

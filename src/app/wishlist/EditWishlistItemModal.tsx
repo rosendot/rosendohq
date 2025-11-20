@@ -161,10 +161,10 @@ export default function EditItemModal({ isOpen, item, onClose, onSuccess }: Edit
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
             <div className="bg-gray-900 rounded-lg border border-gray-800 w-full max-w-2xl my-8">
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-gray-800">
+                <div className="flex items-center justify-between p-4 border-b border-gray-800">
                     <div>
-                        <h2 className="text-2xl font-bold text-white">Edit Item</h2>
-                        <p className="text-sm text-gray-400 mt-1">
+                        <h2 className="text-xl font-bold text-white">Edit Item</h2>
+                        <p className="text-xs text-gray-400 mt-0.5">
                             Added {new Date(item.created_at).toLocaleDateString()}
                         </p>
                     </div>
@@ -173,33 +173,33 @@ export default function EditItemModal({ isOpen, item, onClose, onSuccess }: Edit
                         className="text-gray-400 hover:text-white transition-colors"
                         disabled={loading}
                     >
-                        <X className="w-6 h-6" />
+                        <X className="w-5 h-5" />
                     </button>
                 </div>
 
                 {/* Form */}
-                <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                <form onSubmit={handleSubmit} className="p-4 space-y-4">
                     {/* Error Message */}
                     {error && (
-                        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
+                        <div className="p-2 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-xs">
                             {error}
                         </div>
                     )}
 
                     {/* Basic Info Section */}
-                    <div className="space-y-4">
-                        <h3 className="text-lg font-semibold text-white">Basic Information</h3>
+                    <div className="space-y-3">
+                        <h3 className="text-base font-semibold text-white">Basic Information</h3>
 
                         {/* Title */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
                                 Title *
                             </label>
                             <input
                                 type="text"
                                 value={formData.title}
                                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
                                 placeholder="e.g., Sony WH-1000XM5 Headphones"
                                 required
                                 disabled={loading}
@@ -207,15 +207,15 @@ export default function EditItemModal({ isOpen, item, onClose, onSuccess }: Edit
                         </div>
 
                         {/* Category & Status */}
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-2">
                             <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-2">
+                                <label className="block text-sm font-medium text-gray-300 mb-1">
                                     Category
                                 </label>
                                 <select
                                     value={formData.category}
                                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                                     disabled={loading}
                                 >
                                     <option value="">Select category</option>
@@ -226,13 +226,13 @@ export default function EditItemModal({ isOpen, item, onClose, onSuccess }: Edit
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-2">
+                                <label className="block text-sm font-medium text-gray-300 mb-1">
                                     Status
                                 </label>
                                 <select
                                     value={formData.status}
                                     onChange={(e) => setFormData({ ...formData, status: e.target.value as WishlistStatus })}
-                                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                                     disabled={loading}
                                 >
                                     {STATUSES.map(({ value, label }) => (
@@ -244,7 +244,7 @@ export default function EditItemModal({ isOpen, item, onClose, onSuccess }: Edit
 
                         {/* Priority */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
                                 Priority: {formData.priority}
                             </label>
                             <input
@@ -256,7 +256,7 @@ export default function EditItemModal({ isOpen, item, onClose, onSuccess }: Edit
                                 className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
                                 disabled={loading}
                             />
-                            <div className="flex justify-between text-xs text-gray-500 mt-1">
+                            <div className="flex justify-between text-xs text-gray-500 mt-0.5">
                                 <span>Low (1)</span>
                                 <span>Medium (3)</span>
                                 <span>High (5)</span>
@@ -265,34 +265,34 @@ export default function EditItemModal({ isOpen, item, onClose, onSuccess }: Edit
                     </div>
 
                     {/* Product Details Section */}
-                    <div className="space-y-4 pt-4 border-t border-gray-800">
-                        <h3 className="text-lg font-semibold text-white">Product Details</h3>
+                    <div className="space-y-3 pt-3 border-t border-gray-800">
+                        <h3 className="text-base font-semibold text-white">Product Details</h3>
 
                         {/* Brand & Vendor */}
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-2">
                             <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-2">
+                                <label className="block text-sm font-medium text-gray-300 mb-1">
                                     Brand
                                 </label>
                                 <input
                                     type="text"
                                     value={formData.brand}
                                     onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-                                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
                                     placeholder="e.g., Sony"
                                     disabled={loading}
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-2">
+                                <label className="block text-sm font-medium text-gray-300 mb-1">
                                     Vendor/Store
                                 </label>
                                 <input
                                     type="text"
                                     value={formData.vendor}
                                     onChange={(e) => setFormData({ ...formData, vendor: e.target.value })}
-                                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
                                     placeholder="e.g., Amazon"
                                     disabled={loading}
                                 />
@@ -300,30 +300,30 @@ export default function EditItemModal({ isOpen, item, onClose, onSuccess }: Edit
                         </div>
 
                         {/* Color & Size */}
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-2">
                             <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-2">
+                                <label className="block text-sm font-medium text-gray-300 mb-1">
                                     Color
                                 </label>
                                 <input
                                     type="text"
                                     value={formData.color}
                                     onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
                                     placeholder="e.g., Black"
                                     disabled={loading}
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-2">
+                                <label className="block text-sm font-medium text-gray-300 mb-1">
                                     Size
                                 </label>
                                 <input
                                     type="text"
                                     value={formData.size}
                                     onChange={(e) => setFormData({ ...formData, size: e.target.value })}
-                                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
                                     placeholder="e.g., Large, 10.5"
                                     disabled={loading}
                                 />
@@ -331,9 +331,9 @@ export default function EditItemModal({ isOpen, item, onClose, onSuccess }: Edit
                         </div>
 
                         {/* Price & Currency */}
-                        <div className="grid grid-cols-3 gap-4">
+                        <div className="grid grid-cols-3 gap-2">
                             <div className="col-span-2">
-                                <label className="block text-sm font-medium text-gray-300 mb-2">
+                                <label className="block text-sm font-medium text-gray-300 mb-1">
                                     Price
                                 </label>
                                 <input
@@ -342,20 +342,20 @@ export default function EditItemModal({ isOpen, item, onClose, onSuccess }: Edit
                                     min="0"
                                     value={formData.price}
                                     onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
                                     placeholder="0.00"
                                     disabled={loading}
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-2">
+                                <label className="block text-sm font-medium text-gray-300 mb-1">
                                     Currency
                                 </label>
                                 <select
                                     value={formData.currency}
                                     onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
-                                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                                     disabled={loading}
                                 >
                                     <option value="USD">USD</option>
@@ -370,14 +370,14 @@ export default function EditItemModal({ isOpen, item, onClose, onSuccess }: Edit
                         {/* Purchased Date (show if status is purchased) */}
                         {formData.status === 'purchased' && (
                             <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-2">
+                                <label className="block text-sm font-medium text-gray-300 mb-1">
                                     Purchase Date
                                 </label>
                                 <input
                                     type="date"
                                     value={formData.purchased_at}
                                     onChange={(e) => setFormData({ ...formData, purchased_at: e.target.value })}
-                                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                                     disabled={loading}
                                 />
                             </div>
@@ -385,19 +385,19 @@ export default function EditItemModal({ isOpen, item, onClose, onSuccess }: Edit
                     </div>
 
                     {/* Links Section */}
-                    <div className="space-y-4 pt-4 border-t border-gray-800">
-                        <h3 className="text-lg font-semibold text-white">Links & Media</h3>
+                    <div className="space-y-3 pt-3 border-t border-gray-800">
+                        <h3 className="text-base font-semibold text-white">Links & Media</h3>
 
                         {/* Product URL */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
                                 Product URL
                             </label>
                             <input
                                 type="url"
                                 value={formData.url}
                                 onChange={(e) => setFormData({ ...formData, url: e.target.value })}
-                                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
                                 placeholder="https://example.com/product"
                                 disabled={loading}
                             />
@@ -405,23 +405,23 @@ export default function EditItemModal({ isOpen, item, onClose, onSuccess }: Edit
 
                         {/* Image URL */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
                                 Image URL
                             </label>
                             <input
                                 type="url"
                                 value={formData.image_url}
                                 onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
                                 placeholder="https://example.com/image.jpg"
                                 disabled={loading}
                             />
                             {formData.image_url && (
-                                <div className="mt-2">
+                                <div className="mt-1.5">
                                     <img
                                         src={formData.image_url}
                                         alt="Preview"
-                                        className="w-32 h-32 object-cover rounded-lg border border-gray-700"
+                                        className="w-24 h-24 object-cover rounded-lg border border-gray-700"
                                         onError={(e) => {
                                             e.currentTarget.style.display = 'none';
                                         }}
@@ -432,37 +432,37 @@ export default function EditItemModal({ isOpen, item, onClose, onSuccess }: Edit
                     </div>
 
                     {/* Notes Section */}
-                    <div className="space-y-4 pt-4 border-t border-gray-800">
-                        <h3 className="text-lg font-semibold text-white">Additional Notes</h3>
+                    <div className="space-y-3 pt-3 border-t border-gray-800">
+                        <h3 className="text-base font-semibold text-white">Additional Notes</h3>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
                                 Notes
                             </label>
                             <textarea
                                 value={formData.notes}
                                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
                                 placeholder="Any additional notes about this item..."
-                                rows={4}
+                                rows={3}
                                 disabled={loading}
                             />
                         </div>
                     </div>
 
                     {/* Actions */}
-                    <div className="flex gap-3 pt-4">
+                    <div className="flex gap-2 pt-3">
                         <button
                             type="button"
                             onClick={handleClose}
-                            className="flex-1 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors border border-gray-700"
+                            className="flex-1 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white text-sm rounded-lg transition-colors border border-gray-700"
                             disabled={loading}
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
-                            className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                             disabled={loading}
                         >
                             {loading ? (
