@@ -138,45 +138,6 @@ export default function ReadingTracker() {
                     </div>
                 </div>
 
-                {/* Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-gray-400 text-sm font-medium">Reading</p>
-                                <p className="text-3xl font-bold text-white mt-1">{groupedBooks.reading.length}</p>
-                            </div>
-                            <div className="p-3 bg-blue-500/10 rounded-lg">
-                                <BookOpen className="w-8 h-8 text-blue-400" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-gray-400 text-sm font-medium">Planned</p>
-                                <p className="text-3xl font-bold text-white mt-1">{groupedBooks.planned.length}</p>
-                            </div>
-                            <div className="p-3 bg-purple-500/10 rounded-lg">
-                                <BookOpen className="w-8 h-8 text-purple-400" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-gray-400 text-sm font-medium">Finished</p>
-                                <p className="text-3xl font-bold text-white mt-1">{groupedBooks.finished.length}</p>
-                            </div>
-                            <div className="p-3 bg-green-500/10 rounded-lg">
-                                <BookOpen className="w-8 h-8 text-green-400" />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 {/* Search and Filters */}
                 <div className="flex flex-col sm:flex-row gap-3 mb-8">
                     <input
@@ -215,7 +176,7 @@ export default function ReadingTracker() {
             <div className="max-w-7xl mx-auto px-8 py-8">
                 {groupedBooks.reading.length > 0 && (
                     <BookCarousel
-                        title="Continue Reading"
+                        title={`Continue Reading (${groupedBooks.reading.length})`}
                         books={groupedBooks.reading}
                         onEdit={openModal}
                         onDelete={handleDeleteClick}
@@ -224,7 +185,7 @@ export default function ReadingTracker() {
 
                 {groupedBooks.planned.length > 0 && (
                     <BookCarousel
-                        title="Plan to Read"
+                        title={`Plan to Read (${groupedBooks.planned.length})`}
                         books={groupedBooks.planned}
                         onEdit={openModal}
                         onDelete={handleDeleteClick}
@@ -233,7 +194,7 @@ export default function ReadingTracker() {
 
                 {groupedBooks.finished.length > 0 && (
                     <BookCarousel
-                        title="Completed"
+                        title={`Completed (${groupedBooks.finished.length})`}
                         books={groupedBooks.finished}
                         onEdit={openModal}
                         onDelete={handleDeleteClick}
@@ -242,7 +203,7 @@ export default function ReadingTracker() {
 
                 {groupedBooks.on_hold.length > 0 && (
                     <BookCarousel
-                        title="On Hold"
+                        title={`On Hold (${groupedBooks.on_hold.length})`}
                         books={groupedBooks.on_hold}
                         onEdit={openModal}
                         onDelete={handleDeleteClick}
@@ -251,7 +212,7 @@ export default function ReadingTracker() {
 
                 {groupedBooks.dropped.length > 0 && (
                     <BookCarousel
-                        title="Dropped"
+                        title={`Dropped (${groupedBooks.dropped.length})`}
                         books={groupedBooks.dropped}
                         onEdit={openModal}
                         onDelete={handleDeleteClick}
