@@ -48,8 +48,7 @@ export async function POST(request: Request) {
             );
         }
 
-        const insertData: BookInsert = {
-            owner_id: body.owner_id,
+        const insertData: Partial<BookInsert> = {
             title: body.title.trim(),
             author: body.author?.trim() || null,
             status: body.status || 'planned',

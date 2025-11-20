@@ -135,6 +135,7 @@ export interface Book {
     total_pages: number | null;
     format: BookFormat | null;
     notes: string | null;
+    highlights: Array<{ location: string; text: string; created_at: string }> | null;
     created_at: string;
     updated_at: string;
 }

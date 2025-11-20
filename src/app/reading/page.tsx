@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { BookOpen } from 'lucide-react';
 import { Book, BookStatus, BookFormat } from '@/types/database.types';
+import DeleteConfirmationModal from '@/components/DeleteConfirmationModal';
 
 export default function ReadingTracker() {
     const [books, setBooks] = useState<Book[]>([]);
@@ -12,6 +13,8 @@ export default function ReadingTracker() {
     const [filterFormat, setFilterFormat] = useState<BookFormat | 'all'>('all');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingBook, setEditingBook] = useState<Book | null>(null);
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [bookToDelete, setBookToDelete] = useState<{ id: string; title: string } | null>(null);
 
     // Fetch books
     useEffect(() => {
@@ -87,15 +90,28 @@ export default function ReadingTracker() {
         }
     };
 
-    const handleDelete = async (id: string) => {
-        if (!confirm('Are you sure you want to delete this book?')) return;
+    const handleDeleteClick = (book: Book) => {
+        setBookToDelete({ id: book.id, title: book.title });
+        setDeleteModalOpen(true);
+    };
+
+    const handleDeleteConfirm = async () => {
+        if (!bookToDelete) return;
 
         try {
-            await fetch(`/api/books/${id}`, { method: 'DELETE' });
+            await fetch(`/api/books/${bookToDelete.id}`, { method: 'DELETE' });
             fetchBooks();
         } catch (error) {
             console.error('Error deleting book:', error);
+        } finally {
+            setDeleteModalOpen(false);
+            setBookToDelete(null);
         }
+    };
+
+    const handleDeleteCancel = () => {
+        setDeleteModalOpen(false);
+        setBookToDelete(null);
     };
 
     if (loading) {
@@ -202,7 +218,7 @@ export default function ReadingTracker() {
                         title="Continue Reading"
                         books={groupedBooks.reading}
                         onEdit={openModal}
-                        onDelete={handleDelete}
+                        onDelete={handleDeleteClick}
                     />
                 )}
 
@@ -211,7 +227,7 @@ export default function ReadingTracker() {
                         title="Plan to Read"
                         books={groupedBooks.planned}
                         onEdit={openModal}
-                        onDelete={handleDelete}
+                        onDelete={handleDeleteClick}
                     />
                 )}
 
@@ -220,7 +236,7 @@ export default function ReadingTracker() {
                         title="Completed"
                         books={groupedBooks.finished}
                         onEdit={openModal}
-                        onDelete={handleDelete}
+                        onDelete={handleDeleteClick}
                     />
                 )}
 
@@ -229,7 +245,7 @@ export default function ReadingTracker() {
                         title="On Hold"
                         books={groupedBooks.on_hold}
                         onEdit={openModal}
-                        onDelete={handleDelete}
+                        onDelete={handleDeleteClick}
                     />
                 )}
 
@@ -238,12 +254,12 @@ export default function ReadingTracker() {
                         title="Dropped"
                         books={groupedBooks.dropped}
                         onEdit={openModal}
-                        onDelete={handleDelete}
+                        onDelete={handleDeleteClick}
                     />
                 )}
             </div>
 
-            {/* Modal */}
+            {/* Book Edit Modal */}
             {isModalOpen && (
                 <BookModal
                     book={editingBook}
@@ -251,6 +267,15 @@ export default function ReadingTracker() {
                     onClose={closeModal}
                 />
             )}
+
+            {/* Delete Confirmation Modal */}
+            <DeleteConfirmationModal
+                isOpen={deleteModalOpen}
+                onClose={handleDeleteCancel}
+                onConfirm={handleDeleteConfirm}
+                itemName={bookToDelete?.title}
+                title="Delete Book"
+            />
         </div>
     );
 }
@@ -265,7 +290,7 @@ function BookCarousel({
     title: string;
     books: Book[];
     onEdit: (book: Book) => void;
-    onDelete: (id: string) => void;
+    onDelete: (book: Book) => void;
 }) {
     const scrollRef = useRef<HTMLDivElement>(null);
     const [showLeftArrow, setShowLeftArrow] = useState(false);
@@ -319,7 +344,7 @@ function BookCarousel({
                             key={book.id}
                             book={book}
                             onEdit={() => onEdit(book)}
-                            onDelete={() => onDelete(book.id)}
+                            onDelete={() => onDelete(book)}
                         />
                     ))}
                 </div>
