@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { BookOpen } from 'lucide-react';
+import { BookOpen, Edit2, Trash2 } from 'lucide-react';
 import { Book, BookStatus, BookFormat } from '@/types/database.types';
 import DeleteConfirmationModal from '@/components/DeleteConfirmationModal';
 
@@ -372,45 +372,40 @@ function BookCard({
     onEdit: () => void;
     onDelete: () => void;
 }) {
-    const [isHovered, setIsHovered] = useState(false);
-
     const progressPercentage = book.total_pages && book.current_page
         ? Math.round((book.current_page / book.total_pages) * 100)
         : null;
 
     return (
-        <div
-            className="flex-shrink-0 w-64 bg-gray-900 rounded-lg overflow-hidden border border-gray-800 hover:border-gray-700 transition-all"
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-        >
+        <div className="group flex-shrink-0 w-64 bg-gray-900 rounded-lg overflow-hidden border border-gray-800 hover:border-gray-700 transition-all">
             {/* Book Cover Placeholder */}
             <div className="h-40 bg-gradient-to-br from-blue-900 to-purple-900 flex items-center justify-center relative">
                 <div className="text-center p-4">
                     <p className="text-white font-bold text-lg line-clamp-3">{book.title}</p>
                 </div>
-
-                {isHovered && (
-                    <div className="absolute inset-0 bg-black/70 flex items-center justify-center gap-2">
-                        <button
-                            onClick={onEdit}
-                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm transition-colors"
-                        >
-                            Edit
-                        </button>
-                        <button
-                            onClick={onDelete}
-                            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm transition-colors"
-                        >
-                            Delete
-                        </button>
-                    </div>
-                )}
             </div>
 
             {/* Book Info */}
-            <div className="p-4">
-                <h3 className="font-semibold text-white text-sm line-clamp-2 mb-1">
+            <div className="p-4 relative">
+                {/* Action Buttons - Top Right */}
+                <div className="absolute top-2 right-2 flex gap-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
+                    <button
+                        onClick={onEdit}
+                        className="p-2 hover:bg-gray-800 rounded-lg transition-colors active:bg-gray-700"
+                        aria-label="Edit book"
+                    >
+                        <Edit2 className="w-4 h-4 text-gray-400" />
+                    </button>
+                    <button
+                        onClick={onDelete}
+                        className="p-2 hover:bg-gray-800 rounded-lg transition-colors active:bg-gray-700"
+                        aria-label="Delete book"
+                    >
+                        <Trash2 className="w-4 h-4 text-red-400" />
+                    </button>
+                </div>
+
+                <h3 className="font-semibold text-white text-sm line-clamp-2 mb-1 pr-20">
                     {book.title}
                 </h3>
                 {book.author && (
