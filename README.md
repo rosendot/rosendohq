@@ -1,159 +1,329 @@
-# Personal Website — Project Plan & Checklist
+# RosendoHQ — Personal Life Management Platform
 
-## Tech Stack & Integrations
+A comprehensive full-stack application for managing all aspects of personal life, from shopping lists to media tracking, built with modern web technologies.
 
-* **Framework**: Next.js 15.5.2 with TypeScript, Tailwind CSS v4, Turbopack
-* **Database**: Supabase (Postgres, Storage)
-* **Deployment**: Vercel (personal use only)
-* **Error Monitoring**: Sentry (frontend, backend, and edge runtime monitoring)
-* **Code Quality**: ESLint, Prettier, TypeScript strict mode
+## 🚀 Tech Stack
 
-## Integration Ecosystem
+### Core Framework
+* **Next.js** 15.5.2 with TypeScript 5
+* **React** 19.1.0
+* **Turbopack** - Next.js bundler for development and production
+* **Tailwind CSS** 4 - Utility-first CSS framework
+* **Lucide React** 0.544.0 - Icon library
+
+### Backend & Database
+* **Supabase** 2.57.0 - Postgres database with real-time capabilities
+* **Supabase Auth Helpers** 0.10.0 - Authentication integration
+* Type-safe database operations with generated TypeScript types
+
+### Development & Quality
+* **TypeScript** 5 with strict mode enabled
+* **ESLint** 9 with eslint-config-next
+* **Prettier** 3.6.2 with prettier-plugin-tailwindcss
+* **PostCSS** 4 for CSS processing
+
+### Monitoring & Deployment
+* **Sentry** 10.10.0 - Full-stack error monitoring (client, server, edge runtime)
+* **Vercel** - Continuous deployment with GitHub integration
+* Performance monitoring with 100% trace sampling
+
+## 🔗 Integration Ecosystem
 
 ### Core Platform Connections ✅
-* **GitHub** ↔ **Supabase**: Database migrations and schema management
-* **GitHub** ↔ **Vercel**: Continuous deployment pipeline
-* **GitHub** ↔ **Sentry**: Source code integration and release tracking
+* **GitHub** ↔ **Supabase** - Database migrations and schema management
+* **GitHub** ↔ **Vercel** - Continuous deployment pipeline
+* **GitHub** ↔ **Sentry** - Source code integration and release tracking
 
 ### Monitoring & Notifications ✅
-* **Sentry** ↔ **Discord**: Real-time error alerts and notifications
-* **Sentry** ↔ **GitHub**: Issue creation and commit tracking for error resolution
+* **Sentry** ↔ **Discord** - Real-time error alerts and notifications
+* **Sentry** ↔ **GitHub** - Issue creation and commit tracking
 
 ### Sentry Configuration ✅
-
-**Project Details**
 * **DSN**: `https://bedcd4d7ec8c8fd30e70515e22ea09cc@o4509970890227712.ingest.us.sentry.io/4509970900123648`
 * **Organization**: rosendot
 * **Project**: rosendohq
-
-**Coverage**
-* Client-side, server-side, and edge runtime monitoring
-* Global error boundary and request instrumentation
-* Performance monitoring (100% trace sampling)
-* Source map uploads for better stack traces
-* Discord notifications for critical errors
+* Coverage: Client-side, server-side, and edge runtime monitoring
+* Source map uploads with tunnel route `/monitoring` for ad-blocker circumvention
 
 ---
 
-## Module Status
+## 📱 Application Features
 
-### 🟢 Shopping Lists — **LIVE** ✅
+### 🏠 Dashboard (`/dashboard`)
+Central hub providing an overview of all modules with quick stats, recent activity, and upcoming items.
 
-**Status:** Fully functional with real data
+**Components:**
+* Module grid with 13 color-coded cards
+* QuickStats component for key metrics
+* RecentActivity feed
+* UpcomingItems timeline
+
+---
+
+## 🟢 Fully Functional Modules (Live with Real Data)
+
+### 1. Shopping Lists — **LIVE** ✅
+
+**Status:** Production-ready with 87 items across 2 lists
 
 **Features:**
 * ✅ Multiple list management with sidebar navigation
-* ✅ Add items with full details (quantity, unit, category, aisle, priority, notes, needed-by date)
-* ✅ Mark items as purchased/completed with automatic timestamp
-* ✅ Delete items with confirmation
-* ✅ Bulk operations: select multiple items to complete or delete at once
-* ✅ Active/completed item sections with "Select All" buttons
-* ✅ Search across item names and notes
-* ✅ Category filtering
-* ✅ Priority indicators (1-3 with color coding)
-* ✅ Quick stats dashboard (total, active, completed, high priority)
-* ✅ Optimized loading: all lists and items fetched in parallel on mount
-* ✅ Instant list switching (no API calls)
-
-**Live Data:** 2 lists, 87 items
+* ✅ Add/edit items with comprehensive details:
+  - Item name, quantity, unit (predefined dropdown)
+  - Category (predefined dropdown: Produce, Meat, Dairy, Bakery, Frozen, Pantry, Snacks, Beverages, Personal Care, Household, Other)
+  - Aisle location and store preference
+  - Priority rating (1-5 scale with color coding)
+  - Notes and needed-by date
+* ✅ Quick priority rating (click to set 1-5, click again to reset to default)
+* ✅ Priority-based category sorting (weighted by priority × 0.6 + item count × 0.4)
+* ✅ Mark items complete/incomplete with automatic timestamp
+* ✅ Bulk operations:
+  - Long-press (500ms) to enter selection mode
+  - Select multiple items with tap
+  - Bulk complete, uncomplete, or delete
+  - "Select All" buttons for active and completed sections
+* ✅ Advanced filtering:
+  - Real-time search across item names and notes
+  - Category filter dropdown
+  - Combined category + search filtering
+* ✅ Smart organization:
+  - Active items grouped by category with headers
+  - Categories sorted by weighted score (priority + item count)
+  - Items sorted by priority > name within categories
+  - Completed items in flat list with purchase date
+* ✅ Delete confirmation modals
+* ✅ Performance optimizations:
+  - Parallel loading of all lists and items on mount
+  - Client-side list switching (no API calls)
+  - Selective refresh after modifications
+  - Bulk API operations (single call for multiple items)
 
 **Database:** `shopping_list`, `shopping_list_item`
 
-**Performance:**
-* Parallel data fetching for fast initial load
-* Client-side list switching with no API calls
-* Selective refresh only on item modifications
-* Bulk operations use single API calls (not per-item loops)
+**API Endpoints:**
+* `GET/POST /api/shopping/lists` - Manage shopping lists
+* `GET/POST /api/shopping/lists/[listId]/items` - Manage list items
+* `GET/PATCH/DELETE /api/shopping/items/[itemId]` - Individual item operations
+* `PATCH/DELETE /api/shopping/items/bulk` - Bulk operations
 
 **Remaining:**
-* [ ] Edit existing items
+* [ ] List creation/editing/deletion UI
 * [ ] CSV import/export
 
 ---
 
-### 🟢 Wishlist — **LIVE** ✅
+### 2. Wishlist — **LIVE** ✅
 
-**Status:** Fully functional with real data
+**Status:** Production-ready with 3 items
 
 **Features:**
-* Grid view with category/status filters
-* Priority-based sorting
-* URL links and purchase tracking
-* Search functionality
-
-**Live Data:** 3 items with pricing
+* ✅ Grid view with comprehensive item details
+* ✅ Priority-based sorting (1-5 scale)
+* ✅ Category and status filtering
+* ✅ URL links for items
+* ✅ Purchase tracking with timestamps
+* ✅ Multi-currency price support (stored as cents)
+* ✅ Product details: vendor, brand, color, size, image URL
+* ✅ Add/edit/delete functionality with modals
+* ✅ Real-time search across titles and notes
 
 **Database:** `wishlist_item`
 
+**API Endpoints:**
+* `GET/POST /api/wishlist` - List and create items
+* `GET/PUT/DELETE /api/wishlist/[id]` - Individual item operations
+
 **Remaining:**
 * [ ] CSV import/export
+* [ ] Price tracking history
 
 ---
 
-### 🟢 Media Tracker — **LIVE** ✅
+### 3. Media Tracker — **LIVE** ✅
 
-**Status:** Fully functional with real data
+**Status:** Production-ready with 122 items
 
 **Features:**
-* Multi-type support (movies, TV, games, music)
-* Status tracking and rating system
-* Progress tracking for TV shows
-* Genre and format filtering
+* ✅ Multi-type support (Movies, TV Shows, Anime)
+* ✅ Status tracking (Planned, Watching, Completed, On Hold, Dropped)
+* ✅ Rating system (1-5 stars with quick rating buttons)
+* ✅ Progress tracking:
+  - Episode and season tracking for TV shows
+  - Current episode / total episodes display
+  - Episodes per season tracking
+* ✅ Platform badges with brand colors:
+  - Netflix (red), Disney+ (blue), Hulu (green), Amazon Prime (teal)
+  - HBO Max, Apple TV+, Crunchyroll, and more
+* ✅ Type filter tabs (All, Anime, Shows, Movies)
+* ✅ Status filter dropdown
+* ✅ Add/edit/delete functionality
+* ✅ Grid view with hover effects
+* ✅ Real-time search
 
-**Live Data:** 122 items
+**Database:** `media_item`, `media_log`
 
-**Database:** `media_item`, `media_log` | Views: `v_media_episodes_per_week`
+**API Endpoints:**
+* `GET /api/media` - Query items (supports `?status=*` and `?type=*`)
+* `POST /api/media` - Create item
+* `GET/PUT/DELETE /api/media/[id]` - Individual item operations
+
+**Views:** `v_media_episodes_per_week`
 
 **Remaining:**
+* [ ] Progress logging UI
+* [ ] Episode history tracking
 * [ ] CSV import/export
 
 ---
 
-### 🟡 Car Tracker — **PARTIAL DATA**
+### 4. Car Tracker — **LIVE** ✅
 
-**Status:** Backend connected, limited usage
+**Status:** Partial data (1 vehicle, 15 templates, 2 records)
 
 **Features:**
-* Vehicle management
-* Maintenance records timeline
-* Cost tracking and averages
-* Vendor tracking
+* ✅ Vehicle management:
+  - Add/edit/delete vehicles
+  - Track make, model, year, VIN, license plate
+  - Purchase details (date, price, mileage)
+  - Insurance information
+  - Vehicle status (active, sold, etc.)
+* ✅ Maintenance tracking:
+  - Maintenance templates with intervals
+  - Service records with timeline view
+  - Cost tracking (parts + labor)
+  - Vendor history
+  - Warranty work indicator
+  - Next due date/mileage calculations
+  - DIY maintenance flag
+* ✅ Odometer logging
+* ✅ Fuel tracking:
+  - MPG calculations
+  - Price per gallon
+  - Station tracking
+  - Full tank indicator
+* ✅ Delete confirmation modals for vehicles and records
+* ✅ Create/edit modals for vehicles and maintenance
+* ✅ Stats display with averages
 
-**Live Data:** 1 vehicle, 15 templates, 2 records, 1 odometer log
+**Database:** `vehicle`, `odometer_log`, `maintenance_template`, `maintenance_record`, `fuel_log`
 
-**Database:** `vehicle`, `odometer_log`, `maintenance_template`, `maintenance_record`, `fuel_log` | Views: `v_vehicle_last_odo`, `v_maintenance_next_due`
+**API Endpoints:**
+* `GET/POST /api/car/vehicles` - Manage vehicles
+* `GET/PUT/DELETE /api/car/vehicles/[id]` - Individual vehicle operations
+* `GET/POST /api/car/odometer` - Odometer logs
+* `GET/POST /api/car/fuel` - Fuel entries
+* `GET/POST /api/car/maintenance/records` - Maintenance records
+* `GET/PUT/DELETE /api/car/maintenance/records/[id]` - Individual records
+* `GET/POST /api/car/maintenance/templates` - Maintenance templates
+
+**Views:** `v_vehicle_last_odo`, `v_maintenance_next_due`
 
 **Remaining:**
+* [ ] Fuel logging UI
+* [ ] Service history charts
 * [ ] CSV import/export
 
 ---
 
-### 🟡 Reading Tracker — **PARTIAL DATA**
+### 5. Reading Tracker — **LIVE** ✅
 
-**Status:** Backend connected, limited usage
+**Status:** Partial data (2 books)
 
 **Features:**
-* Book status tracking with progress
-* Rating system (1-5 stars)
-* Format filtering (physical, ebook, audiobook)
-* Start/completion date tracking
+* ✅ Book status tracking (Planned, Reading, Finished, On Hold, Dropped)
+* ✅ Rating system (1-5 stars with quick rating)
+* ✅ Format filtering (Physical, eBook, Audiobook)
+* ✅ Progress tracking:
+  - Current page / total pages
+  - Progress percentage display
+  - Start and completion date tracking
+* ✅ Book highlights feature:
+  - Store highlights as JSON array
+  - Display highlights with book details
+* ✅ Add/edit/delete functionality with modals
+* ✅ Grid view with book cards
+* ✅ Status filter dropdown
+* ✅ Delete confirmation modal
+* ✅ Real-time search
 
-**Live Data:** 2 books
+**Database:** `book`, `reading_log`
 
-**Database:** `book`, `reading_log` | Views: `v_reading_pace_week`
+**API Endpoints:**
+* `GET /api/books` - Query books (supports `?status=*` and `?format=*`)
+* `POST /api/books` - Create book
+* `GET/PUT/DELETE /api/books/[id]` - Individual book operations
+
+**Views:** `v_reading_pace_week`
 
 **Remaining:**
+* [ ] Reading log UI for tracking daily progress
+* [ ] Reading statistics and charts
 * [ ] CSV import/export
 
 ---
 
-### 🔴 Finance Module — **BACKEND NEEDED**
+### 6. Habits & Goals — **LIVE** ✅
 
-**Frontend:** ✅ Complete
-* Account cards with balances
-* Monthly summary stats
-* Transaction list with categories
-* Budget progress and spending breakdown
+**Status:** Backend connected, needs more data entry
+
+**Features:**
+* ✅ Daily habit tracking:
+  - Categories (Oral Care, Beard Care, Hair Care, Skincare, Body Care, Mental Health, etc.)
+  - Time-of-day organization (Morning, Midday, Evening)
+  - Progress bars showing completion
+  - Streak tracking
+  - Target values with units
+  - Sort order customization
+* ✅ Habit logging:
+  - Daily value entry
+  - Notes and mood (1-5 scale)
+  - Time-of-day tracking
+* ✅ Goal tracking:
+  - Goal name, target value, unit
+  - Progress tracking (current vs. target)
+  - Status (Active, Completed, Abandoned, On Hold)
+  - Due date tracking
+  - Link to related habits for automatic progress updates
+* ✅ Today/Goals tabs for organization
+* ✅ Stats section with summary
+
+**Database:** `habit`, `habit_log`, `goal`
+
+**API Endpoints:**
+* `GET/POST /api/habits` - Manage habits
+* `GET/PUT/DELETE /api/habits/[id]` - Individual habits
+* `GET/POST /api/habits/logs` - Habit logs (supports `?date=YYYY-MM-DD`)
+* `GET/PUT/DELETE /api/habits/logs/[id]` - Individual logs
+* `GET/POST /api/habits/goals` - Goal management
+* `GET/PUT/DELETE /api/habits/goals/[id]` - Individual goals
+
+**Views:** `v_habit_daily_totals`, `v_goal_progress`
+
+**Remaining:**
+* [ ] Habit editing UI
+* [ ] Goal editing UI
+* [ ] Habit streak calculations
+* [ ] CSV import/export
+
+---
+
+## 🟡 Frontend Complete (Mock Data Only)
+
+The following modules have fully functional UIs but are using mock data and need backend integration:
+
+### 7. Finance — **UI COMPLETE** 🔴
+
+**Frontend Features:**
+* Account cards with balances (Checking, Savings, Credit, Investment)
+* Monthly summary stats (Income, Expenses, Net)
+* Transaction list with categories and dates
+* Budget tracking with progress bars
+* Spending breakdown by category
+* Account type filtering
+
+**Database Ready:** `account`, `transaction`, `budget`, `subscription`, `merchant`
+
+**Views Ready:** `v_spend_by_month`
 
 **Backend Needed:**
 * [ ] API routes for accounts, transactions, budgets
@@ -161,34 +331,21 @@
 * [ ] Balance calculations and categorization
 * [ ] CSV import/export
 
-**Database:** `account`, `category`, `transaction`, `subscription`, `merchant`, `transfer` | Views: `v_spend_by_month`
-
 ---
 
-### 🔴 Inventory — **BACKEND NEEDED**
+### 8. House Tracker — **UI COMPLETE** 🔴
 
-**Frontend:** ✅ Complete
-* Item grid with categories and locations
-* Total value calculations
-* Location-based filtering
-* Purchase date tracking
-
-**Backend Needed:**
-* [ ] API routes and Supabase integration
-* [ ] Value aggregation queries
-* [ ] CSV import/export
-
-**Database:** `inventory_item`
-
----
-
-### 🔴 House Tracker — **BACKEND NEEDED**
-
-**Frontend:** ✅ Complete
-* Room management
-* Maintenance task tracking
-* Supply tracking with low-stock alerts
+**Frontend Features:**
+* Room/area management with types
+* Maintenance task tracking (status, priority, due dates)
+* Supply inventory with low-stock alerts
+* Cost tracking and vendor history
 * Quick stats dashboard
+* Upcoming maintenance timeline
+
+**Database Ready:** `home_property`, `home_area`, `home_appliance`, `home_maintenance_template`, `home_maintenance_record`, `home_supply_item`, `home_supply_stock`, `home_supply_purchase`, `home_supply_usage`
+
+**Views Ready:** `v_home_maintenance_next_due`, `v_home_supply_usage_month`
 
 **Backend Needed:**
 * [ ] API routes for properties, areas, maintenance, supplies
@@ -196,53 +353,58 @@
 * [ ] Next-due maintenance calculations
 * [ ] CSV import/export
 
-**Database:** `home_property`, `home_area`, `home_appliance`, `home_maintenance_template`, `home_maintenance_record`, `home_supply_item`, `home_supply_stock`, `home_supply_purchase`, `home_supply_usage` | Views: `v_home_maintenance_next_due`, `v_home_supply_usage_month`
-
 ---
 
-### 🔴 Habits & Goals — **BACKEND NEEDED**
+### 9. Inventory — **UI COMPLETE** 🔴
 
-**Frontend:** ✅ Complete
-* Daily habit tracking with progress bars
-* Streak calculations
-* Goal tracking with progress visualization
-* Priority-based sorting
+**Frontend Features:**
+* Item grid with images
+* Category and location filtering
+* Total value calculations
+* Purchase date and quantity tracking
+* Search functionality
+
+**Database Ready:** `inventory_item`
 
 **Backend Needed:**
-* [ ] API routes for habits, logs, goals
-* [ ] Supabase client integration
-* [ ] Streak calculation logic
+* [ ] API routes and Supabase integration
+* [ ] Value aggregation queries
 * [ ] CSV import/export
-
-**Database:** `habit`, `habit_log`, `habit_schedule`, `goal` | Views: `v_habit_daily_totals`, `v_goal_progress`
 
 ---
 
-### 🔴 Notes / Knowledge Base — **BACKEND NEEDED**
+### 10. Notes / Knowledge Base — **UI COMPLETE** 🔴
 
-**Frontend:** ✅ Complete
-* Note list with search
+**Frontend Features:**
+* Note list with grid view
+* Real-time search
 * Tag-based filtering
-* Markdown editor
+* Markdown editor support
 * Created/updated timestamps
+* Favorite notes
+
+**Database Ready:** `note` (with full-text search)
+
+**Views Ready:** `note_search`
 
 **Backend Needed:**
 * [ ] API routes and Supabase integration
 * [ ] Full-text search integration
-* [ ] Tag management
-* [ ] CSV/Markdown import/export
-
-**Database:** `note` (with FTS) | Views: `note_search`
+* [ ] Tag management system
+* [ ] Markdown/CSV import/export
 
 ---
 
-### 🔴 Travel Planner — **BACKEND NEEDED**
+### 11. Travel Planner — **UI COMPLETE** 🔴
 
-**Frontend:** ✅ Complete
-* Trip management with status tracking
-* Itinerary timeline
-* Journal entries
-* Countdown to trips
+**Frontend Features:**
+* Trip management with status (Planning, Upcoming, Active, Completed, Cancelled)
+* Itinerary timeline with event types
+* Journal entries with date tracking
+* Countdown to upcoming trips
+* Location and date range tracking
+
+**Database Ready:** `trip`, `itinerary_item`, `trip_entry`
 
 **Backend Needed:**
 * [ ] API routes for trips, itinerary, entries
@@ -250,17 +412,21 @@
 * [ ] Countdown calculations
 * [ ] CSV import/export
 
-**Database:** `trip`, `itinerary_item`, `trip_entry`, `packing_template`
-
 ---
 
-### 🔴 Nutrition Tracker — **BACKEND NEEDED**
+### 12. Nutrition Tracker — **UI COMPLETE** 🔴
 
-**Frontend:** ✅ Complete
-* Daily macro tracking
-* Meal type organization
-* Water intake tracking
-* Macro progress bars vs. goals
+**Frontend Features:**
+* Daily macro tracking (Calories, Protein, Carbs, Fat)
+* Meal type organization (Breakfast, Lunch, Dinner, Snacks)
+* Water intake tracking with goal
+* Macro progress bars vs. daily goals
+* Date-based navigation
+* Summary cards with percentages
+
+**Database Ready:** `food_item`, `meal`, `meal_entry`, `nutrition_target`, `recipe`
+
+**Views Ready:** `v_daily_macros`, `v_daily_macros_vs_target`
 
 **Backend Needed:**
 * [ ] API routes for food items, meals, entries, targets
@@ -268,113 +434,329 @@
 * [ ] Daily macro aggregation
 * [ ] CSV import/export
 
-**Database:** `food_item`, `meal`, `meal_entry`, `nutrition_target`, `recipe` | Views: `v_daily_macros`, `v_daily_macros_vs_target`
+---
+
+## 🎨 UI/UX Features
+
+### Navigation
+* **Responsive Sidebar** with:
+  - 6 grouped navigation sections:
+    1. Overview (Dashboard)
+    2. Shopping & Lists (Shopping, Wishlist)
+    3. Home & Assets (Car, House, Inventory)
+    4. Finance & Health (Finance, Nutrition)
+    5. Personal Growth (Habits, Reading, Media)
+    6. Planning (Travel, Notes)
+  - Desktop: Hover to expand labels
+  - Mobile: Swipeable drawer (left-edge swipe to open, swipe-left to close)
+  - Active route highlighting with purple accent
+  - Import/Export button in footer
+
+### Design System
+* **Dark theme** with gray-950 background
+* **Color-coded modules** for visual distinction
+* **Responsive layouts** with Tailwind CSS
+* **Icon library** from Lucide React
+* **Touch-friendly** UI with mobile optimizations
+* **Modal-based** forms for add/edit operations
+* **Confirmation dialogs** for destructive actions
+
+### Mobile Optimizations
+* Swipe gesture support for sidebar
+* Responsive grid layouts
+* Touch-friendly buttons (larger hit areas)
+* Long-press selection mode (500ms)
+* Mobile-optimized inputs and dropdowns
 
 ---
 
-## Current State
+## 🗄️ Database Architecture
 
-### Active Modules (5)
+### Active Tables (30+)
+All tables created and ready. 15 actively used, 15+ ready for future features.
+
+**Shopping & Lists:**
+* `shopping_list`, `shopping_list_item`
+* `wishlist_item`
+* `inventory_item`
+
+**Media & Reading:**
+* `media_item`, `media_log`
+* `book`, `reading_log`
+
+**Car Tracking:**
+* `vehicle`, `odometer_log`, `fuel_log`
+* `maintenance_template`, `maintenance_record`
+
+**House Management:**
+* `home_property`, `home_area`, `home_appliance`
+* `home_maintenance_template`, `home_maintenance_record`
+* `home_supply_item`, `home_supply_stock`, `home_supply_purchase`, `home_supply_usage`
+
+**Habits & Goals:**
+* `habit`, `habit_log`, `goal`
+
+**Finance:**
+* `account`, `transaction`, `budget`, `subscription`, `merchant`
+
+**Travel:**
+* `trip`, `itinerary_item`, `trip_entry`
+
+**Nutrition:**
+* `food_item`, `meal`, `meal_entry`, `nutrition_target`, `recipe`
+
+**Notes:**
+* `note` (with full-text search capability)
+
+### Shared Infrastructure
+* **Tag system**: `tag`, `tag_map` (supports all modules)
+* **File storage**: `file` table for attachments
+* **Import/Export**: `import_run`, `import_error`, `import_mapping_preset`
+
+### Database Views
+Materialized views for optimized queries:
+* `v_media_episodes_per_week`
+* `v_vehicle_last_odo`
+* `v_maintenance_next_due`
+* `v_reading_pace_week`
+* `v_habit_daily_totals`
+* `v_goal_progress`
+* `v_spend_by_month`
+* `v_home_maintenance_next_due`
+* `v_home_supply_usage_month`
+* `v_daily_macros`
+* `v_daily_macros_vs_target`
+* `note_search` (FTS view)
+
+---
+
+## 📊 Current Live Data
+
 * **Shopping Lists**: 2 lists, 87 items
 * **Wishlist**: 3 items
 * **Media Tracker**: 122 items
-* **Car Tracker**: 1 vehicle with maintenance data
+* **Car Tracker**: 1 vehicle, 15 templates, 2 records, 1 odometer log
 * **Reading Tracker**: 2 books
+* **Habits**: Backend connected, needs data entry
 
-### Database Architecture
-* All tables created for all modules
-* Simplified structure: removed unused tables (`author`, `highlight`, `merchant_alias`, `packing_template_item`, `recipe_ingredient`, `transaction_split`)
-* Child tables consolidated into parent tables as jsonb arrays
-* Removed simple filter views that can be done in frontend
-
-### Shared Infrastructure
-* Tag system via `tag_map` (supports all modules)
-* Import/export framework tables ready: `import_run`, `import_error`, `import_mapping_preset`
-* File storage support via `file` table
+**Total Items Tracked**: 214+ across all modules
 
 ---
 
-## Next Steps
+## 🚧 Development Roadmap
 
 ### Priority 1: Expand Usage of Active Modules
-* Continue using Shopping, Wishlist, and Media daily
-* Add more vehicles and maintenance records
-* Add more books to reading tracker
-* Implement CSV import/export for these modules
+* [ ] Continue daily use of Shopping, Wishlist, and Media
+* [ ] Add more vehicles and maintenance records to Car Tracker
+* [ ] Add more books to Reading Tracker
+* [ ] Populate Habits & Goals with daily tracking
+* [ ] Implement CSV import/export for active modules
 
-### Priority 2: Connect Next Module
-Choose based on need:
-* **Habits** - daily tracking and streak calculations
-* **Finance** - expense tracking and budgeting
+### Priority 2: Connect Next Backend Module
+Choose based on immediate need:
+* [ ] **Finance** - Expense tracking and budgeting
+* [ ] **House** - Maintenance and supply tracking
+* [ ] **Nutrition** - Daily macro tracking
 
 ### Priority 3: Import/Export Framework
-* Build CSV upload and mapping interface
-* Implement validation and preview
-* Add batch processing with error handling
-* Create "Export All" functionality
+* [ ] Build CSV upload and mapping interface
+* [ ] Implement validation and preview system
+* [ ] Add batch processing with error handling
+* [ ] Create "Export All" functionality
+* [ ] Add import history tracking
 
 ### Priority 4: Dashboard Integration
-* Connect dashboard stats to real data
-* Add recent activity feed
-* Build upcoming items aggregation
-* Implement global search across modules
+* [ ] Connect dashboard stats to real data across modules
+* [ ] Build recent activity feed aggregation
+* [ ] Implement upcoming items timeline
+* [ ] Add global search across all modules
+
+### Priority 5: Advanced Features
+* [ ] Real-time collaboration on shared lists
+* [ ] Mobile app with offline support
+* [ ] Barcode scanning for shopping/inventory
+* [ ] Recipe integration with shopping lists
+* [ ] Analytics dashboards for spending, habits, media consumption
+* [ ] API integrations (delivery services, streaming platforms)
 
 ---
 
-## CSV Headers Reference
+## 🛠️ Available Scripts
 
-### Finance
-* **Accounts**: `name,type,institution,currency`
-* **Categories**: `name,parent`
-* **Transactions**: `date,description,amount,category,account`
-* **Subscriptions**: `name,amount,currency,cadence,nextRenewal,account,notes`
+```bash
+npm run dev          # Start development server with Turbopack
+npm run build        # Build production bundle with Turbopack
+npm start            # Start production server
+npm run lint         # Run ESLint
+npm run format       # Format code with Prettier
+```
+
+---
+
+## 📂 Project Structure
+
+```
+rosendohq/
+├── src/
+│   ├── app/                      # Next.js App Router
+│   │   ├── dashboard/            # Dashboard hub page
+│   │   ├── shopping/             # Shopping lists module
+│   │   ├── wishlist/             # Wishlist module
+│   │   ├── media/                # Media tracker module
+│   │   ├── car/                  # Car tracker module
+│   │   ├── reading/              # Reading tracker module
+│   │   ├── habits/               # Habits & Goals module
+│   │   ├── finance/              # Finance module (UI only)
+│   │   ├── house/                # House tracker (UI only)
+│   │   ├── inventory/            # Inventory (UI only)
+│   │   ├── notes/                # Notes/KB (UI only)
+│   │   ├── travel/               # Travel planner (UI only)
+│   │   ├── nutrition/            # Nutrition tracker (UI only)
+│   │   ├── api/                  # API routes
+│   │   │   ├── shopping/         # Shopping API
+│   │   │   ├── wishlist/         # Wishlist API
+│   │   │   ├── media/            # Media API
+│   │   │   ├── books/            # Books API
+│   │   │   ├── car/              # Car API
+│   │   │   └── habits/           # Habits API
+│   │   ├── layout.tsx            # Root layout with sidebar
+│   │   └── page.tsx              # Home page
+│   ├── components/               # Reusable UI components
+│   │   ├── dashboard/            # Dashboard components
+│   │   └── Sidebar.tsx           # Navigation sidebar
+│   ├── lib/                      # Utilities and database client
+│   │   └── supabase/
+│   │       └── client.ts         # Supabase client
+│   ├── types/                    # TypeScript type definitions
+│   │   └── database.types.ts     # Generated DB types
+│   └── instrumentation.ts        # Sentry instrumentation
+├── public/                       # Static assets
+├── next.config.ts                # Next.js configuration
+├── tailwind.config.ts            # Tailwind CSS config
+├── tsconfig.json                 # TypeScript config
+├── sentry.client.config.ts       # Sentry client config
+├── sentry.server.config.ts       # Sentry server config
+├── sentry.edge.config.ts         # Sentry edge config
+└── package.json                  # Dependencies
+```
+
+---
+
+## 🔐 Environment Variables
+
+Required environment variables (`.env.local`):
+
+```bash
+SUPABASE_URL=your_supabase_project_url
+SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+Sentry DSN is configured in Sentry config files.
+
+---
+
+## 📈 Recent Updates
+
+**Latest Features (Last 30 commits):**
+* Refined UI spacing and sizing for media and shopping pages
+* Removed stats sections for cleaner page layouts
+* Refactored BookCard action buttons UI
+* Added delete confirmation modals across modules
+* Added book highlights feature to reading tracker
+* Implemented quick priority rating (1-5 scale) for shopping items
+* Added media type filter tabs (anime, show, movie)
+* Enhanced vehicle management with stats display
+* Added season and episode tracking for TV shows
+* Implemented platform badges with brand colors
+* Mobile optimization with swipe support for sidebar
+* Category-based grouping for shopping lists
+* Bulk operations with selection mode
+* Habits page redesign with stats section
+
+---
+
+## 📝 CSV Import/Export Headers Reference
+
+### Shopping Lists
+* **Lists**: `name,notes`
+* **Items**: `list,itemName,quantity,unit,neededBy,priority,notes,category,aisle,storePreference`
+
+### Wishlist
+* **Items**: `title,category,status,url,notes,priority,priceCents,vendor,brand,color,size,imageUrl`
 
 ### Media
-* **Media Items**: `title,type,status,totalEpisodes,tags`
-* **Media Logs**: `mediaTitle,date,progress,note`
+* **Items**: `title,type,status,totalEpisodes,currentEpisode,rating,platform,totalSeasons,currentSeason`
+* **Logs**: `mediaTitle,logDate,progress,note`
 
 ### Reading
-* **Books**: `title,author,status,startedAt,finishedAt,rating,tags`
-* **Reading Logs**: `book,date,pages,minutes,note`
+* **Books**: `title,author,status,startedAt,finishedAt,rating,currentPage,totalPages,format`
+* **Logs**: `book,logDate,pages,minutes,note`
 
 ### Car
-* **Vehicles**: `make,model,year,vin,nickname`
-* **Odometer Logs**: `vehicle,date,mileage`
-* **Maintenance Templates**: `name,intervalMiles,intervalMonths,notes`
-* **Maintenance Records**: `vehicle,item,serviceDate,mileage,cost,vendor,notes`
-* **Fuel Logs**: `vehicle,fillDate,odometer,gallons,total`
-
-### House
-* **Properties**: `name,address1,address2,city,state,postalCode,country,notes`
-* **Areas/Rooms**: `property,name,type,notes`
-* **Appliances**: `property,area,name,manufacturer,model,serialNumber,purchaseDate,warrantyMonths,notes`
-* **Maintenance Templates**: `property,name,intervalMonths,intervalDays,notes`
-* **Maintenance Records**: `property,area,appliance,item,template,serviceDate,cost,vendor,notes`
-* **Supply Items**: `name,unit,notes`
-* **Supply Stock**: `property,area,supply,quantity,minQuantity`
-* **Supply Purchases**: `property,area,supply,purchaseDate,quantity,unitCost,vendor,notes`
-* **Supply Usage**: `property,area,supply,useDate,quantity,notes`
-
-### Travel
-* **Trips**: `name,location,startDate,endDate,tags`
-* **Itinerary Items**: `trip,datetime,type,title,details`
-* **Trip Entries**: `trip,entryDate,contentMD`
-* **Packing Templates**: `name` (items stored as jsonb)
+* **Vehicles**: `make,model,year,vin,nickname,licensePlate,color,purchaseDate,purchasePriceCents,purchaseMileage`
+* **Odometer**: `vehicle,logDate,mileage`
+* **Fuel**: `vehicle,fillDate,odometer,gallons,totalCents,fuelType,isFullTank,stationName`
+* **Maintenance Templates**: `name,intervalMiles,intervalMonths,priority,category,estimatedCostCents`
+* **Maintenance Records**: `vehicle,serviceDate,mileage,costCents,vendor,warrantyWork,notes`
 
 ### Habits & Goals
-* **Habits**: `name,unit,tags`
-* **Habit Logs**: `habit,date,value,note`
-* **Goals**: `name,targetValue,unit,dueDate,progressSource,habit`
+* **Habits**: `name,unit,targetValue,category,timeOfDay,schedule`
+* **Logs**: `habit,logDate,value,note,timeOfDay,mood`
+* **Goals**: `name,targetValue,unit,dueDate,status,progressSource,habitId`
+
+### Finance
+* **Accounts**: `name,type,institution,currency,balance`
+* **Transactions**: `date,description,amountCents,category,account`
+* **Budgets**: `name,amountCents,period,category`
+* **Subscriptions**: `name,amountCents,currency,cadence,nextRenewal,account`
+
+### House
+* **Properties**: `name,address1,city,state,postalCode,country`
+* **Areas**: `property,name,type,notes`
+* **Maintenance Records**: `property,area,serviceDate,costCents,vendor,notes`
+* **Supplies**: `name,unit,minQuantity`
 
 ### Nutrition
 * **Food Items**: `name,servingSize,calories,protein,carbs,fat`
-* **Meals**: `mealDate,name`
-* **Meal Entries**: `meal,food,customName,servings,calories,protein,carbs,fat`
-* **Nutrition Targets**: `startDate,endDate,calories,protein,carbs,fat`
-* **Recipes**: `name,servings,notes` (ingredients stored as jsonb)
+* **Meals**: `mealDate,type,name`
+* **Targets**: `startDate,endDate,calories,protein,carbs,fat`
 
-### Lists
-* **Shopping Lists**: `name,notes`
-* **Shopping List Items**: `list,itemName,quantity,unit,neededBy,priority,notes,tags`
-* **Inventory Items**: `name,quantity,unit,location,acquiredAt,notes,tags`
-* **Wishlist Items**: `title,category,status,url,notes,priority,tags`
+### Travel
+* **Trips**: `name,location,startDate,endDate,status`
+* **Itinerary**: `trip,datetime,type,title,details`
+* **Entries**: `trip,entryDate,contentMD`
+
+### Notes
+* **Notes**: `title,contentMD,tags,isFavorite`
+
+### Inventory
+* **Items**: `name,quantity,unit,location,acquiredAt,valueCents,category`
+
+---
+
+## 🎯 Project Goals
+
+**Primary Objective**: Build a comprehensive personal life management system that consolidates shopping, media tracking, reading, habits, finances, and more into a single, unified platform.
+
+**Core Principles**:
+* **Privacy-first**: Self-hosted with full data ownership
+* **Type-safe**: Strict TypeScript throughout
+* **Performance**: Optimized queries and minimal API calls
+* **Mobile-friendly**: Touch-optimized with responsive design
+* **Extensible**: Modular architecture for easy feature additions
+
+---
+
+## 📄 License
+
+Personal use only. Not licensed for distribution or commercial use.
+
+---
+
+## 🤝 Contributing
+
+This is a personal project not accepting external contributions.
+
+---
+
+**Built with ❤️ using Next.js, TypeScript, Supabase, and Tailwind CSS**
