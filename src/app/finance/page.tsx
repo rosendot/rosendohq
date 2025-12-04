@@ -137,6 +137,29 @@ export default function FinancePage() {
             return acc;
         }, {} as Record<string, number>);
 
+    // Group transactions by account and calculate stats
+    const accountStats = transactions.reduce((acc, t) => {
+        if (!t.account) return acc;
+
+        const accountId = t.account.id;
+        if (!acc[accountId]) {
+            acc[accountId] = {
+                accountId,
+                name: t.account.name,
+                type: t.account.type,
+                transactionCount: 0,
+                net: 0,
+            };
+        }
+
+        acc[accountId].transactionCount++;
+        acc[accountId].net += t.amount_cents / 100;
+
+        return acc;
+    }, {} as Record<string, { accountId: string; name: string; type: string; transactionCount: number; net: number }>);
+
+    const accountStatsArray = Object.values(accountStats).sort((a, b) => a.name.localeCompare(b.name));
+
     const getAccountTypeIcon = (type: string) => {
         switch (type) {
             case 'checking':
@@ -225,39 +248,7 @@ export default function FinancePage() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Main Content */}
                     <div className="lg:col-span-2 space-y-6">
-                        {/* Accounts */}
-                        <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
-                            <div className="flex justify-between items-center mb-4">
-                                <h2 className="text-xl font-semibold text-white">Accounts</h2>
-                                <span className="text-sm text-gray-400">{accounts.length} accounts</span>
-                            </div>
-
-                            <div className="space-y-3">
-                                {accounts.length === 0 ? (
-                                    <p className="text-gray-500 text-center py-8">No accounts yet</p>
-                                ) : (
-                                    accounts.map((account) => (
-                                        <div
-                                            key={account.id}
-                                            className="flex items-center justify-between p-4 bg-gray-800 rounded-lg border border-gray-700 hover:bg-gray-750 transition-colors"
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                {getAccountTypeIcon(account.type)}
-                                                <div>
-                                                    <div className="font-medium text-white">{account.name}</div>
-                                                    <div className="text-sm text-gray-400">{account.institution || 'N/A'}</div>
-                                                </div>
-                                            </div>
-                                            <div className="text-right">
-                                                <div className="text-xs text-gray-400 capitalize">{account.type}</div>
-                                            </div>
-                                        </div>
-                                    ))
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Recent Transactions */}
+                        {/* Transactions */}
                         <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
                             <div className="flex justify-between items-center mb-4">
                                 <h2 className="text-xl font-semibold text-white">Transactions</h2>
@@ -323,6 +314,38 @@ export default function FinancePage() {
                                                 <span className="text-white font-medium">{formatCurrency(amount)}</span>
                                             </div>
                                         ))
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Account Stats */}
+                        <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
+                            <h3 className="text-lg font-semibold text-white mb-4">Account Stats</h3>
+
+                            <div className="space-y-3">
+                                {accountStatsArray.length === 0 ? (
+                                    <p className="text-gray-500 text-sm text-center py-4">No accounts with transactions</p>
+                                ) : (
+                                    accountStatsArray.map((stat) => (
+                                        <div key={stat.accountId}>
+                                            <div className="flex items-center gap-2 mb-1">
+                                                {getAccountTypeIcon(stat.type)}
+                                                <span className="text-gray-300 text-sm font-medium">{stat.name}</span>
+                                            </div>
+                                            <div className="ml-7 space-y-1">
+                                                <div className="flex justify-between text-xs">
+                                                    <span className="text-gray-400">Transactions</span>
+                                                    <span className="text-white">{stat.transactionCount}</span>
+                                                </div>
+                                                <div className="flex justify-between text-xs">
+                                                    <span className="text-gray-400">Net</span>
+                                                    <span className={stat.net >= 0 ? 'text-green-400' : 'text-red-400'}>
+                                                        {formatCurrency(Math.abs(stat.net))}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))
                                 )}
                             </div>
                         </div>
