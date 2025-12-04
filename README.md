@@ -311,25 +311,56 @@ Central hub providing an overview of all modules with quick stats, recent activi
 
 The following modules have fully functional UIs but are using mock data and need backend integration:
 
-### 7. Finance — **UI COMPLETE** 🔴
+### 7. Finance — **LIVE** ✅
 
-**Frontend Features:**
-* Account cards with balances (Checking, Savings, Credit, Investment)
-* Monthly summary stats (Income, Expenses, Net)
-* Transaction list with categories and dates
-* Budget tracking with progress bars
-* Spending breakdown by category
-* Account type filtering
+**Status:** Production-ready with automated CSV import pipeline
 
-**Database Ready:** `account`, `transaction`, `budget`, `subscription`, `merchant`
+**Features:**
+* ✅ Multi-account support (Checking, Savings, Credit Cards)
+* ✅ Automated CSV upload system:
+  - Support for 6 different CSV formats (Capital One 360 Checking/Savings, Savor, Venture X, Chase Amazon, Discover IT)
+  - Upload modal with account selection and source type dropdown
+  - Automatic normalization of different CSV formats into unified structure
+  - Database triggers for automatic processing (raw → normalized → transaction)
+  - No deduplication (imports all transactions as-is)
+* ✅ Transaction tracking with real-time API:
+  - Monthly filtering with accurate date range handling
+  - Category and account joins for rich transaction data
+  - Income/expense calculations
+  - Spending breakdown by category
+* ✅ Three-tier data pipeline:
+  - **Raw tables**: Store original CSV data unchanged (6 separate tables for different sources)
+  - **finance_normalized**: Unified transaction format from all sources
+  - **transaction**: Final transaction table powering the UI
+* ✅ Upload batch tracking with metadata
+* ✅ Month selector with dynamic date calculations
+* ✅ Real-time transaction display with all data
 
-**Views Ready:** `v_spend_by_month`
+**Database:** `account`, `category`, `transaction`, `merchant`, `subscription`, `transfer`, `import_run`, `import_error`, `import_mapping_preset`, `csv_upload_batch`, `raw_capital_one_360_checking`, `raw_capital_one_360_savings`, `raw_capital_one_savor`, `raw_capital_one_venture_x`, `raw_chase_amazon`, `raw_discover_it`, `finance_normalized`
 
-**Backend Needed:**
-* [ ] API routes for accounts, transactions, budgets
-* [ ] Supabase client integration
-* [ ] Balance calculations and categorization
-* [ ] CSV import/export
+**API Endpoints:**
+* `GET /api/finance/accounts` - List all accounts
+* `GET /api/finance/transactions?month=YYYY-MM` - Get transactions by month
+* `GET /api/finance/categories` - List all categories
+* `POST /api/finance/csv-upload` - Upload and process CSV files
+
+**Views:** `v_spend_by_month`
+
+**Database Triggers:**
+* `normalize_capital_one_360_checking()` - Auto-normalize checking CSV
+* `normalize_capital_one_360_savings()` - Auto-normalize savings CSV
+* `normalize_capital_one_savor()` - Auto-normalize Savor credit card CSV
+* `normalize_capital_one_venture_x()` - Auto-normalize Venture X credit card CSV
+* `normalize_chase_amazon()` - Auto-normalize Chase Amazon CSV
+* `normalize_discover_it()` - Auto-normalize Discover IT CSV
+* `auto_import_to_transaction()` - Auto-import normalized data to transaction table
+
+**Remaining:**
+* [ ] Enable smart deduplication (currently disabled for testing)
+* [ ] Category auto-assignment based on merchant patterns
+* [ ] Budget tracking UI
+* [ ] Transaction editing/categorization
+* [ ] Export functionality
 
 ---
 
@@ -497,7 +528,11 @@ All tables created and ready. 15 actively used, 15+ ready for future features.
 * `habit`, `habit_log`, `goal`
 
 **Finance:**
-* `account`, `transaction`, `budget`, `subscription`, `merchant`
+* `account`, `category`, `transaction`, `merchant`, `subscription`, `transfer`
+* `import_run`, `import_error`, `import_mapping_preset`
+* `csv_upload_batch` (upload tracking)
+* `finance_normalized` (unified transaction format)
+* Raw CSV tables: `raw_capital_one_360_checking`, `raw_capital_one_360_savings`, `raw_capital_one_savor`, `raw_capital_one_venture_x`, `raw_chase_amazon`, `raw_discover_it`
 
 **Travel:**
 * `trip`, `itinerary_item`, `trip_entry`
@@ -538,8 +573,9 @@ Materialized views for optimized queries:
 * **Car Tracker**: 1 vehicle, 15 templates, 2 records, 1 odometer log
 * **Reading Tracker**: 2 books
 * **Habits**: Backend connected, needs data entry
+* **Finance**: 1 account (360 Checking), 37 transactions imported
 
-**Total Items Tracked**: 214+ across all modules
+**Total Items Tracked**: 251+ across all modules
 
 ---
 
@@ -552,26 +588,36 @@ Materialized views for optimized queries:
 * [ ] Populate Habits & Goals with daily tracking
 * [ ] Implement CSV import/export for active modules
 
-### Priority 2: Connect Next Backend Module
+### Priority 2: Expand Finance Module ✅ (In Progress)
+* [✅] CSV upload system with multi-source support
+* [✅] Automated normalization pipeline
+* [✅] Transaction display with category breakdown
+* [ ] Import remaining account CSVs (Savings, Credit Cards)
+* [ ] Enable smart deduplication
+* [ ] Category auto-assignment logic
+* [ ] Budget tracking UI
+* [ ] Transaction editing/categorization
+
+### Priority 3: Connect Next Backend Module
 Choose based on immediate need:
-* [ ] **Finance** - Expense tracking and budgeting
 * [ ] **House** - Maintenance and supply tracking
 * [ ] **Nutrition** - Daily macro tracking
 
-### Priority 3: Import/Export Framework
-* [ ] Build CSV upload and mapping interface
-* [ ] Implement validation and preview system
-* [ ] Add batch processing with error handling
+### Priority 4: Import/Export Framework
+* [✅] Build CSV upload interface with account/source selection
+* [✅] Automated normalization with database triggers
+* [✅] Batch upload tracking with csv_upload_batch table
+* [ ] Implement validation and preview before import
 * [ ] Create "Export All" functionality
-* [ ] Add import history tracking
+* [ ] Add detailed error handling and reporting
 
-### Priority 4: Dashboard Integration
+### Priority 5: Dashboard Integration
 * [ ] Connect dashboard stats to real data across modules
 * [ ] Build recent activity feed aggregation
 * [ ] Implement upcoming items timeline
 * [ ] Add global search across all modules
 
-### Priority 5: Advanced Features
+### Priority 6: Advanced Features
 * [ ] Real-time collaboration on shared lists
 * [ ] Mobile app with offline support
 * [ ] Barcode scanning for shopping/inventory
@@ -658,6 +704,13 @@ Sentry DSN is configured in Sentry config files.
 ## 📈 Recent Updates
 
 **Latest Features (Last 30 commits):**
+* **Finance Module Launch**: Complete CSV import pipeline with automated normalization
+* Multi-source CSV support (6 different bank/card formats)
+* Database triggers for automatic raw → normalized → transaction flow
+* Upload modal with account and source selection
+* Month selector with dynamic date calculations
+* Transaction display with category breakdown and spending analysis
+* Fixed date range queries for all month lengths
 * Refined UI spacing and sizing for media and shopping pages
 * Removed stats sections for cleaner page layouts
 * Refactored BookCard action buttons UI
@@ -705,10 +758,27 @@ Sentry DSN is configured in Sentry config files.
 * **Goals**: `name,targetValue,unit,dueDate,status,progressSource,habitId`
 
 ### Finance
-* **Accounts**: `name,type,institution,currency,balance`
-* **Transactions**: `date,description,amountCents,category,account`
-* **Budgets**: `name,amountCents,period,category`
-* **Subscriptions**: `name,amountCents,currency,cadence,nextRenewal,account`
+**Note:** Finance now uses automated CSV upload. See supported formats below:
+
+**Capital One 360 Checking/Savings CSV Format:**
+* Headers: `Account Number,Transaction Description,Transaction Date,Transaction Type,Transaction Amount,Balance`
+* Date format: MM/DD/YY
+* Transaction Type: Credit or Debit
+
+**Capital One Savor/Venture X CSV Format:**
+* Headers: `Transaction Date,Posted Date,Card No.,Description,Category,Debit,Credit`
+* Date format: YYYY-MM-DD
+* Amounts in Debit or Credit columns (one will be empty)
+
+**Chase Amazon CSV Format:**
+* Headers: `Transaction Date,Post Date,Description,Category,Type,Amount,Memo`
+* Date format: MM/DD/YYYY
+* Amount is signed (negative for expenses)
+
+**Discover IT CSV Format:**
+* Headers: `Trans. Date,Post Date,Description,Amount,Category`
+* Date format: MM/DD/YYYY
+* Amount is signed (negative for expenses)
 
 ### House
 * **Properties**: `name,address1,city,state,postalCode,country`
