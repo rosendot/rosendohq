@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, TrendingUp, TrendingDown, Wallet, CreditCard, DollarSign, Calendar, Upload } from 'lucide-react';
 import type { Account, Transaction, Category } from '@/types/database.types';
 
@@ -15,10 +15,10 @@ export default function FinancePage() {
     const [showAccountModal, setShowAccountModal] = useState(false);
     const [showTransactionModal, setShowTransactionModal] = useState(false);
     const [showBudgetModal, setShowBudgetModal] = useState(false);
+    const [showUploadModal, setShowUploadModal] = useState(false);
     const [importing, setImporting] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Real data from APIs
     const [accounts, setAccounts] = useState<Account[]>([]);
@@ -59,34 +59,16 @@ export default function FinancePage() {
         fetchAllData();
     }, [selectedMonth]);
 
-    const handleImportCSV = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (!file) return;
-
+    const handleUploadCSV = async (accountId: string, source: string, file: File) => {
         setImporting(true);
 
         try {
-            // Get Capital One 360 account ID
-            const accountsResponse = await fetch('/api/finance/accounts');
-            const accountsData = await accountsResponse.json();
-
-            const capitalOne360 = (accountsData.accounts || accountsData || []).find(
-                (a: Account) => a.name === '360 Checking' && a.institution === 'Capital One'
-            );
-
-            if (!capitalOne360) {
-                alert('Capital One 360 Checking account not found');
-                setImporting(false);
-                return;
-            }
-
             const formData = new FormData();
             formData.append('file', file);
-            formData.append('accountId', capitalOne360.id);
-            formData.append('source', 'capital-one-360');
-            formData.append('dryRun', 'false');
+            formData.append('accountId', accountId);
+            formData.append('source', source);
 
-            const response = await fetch('/api/finance/import', {
+            const response = await fetch('/api/finance/csv-upload', {
                 method: 'POST',
                 body: formData,
             });
@@ -94,20 +76,17 @@ export default function FinancePage() {
             const result = await response.json();
 
             if (result.success) {
-                alert(`Import successful!\nTotal: ${result.stats.total}\nImported: ${result.stats.imported}\nDuplicates: ${result.stats.duplicates}`);
+                alert(`CSV uploaded successfully!\nRows imported: ${result.rowCount}`);
                 // Refresh data
                 fetchAllData();
+                setShowUploadModal(false);
             } else {
-                alert(`Import failed: ${result.error}`);
+                alert(`Upload failed: ${result.error}`);
             }
         } catch (error) {
-            alert(`Import failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            alert(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
         } finally {
             setImporting(false);
-            // Reset file input
-            if (fileInputRef.current) {
-                fileInputRef.current.value = '';
-            }
         }
     };
 
@@ -184,18 +163,13 @@ export default function FinancePage() {
                         <p className="text-gray-400">Manage accounts and track expenses</p>
                     </div>
                     <div className="flex gap-3">
-                        <label className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors flex items-center gap-2 cursor-pointer">
+                        <button
+                            onClick={() => setShowUploadModal(true)}
+                            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors flex items-center gap-2"
+                        >
                             <Upload className="w-4 h-4" />
-                            {importing ? 'Importing...' : 'Import CSV'}
-                            <input
-                                ref={fileInputRef}
-                                type="file"
-                                accept=".csv"
-                                onChange={handleImportCSV}
-                                disabled={importing}
-                                className="hidden"
-                            />
-                        </label>
+                            Upload CSV
+                        </button>
                         <button
                             onClick={() => setShowAccountModal(true)}
                             className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors border border-gray-700"
@@ -444,6 +418,131 @@ export default function FinancePage() {
                         </div>
                     </div>
                 )}
+
+                {showUploadModal && <CSVUploadModal
+                    accounts={accounts}
+                    onClose={() => setShowUploadModal(false)}
+                    onUpload={handleUploadCSV}
+                    uploading={importing}
+                />}
+            </div>
+        </div>
+    );
+}
+
+function CSVUploadModal({
+    accounts,
+    onClose,
+    onUpload,
+    uploading
+}: {
+    accounts: Account[];
+    onClose: () => void;
+    onUpload: (accountId: string, source: string, file: File) => void;
+    uploading: boolean;
+}) {
+    const [selectedAccountId, setSelectedAccountId] = useState('');
+    const [selectedSource, setSelectedSource] = useState('');
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+    const sourceOptions = [
+        { value: 'capital-one-360-checking', label: 'Capital One 360 Checking' },
+        { value: 'capital-one-360-savings', label: 'Capital One 360 Savings' },
+        { value: 'capital-one-savor', label: 'Capital One Savor' },
+        { value: 'capital-one-venture-x', label: 'Capital One Venture X' },
+        { value: 'chase-amazon', label: 'Chase Amazon' },
+        { value: 'discover-it', label: 'Discover IT' },
+    ];
+
+    const handleSubmit = () => {
+        if (!selectedAccountId || !selectedSource || !selectedFile) {
+            alert('Please select an account, source type, and file');
+            return;
+        }
+        onUpload(selectedAccountId, selectedSource, selectedFile);
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-gray-900 rounded-lg border border-gray-800 p-6 max-w-md w-full">
+                <h2 className="text-xl font-semibold text-white mb-4">Upload CSV</h2>
+
+                {/* Account Selection */}
+                <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Account *
+                    </label>
+                    <select
+                        value={selectedAccountId}
+                        onChange={(e) => setSelectedAccountId(e.target.value)}
+                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        disabled={uploading}
+                    >
+                        <option value="">Select account...</option>
+                        {accounts.map((account) => (
+                            <option key={account.id} value={account.id}>
+                                {account.name} - {account.institution}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
+                {/* Source Type Selection */}
+                <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                        CSV Source Type *
+                    </label>
+                    <select
+                        value={selectedSource}
+                        onChange={(e) => setSelectedSource(e.target.value)}
+                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        disabled={uploading}
+                    >
+                        <option value="">Select source type...</option>
+                        {sourceOptions.map((option) => (
+                            <option key={option.value} value={option.value}>
+                                {option.label}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
+                {/* File Upload */}
+                <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                        CSV File *
+                    </label>
+                    <input
+                        type="file"
+                        accept=".csv"
+                        onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-600 file:text-white hover:file:bg-purple-700"
+                        disabled={uploading}
+                    />
+                    {selectedFile && (
+                        <p className="text-sm text-gray-400 mt-2">
+                            Selected: {selectedFile.name}
+                        </p>
+                    )}
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-3">
+                    <button
+                        onClick={onClose}
+                        className="flex-1 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors border border-gray-700"
+                        disabled={uploading}
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={handleSubmit}
+                        className="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={uploading || !selectedAccountId || !selectedSource || !selectedFile}
+                    >
+                        {uploading ? 'Uploading...' : 'Upload'}
+                    </button>
+                </div>
             </div>
         </div>
     );
