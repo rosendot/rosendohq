@@ -424,8 +424,8 @@ export interface ImportRun {
     owner_id: string;
     module: ImportModule;
     source: string | null;
-    mapping: Record<string, any> | null;
-    options: Record<string, any> | null;
+    mapping: Record<string, unknown> | null;
+    options: Record<string, unknown> | null;
     stats: {
         total: number;
         imported: number;
@@ -442,7 +442,7 @@ export interface ImportError {
     owner_id: string;
     run_id: string;
     row_number: number | null;
-    raw_row: Record<string, any> | null;
+    raw_row: Record<string, unknown> | null;
     errors: string[] | null;
     created_at: string;
 }
@@ -453,7 +453,7 @@ export interface ImportMappingPreset {
     module: ImportModule;
     source_key: string;
     name: string;
-    mapping: Record<string, any>;
+    mapping: Record<string, unknown>;
     created_at: string;
 }
 
