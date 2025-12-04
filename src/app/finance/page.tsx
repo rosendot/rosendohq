@@ -13,10 +13,9 @@ interface TransactionWithRelations extends Transaction {
 export default function FinancePage() {
     const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
     const [showAccountModal, setShowAccountModal] = useState(false);
-    const [showTransactionModal, setShowTransactionModal] = useState(false);
-    const [showBudgetModal, setShowBudgetModal] = useState(false);
     const [showUploadModal, setShowUploadModal] = useState(false);
     const [importing, setImporting] = useState(false);
+    const [saving, setSaving] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -87,6 +86,35 @@ export default function FinancePage() {
             alert(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
         } finally {
             setImporting(false);
+        }
+    };
+
+    const handleAddAccount = async (accountData: { name: string; type: string; institution: string; currency: string }) => {
+        setSaving(true);
+
+        try {
+            const response = await fetch('/api/finance/accounts', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(accountData),
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                alert('Account added successfully!');
+                // Refresh data
+                fetchAllData();
+                setShowAccountModal(false);
+            } else {
+                alert(`Failed to add account: ${result.error}`);
+            }
+        } catch (error) {
+            alert(`Failed to add account: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -172,16 +200,10 @@ export default function FinancePage() {
                         </button>
                         <button
                             onClick={() => setShowAccountModal(true)}
-                            className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors border border-gray-700"
-                        >
-                            Add Account
-                        </button>
-                        <button
-                            onClick={() => setShowTransactionModal(true)}
                             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2"
                         >
                             <Plus className="w-4 h-4" />
-                            Add Transaction
+                            Add Account
                         </button>
                     </div>
                 </div>
@@ -353,56 +375,144 @@ export default function FinancePage() {
 
                 {/* Modals */}
                 {showAccountModal && (
-                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                        <div className="bg-gray-900 rounded-lg border border-gray-800 p-6 max-w-md w-full">
-                            <h2 className="text-xl font-semibold text-white mb-4">Add Account</h2>
-                            <p className="text-gray-400 mb-4">Account form would go here</p>
-                            <button
-                                onClick={() => setShowAccountModal(false)}
-                                className="w-full px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors border border-gray-700"
-                            >
-                                Close
-                            </button>
-                        </div>
-                    </div>
+                    <AddAccountModal
+                        onClose={() => setShowAccountModal(false)}
+                        onSubmit={handleAddAccount}
+                        saving={saving}
+                    />
                 )}
 
-                {showTransactionModal && (
-                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                        <div className="bg-gray-900 rounded-lg border border-gray-800 p-6 max-w-md w-full">
-                            <h2 className="text-xl font-semibold text-white mb-4">Add Transaction</h2>
-                            <p className="text-gray-400 mb-4">Transaction form would go here</p>
-                            <button
-                                onClick={() => setShowTransactionModal(false)}
-                                className="w-full px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors border border-gray-700"
-                            >
-                                Close
-                            </button>
-                        </div>
-                    </div>
+                {showUploadModal && (
+                    <CSVUploadModal
+                        accounts={accounts}
+                        onClose={() => setShowUploadModal(false)}
+                        onUpload={handleUploadCSV}
+                        uploading={importing}
+                    />
                 )}
+            </div>
+        </div>
+    );
+}
 
-                {showBudgetModal && (
-                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                        <div className="bg-gray-900 rounded-lg border border-gray-800 p-6 max-w-md w-full">
-                            <h2 className="text-xl font-semibold text-white mb-4">Manage Budgets</h2>
-                            <p className="text-gray-400 mb-4">Budget management would go here</p>
-                            <button
-                                onClick={() => setShowBudgetModal(false)}
-                                className="w-full px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors border border-gray-700"
-                            >
-                                Close
-                            </button>
-                        </div>
+function AddAccountModal({
+    onClose,
+    onSubmit,
+    saving
+}: {
+    onClose: () => void;
+    onSubmit: (data: { name: string; type: string; institution: string; currency: string }) => void;
+    saving: boolean;
+}) {
+    const [name, setName] = useState('');
+    const [type, setType] = useState('checking');
+    const [institution, setInstitution] = useState('');
+    const [currency, setCurrency] = useState('USD');
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!name || !institution) {
+            alert('Please fill in all required fields');
+            return;
+        }
+        onSubmit({ name, type, institution, currency });
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-gray-900 rounded-lg border border-gray-800 p-6 max-w-md w-full">
+                <h2 className="text-xl font-semibold text-white mb-4">Add Account</h2>
+
+                <form onSubmit={handleSubmit}>
+                    {/* Account Name */}
+                    <div className="mb-4">
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                            Account Name *
+                        </label>
+                        <input
+                            type="text"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            placeholder="e.g., 360 Checking"
+                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            disabled={saving}
+                            required
+                        />
                     </div>
-                )}
 
-                {showUploadModal && <CSVUploadModal
-                    accounts={accounts}
-                    onClose={() => setShowUploadModal(false)}
-                    onUpload={handleUploadCSV}
-                    uploading={importing}
-                />}
+                    {/* Account Type */}
+                    <div className="mb-4">
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                            Account Type *
+                        </label>
+                        <select
+                            value={type}
+                            onChange={(e) => setType(e.target.value)}
+                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            disabled={saving}
+                        >
+                            <option value="checking">Checking</option>
+                            <option value="savings">Savings</option>
+                            <option value="credit">Credit Card</option>
+                            <option value="investment">Investment</option>
+                            <option value="loan">Loan</option>
+                        </select>
+                    </div>
+
+                    {/* Institution */}
+                    <div className="mb-4">
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                            Institution *
+                        </label>
+                        <input
+                            type="text"
+                            value={institution}
+                            onChange={(e) => setInstitution(e.target.value)}
+                            placeholder="e.g., Capital One"
+                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            disabled={saving}
+                            required
+                        />
+                    </div>
+
+                    {/* Currency */}
+                    <div className="mb-6">
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                            Currency *
+                        </label>
+                        <select
+                            value={currency}
+                            onChange={(e) => setCurrency(e.target.value)}
+                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            disabled={saving}
+                        >
+                            <option value="USD">USD - US Dollar</option>
+                            <option value="EUR">EUR - Euro</option>
+                            <option value="GBP">GBP - British Pound</option>
+                            <option value="CAD">CAD - Canadian Dollar</option>
+                            <option value="MXN">MXN - Mexican Peso</option>
+                        </select>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-3">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="flex-1 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors border border-gray-700"
+                            disabled={saving}
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            disabled={saving}
+                        >
+                            {saving ? 'Adding...' : 'Add Account'}
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     );
