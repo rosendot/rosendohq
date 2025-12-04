@@ -627,155 +627,292 @@ export default function ShoppingPage() {
                             </div>
                         )}
 
-                        {/* Active Items - Grouped by Category */}
-                        {activeItems.length > 0 && (
-                            <div className="mb-4">
-                                <div className="flex items-center justify-between mb-3">
-                                    <h3 className="text-base font-semibold text-white">To Buy ({activeItems.length})</h3>
-                                    {isSelectionMode && activeItems.length > 0 && (
-                                        <button
-                                            onClick={toggleSelectAllActive}
-                                            className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
-                                        >
-                                            {activeItems.every(item => selectedItems.has(item.id)) ? 'Unselect All' : 'Select All'}
-                                        </button>
-                                    )}
-                                </div>
-                                <div className="space-y-4">
-                                    {sortedCategories.map(([category, categoryItems]) => (
-                                        <div key={category}>
-                                            {/* Category Header */}
-                                            <div className="flex items-center gap-2 mb-2">
-                                                <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                                                    {category}
-                                                </h4>
-                                                <div className="h-px flex-1 bg-gray-800"></div>
-                                                <span className="text-xs text-gray-500">
-                                                    {categoryItems.length} item{categoryItems.length !== 1 ? 's' : ''}
-                                                </span>
-                                            </div>
-                                            {/* Category Items */}
-                                            <div className="space-y-2">
-                                                {categoryItems.map((item) => {
-                                                    const priority = item.priority || 3;
-                                                    const priorityBorder = priority === 1 ? 'border-red-500/50' :
-                                                        priority === 2 ? 'border-orange-500/40' :
-                                                        priority === 3 ? 'border-yellow-500/30' :
-                                                        priority === 4 ? 'border-lime-500/40' :
-                                                        'border-green-500/50';
+                        {/* Items Container with Scroll */}
+                        <div className="max-h-[calc(100vh-300px)] overflow-y-auto pr-2 space-y-4">
+                            {/* Active Items - Grouped by Category */}
+                            {activeItems.length > 0 && (
+                                <div className="mb-4">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <h3 className="text-base font-semibold text-white">To Buy ({activeItems.length})</h3>
+                                        {isSelectionMode && activeItems.length > 0 && (
+                                            <button
+                                                onClick={toggleSelectAllActive}
+                                                className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                                            >
+                                                {activeItems.every(item => selectedItems.has(item.id)) ? 'Unselect All' : 'Select All'}
+                                            </button>
+                                        )}
+                                    </div>
+                                    <div className="space-y-4">
+                                        {sortedCategories.map(([category, categoryItems]) => (
+                                            <div key={category}>
+                                                {/* Category Header */}
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                                        {category}
+                                                    </h4>
+                                                    <div className="h-px flex-1 bg-gray-800"></div>
+                                                    <span className="text-xs text-gray-500">
+                                                        {categoryItems.length} item{categoryItems.length !== 1 ? 's' : ''}
+                                                    </span>
+                                                </div>
+                                                {/* Category Items */}
+                                                <div className="space-y-2">
+                                                    {categoryItems.map((item) => {
+                                                        const priority = item.priority || 3;
+                                                        const priorityBorder = priority === 1 ? 'border-red-500/50' :
+                                                            priority === 2 ? 'border-orange-500/40' :
+                                                                priority === 3 ? 'border-yellow-500/30' :
+                                                                    priority === 4 ? 'border-lime-500/40' :
+                                                                        'border-green-500/50';
 
-                                                    return (
-                                        <div
-                                            key={item.id}
-                                            className={`bg-gray-900 rounded-lg border p-3 transition-all ${
-                                                selectedItems.has(item.id) ? 'border-blue-500 bg-blue-500/10' : priorityBorder
-                                            }`}
-                                            onTouchStart={() => handleLongPressStart(item.id)}
-                                            onTouchEnd={handleLongPressEnd}
-                                            onMouseDown={() => handleLongPressStart(item.id)}
-                                            onMouseUp={handleLongPressEnd}
-                                            onMouseLeave={handleLongPressEnd}
-                                            onClick={() => handleItemTap(item.id)}
-                                        >
-                                            <div className="flex items-start gap-3">
-                                                {isSelectionMode && (
-                                                    <div className="mt-0.5 flex-shrink-0 w-5 h-5 flex items-center justify-center">
-                                                        {selectedItems.has(item.id) ? (
-                                                            <CheckCircle2 className="w-5 h-5 text-blue-400" />
-                                                        ) : (
-                                                            <Circle className="w-5 h-5 text-gray-600" />
-                                                        )}
-                                                    </div>
-                                                )}
-                                                {!isSelectionMode && (
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            toggleItemDone(item.id, item.is_done);
-                                                        }}
-                                                        className="mt-0.5 flex-shrink-0"
-                                                    >
-                                                        <Circle className="w-5 h-5 text-gray-400 hover:text-blue-400 transition-colors" />
-                                                    </button>
-                                                )}
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex items-start justify-between gap-3">
-                                                        <div className="flex-1">
-                                                            <div className="flex items-baseline gap-2">
-                                                                <h4 className="text-white font-medium text-sm">{item.item_name}</h4>
-                                                                {item.quantity && (
-                                                                    <span className="text-base font-semibold text-blue-400">
-                                                                        ×{item.quantity}{item.unit ? ` ${item.unit}` : ''}
-                                                                    </span>
-                                                                )}
-                                                            </div>
-                                                            {/* Quick Priority Rating */}
-                                                            {!isSelectionMode && (
-                                                                <div className="flex items-center gap-1.5 mt-1.5">
-                                                                    <span className="text-xs text-gray-500 font-medium">Priority:</span>
-                                                                    <div className="flex items-center gap-0.5">
-                                                                        {[1, 2, 3, 4, 5].map((priorityLevel) => {
-                                                                            const isActive = priorityLevel === (item.priority || 3);
-                                                                            const buttonColor = priorityLevel === 1 ? 'hover:bg-red-500/20 hover:text-red-400' :
-                                                                                priorityLevel === 2 ? 'hover:bg-orange-500/20 hover:text-orange-400' :
-                                                                                priorityLevel === 3 ? 'hover:bg-yellow-500/20 hover:text-yellow-400' :
-                                                                                priorityLevel === 4 ? 'hover:bg-lime-500/20 hover:text-lime-400' :
-                                                                                'hover:bg-green-500/20 hover:text-green-400';
-                                                                            const activeColor = priorityLevel === 1 ? 'bg-red-500/30 text-red-300' :
-                                                                                priorityLevel === 2 ? 'bg-orange-500/30 text-orange-300' :
-                                                                                priorityLevel === 3 ? 'bg-yellow-500/30 text-yellow-300' :
-                                                                                priorityLevel === 4 ? 'bg-lime-500/30 text-lime-300' :
-                                                                                'bg-green-500/30 text-green-300';
+                                                        return (
+                                                            <div
+                                                                key={item.id}
+                                                                className={`bg-gray-900 rounded-lg border p-3 transition-all ${selectedItems.has(item.id) ? 'border-blue-500 bg-blue-500/10' : priorityBorder
+                                                                    }`}
+                                                                onTouchStart={() => handleLongPressStart(item.id)}
+                                                                onTouchEnd={handleLongPressEnd}
+                                                                onMouseDown={() => handleLongPressStart(item.id)}
+                                                                onMouseUp={handleLongPressEnd}
+                                                                onMouseLeave={handleLongPressEnd}
+                                                                onClick={() => handleItemTap(item.id)}
+                                                            >
+                                                                <div className="flex items-start gap-3">
+                                                                    {isSelectionMode && (
+                                                                        <div className="mt-0.5 flex-shrink-0 w-5 h-5 flex items-center justify-center">
+                                                                            {selectedItems.has(item.id) ? (
+                                                                                <CheckCircle2 className="w-5 h-5 text-blue-400" />
+                                                                            ) : (
+                                                                                <Circle className="w-5 h-5 text-gray-600" />
+                                                                            )}
+                                                                        </div>
+                                                                    )}
+                                                                    {!isSelectionMode && (
+                                                                        <button
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                toggleItemDone(item.id, item.is_done);
+                                                                            }}
+                                                                            className="mt-0.5 flex-shrink-0"
+                                                                        >
+                                                                            <Circle className="w-5 h-5 text-gray-400 hover:text-blue-400 transition-colors" />
+                                                                        </button>
+                                                                    )}
+                                                                    <div className="flex-1 min-w-0">
+                                                                        <div className="flex items-start justify-between gap-3">
+                                                                            <div className="flex-1">
+                                                                                <div className="flex items-baseline gap-2">
+                                                                                    <h4 className="text-white font-medium text-sm">{item.item_name}</h4>
+                                                                                    {item.quantity && (
+                                                                                        <span className="text-base font-semibold text-blue-400">
+                                                                                            ×{item.quantity}{item.unit ? ` ${item.unit}` : ''}
+                                                                                        </span>
+                                                                                    )}
+                                                                                </div>
+                                                                                {/* Quick Priority Rating */}
+                                                                                {!isSelectionMode && (
+                                                                                    <div className="flex items-center gap-1.5 mt-1.5">
+                                                                                        <span className="text-xs text-gray-500 font-medium">Priority:</span>
+                                                                                        <div className="flex items-center gap-0.5">
+                                                                                            {[1, 2, 3, 4, 5].map((priorityLevel) => {
+                                                                                                const isActive = priorityLevel === (item.priority || 3);
+                                                                                                const buttonColor = priorityLevel === 1 ? 'hover:bg-red-500/20 hover:text-red-400' :
+                                                                                                    priorityLevel === 2 ? 'hover:bg-orange-500/20 hover:text-orange-400' :
+                                                                                                        priorityLevel === 3 ? 'hover:bg-yellow-500/20 hover:text-yellow-400' :
+                                                                                                            priorityLevel === 4 ? 'hover:bg-lime-500/20 hover:text-lime-400' :
+                                                                                                                'hover:bg-green-500/20 hover:text-green-400';
+                                                                                                const activeColor = priorityLevel === 1 ? 'bg-red-500/30 text-red-300' :
+                                                                                                    priorityLevel === 2 ? 'bg-orange-500/30 text-orange-300' :
+                                                                                                        priorityLevel === 3 ? 'bg-yellow-500/30 text-yellow-300' :
+                                                                                                            priorityLevel === 4 ? 'bg-lime-500/30 text-lime-300' :
+                                                                                                                'bg-green-500/30 text-green-300';
 
-                                                                            return (
-                                                                                <button
-                                                                                    key={priorityLevel}
-                                                                                    type="button"
-                                                                                    onClick={(e) => {
-                                                                                        e.stopPropagation();
-                                                                                        handleQuickPriority(item.id, priorityLevel, item.priority);
-                                                                                    }}
-                                                                                    className={`w-6 h-6 rounded-md text-xs font-bold transition-all ${
-                                                                                        isActive
-                                                                                            ? activeColor
-                                                                                            : `text-gray-600 ${buttonColor}`
-                                                                                    }`}
-                                                                                    title={`Priority ${priorityLevel}${isActive ? ' (current)' : ''}`}
-                                                                                >
-                                                                                    {priorityLevel}
-                                                                                </button>
-                                                                            );
-                                                                        })}
+                                                                                                return (
+                                                                                                    <button
+                                                                                                        key={priorityLevel}
+                                                                                                        type="button"
+                                                                                                        onClick={(e) => {
+                                                                                                            e.stopPropagation();
+                                                                                                            handleQuickPriority(item.id, priorityLevel, item.priority);
+                                                                                                        }}
+                                                                                                        className={`w-6 h-6 rounded-md text-xs font-bold transition-all ${isActive
+                                                                                                                ? activeColor
+                                                                                                                : `text-gray-600 ${buttonColor}`
+                                                                                                            }`}
+                                                                                                        title={`Priority ${priorityLevel}${isActive ? ' (current)' : ''}`}
+                                                                                                    >
+                                                                                                        {priorityLevel}
+                                                                                                    </button>
+                                                                                                );
+                                                                                            })}
+                                                                                        </div>
+                                                                                    </div>
+                                                                                )}
+                                                                                <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1 text-xs">
+                                                                                    {item.aisle && (
+                                                                                        <div className="flex items-center gap-1 text-purple-400">
+                                                                                            <span className="opacity-60">📍</span>
+                                                                                            <span>{item.aisle}</span>
+                                                                                        </div>
+                                                                                    )}
+                                                                                    {item.store_preference && (
+                                                                                        <div className="flex items-center gap-1 text-green-400">
+                                                                                            <span className="opacity-60">🏪</span>
+                                                                                            <span>{item.store_preference}</span>
+                                                                                        </div>
+                                                                                    )}
+                                                                                    {item.needed_by && (
+                                                                                        <div className="flex items-center gap-1 text-orange-400">
+                                                                                            <Calendar className="w-3 h-3 opacity-60" />
+                                                                                            <span>Need by {new Date(item.needed_by).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                                                                                        </div>
+                                                                                    )}
+                                                                                </div>
+                                                                                {item.notes && (
+                                                                                    <p className="text-gray-400 text-xs mt-1.5 italic">{item.notes}</p>
+                                                                                )}
+                                                                            </div>
+                                                                            <div className="flex items-start gap-1">
+                                                                                {!isSelectionMode && (
+                                                                                    <>
+                                                                                        <button
+                                                                                            onClick={(e) => {
+                                                                                                e.stopPropagation();
+                                                                                                handleEditItem(item);
+                                                                                            }}
+                                                                                            className="p-1.5 text-gray-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
+                                                                                            title="Edit item"
+                                                                                        >
+                                                                                            <Edit2 className="w-3.5 h-3.5" />
+                                                                                        </button>
+                                                                                        <button
+                                                                                            onClick={(e) => {
+                                                                                                e.stopPropagation();
+                                                                                                showDeleteConfirmation(item.id, item.item_name);
+                                                                                            }}
+                                                                                            className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                                                                                            title="Delete item"
+                                                                                        >
+                                                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                                                        </button>
+                                                                                    </>
+                                                                                )}
+                                                                            </div>
+                                                                        </div>
                                                                     </div>
                                                                 </div>
-                                                            )}
-                                                            <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1 text-xs">
-                                                                {item.aisle && (
-                                                                    <div className="flex items-center gap-1 text-purple-400">
-                                                                        <span className="opacity-60">📍</span>
-                                                                        <span>{item.aisle}</span>
-                                                                    </div>
-                                                                )}
-                                                                {item.store_preference && (
-                                                                    <div className="flex items-center gap-1 text-green-400">
-                                                                        <span className="opacity-60">🏪</span>
-                                                                        <span>{item.store_preference}</span>
-                                                                    </div>
-                                                                )}
-                                                                {item.needed_by && (
-                                                                    <div className="flex items-center gap-1 text-orange-400">
-                                                                        <Calendar className="w-3 h-3 opacity-60" />
-                                                                        <span>Need by {new Date(item.needed_by).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
-                                                                    </div>
-                                                                )}
                                                             </div>
-                                                            {item.notes && (
-                                                                <p className="text-gray-400 text-xs mt-1.5 italic">{item.notes}</p>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Completed Items */}
+                            {completedItems.length > 0 && (
+                                <div>
+                                    <div className="flex items-center justify-between mb-3">
+                                        <h3 className="text-base font-semibold text-white">Completed ({completedItems.length})</h3>
+                                        {isSelectionMode && completedItems.length > 0 && (
+                                            <button
+                                                onClick={toggleSelectAllCompleted}
+                                                className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                                            >
+                                                {completedItems.every(item => selectedItems.has(item.id)) ? 'Unselect All' : 'Select All'}
+                                            </button>
+                                        )}
+                                    </div>
+                                    <div className="space-y-2">
+                                        {completedItems.map((item) => (
+                                            <div
+                                                key={item.id}
+                                                className={`bg-gray-900 rounded-lg border p-3 transition-all ${selectedItems.has(item.id)
+                                                        ? 'border-blue-500 bg-blue-500/10 opacity-100'
+                                                        : 'border-gray-800 opacity-60 hover:opacity-100'
+                                                    }`}
+                                                onTouchStart={() => handleLongPressStart(item.id)}
+                                                onTouchEnd={handleLongPressEnd}
+                                                onMouseDown={() => handleLongPressStart(item.id)}
+                                                onMouseUp={handleLongPressEnd}
+                                                onMouseLeave={handleLongPressEnd}
+                                                onClick={() => handleItemTap(item.id)}
+                                            >
+                                                <div className="flex items-start gap-3">
+                                                    {isSelectionMode && (
+                                                        <div className="mt-0.5 flex-shrink-0 w-5 h-5 flex items-center justify-center">
+                                                            {selectedItems.has(item.id) ? (
+                                                                <CheckCircle2 className="w-5 h-5 text-blue-400" />
+                                                            ) : (
+                                                                <Circle className="w-5 h-5 text-gray-600" />
                                                             )}
                                                         </div>
-                                                        <div className="flex items-start gap-1">
+                                                    )}
+                                                    {!isSelectionMode && (
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                toggleItemDone(item.id, item.is_done);
+                                                            }}
+                                                            className="mt-0.5 flex-shrink-0"
+                                                        >
+                                                            <CheckCircle2 className="w-5 h-5 text-green-400 hover:text-gray-400 transition-colors" />
+                                                        </button>
+                                                    )}
+                                                    <div className="flex-1">
+                                                        <div className="flex items-start justify-between gap-3">
+                                                            <div className="flex-1">
+                                                                <h4 className="text-gray-400 font-medium line-through text-sm">{item.item_name}</h4>
+                                                                {/* Quick Priority Rating for completed items */}
+                                                                {!isSelectionMode && (
+                                                                    <div className="flex items-center gap-1.5 mt-1.5">
+                                                                        <span className="text-xs text-gray-600 font-medium">Priority:</span>
+                                                                        <div className="flex items-center gap-0.5">
+                                                                            {[1, 2, 3, 4, 5].map((priorityLevel) => {
+                                                                                const isActive = priorityLevel === (item.priority || 3);
+                                                                                const buttonColor = priorityLevel === 1 ? 'hover:bg-red-500/20 hover:text-red-400' :
+                                                                                    priorityLevel === 2 ? 'hover:bg-orange-500/20 hover:text-orange-400' :
+                                                                                        priorityLevel === 3 ? 'hover:bg-yellow-500/20 hover:text-yellow-400' :
+                                                                                            priorityLevel === 4 ? 'hover:bg-lime-500/20 hover:text-lime-400' :
+                                                                                                'hover:bg-green-500/20 hover:text-green-400';
+                                                                                const activeColor = priorityLevel === 1 ? 'bg-red-500/20 text-red-400' :
+                                                                                    priorityLevel === 2 ? 'bg-orange-500/20 text-orange-400' :
+                                                                                        priorityLevel === 3 ? 'bg-yellow-500/20 text-yellow-400' :
+                                                                                            priorityLevel === 4 ? 'bg-lime-500/20 text-lime-400' :
+                                                                                                'bg-green-500/20 text-green-400';
+
+                                                                                return (
+                                                                                    <button
+                                                                                        key={priorityLevel}
+                                                                                        type="button"
+                                                                                        onClick={(e) => {
+                                                                                            e.stopPropagation();
+                                                                                            handleQuickPriority(item.id, priorityLevel, item.priority);
+                                                                                        }}
+                                                                                        className={`w-6 h-6 rounded-md text-xs font-bold transition-all ${isActive
+                                                                                                ? activeColor
+                                                                                                : `text-gray-700 ${buttonColor}`
+                                                                                            }`}
+                                                                                        title={`Priority ${priorityLevel}${isActive ? ' (current)' : ''}`}
+                                                                                    >
+                                                                                        {priorityLevel}
+                                                                                    </button>
+                                                                                );
+                                                                            })}
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                                {item.last_purchased_at && (
+                                                                    <p className="text-xs text-gray-500 mt-0.5">
+                                                                        Purchased {new Date(item.last_purchased_at).toLocaleDateString()}
+                                                                    </p>
+                                                                )}
+                                                            </div>
                                                             {!isSelectionMode && (
-                                                                <>
+                                                                <div className="flex items-center gap-1">
                                                                     <button
                                                                         onClick={(e) => {
                                                                             e.stopPropagation();
@@ -796,155 +933,17 @@ export default function ShoppingPage() {
                                                                     >
                                                                         <Trash2 className="w-3.5 h-3.5" />
                                                                     </button>
-                                                                </>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                                    );
-                                                })}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Completed Items */}
-                        {completedItems.length > 0 && (
-                            <div>
-                                <div className="flex items-center justify-between mb-3">
-                                    <h3 className="text-base font-semibold text-white">Completed ({completedItems.length})</h3>
-                                    {isSelectionMode && completedItems.length > 0 && (
-                                        <button
-                                            onClick={toggleSelectAllCompleted}
-                                            className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
-                                        >
-                                            {completedItems.every(item => selectedItems.has(item.id)) ? 'Unselect All' : 'Select All'}
-                                        </button>
-                                    )}
-                                </div>
-                                <div className="space-y-2">
-                                    {completedItems.map((item) => (
-                                        <div
-                                            key={item.id}
-                                            className={`bg-gray-900 rounded-lg border p-3 transition-all ${
-                                                selectedItems.has(item.id)
-                                                    ? 'border-blue-500 bg-blue-500/10 opacity-100'
-                                                    : 'border-gray-800 opacity-60 hover:opacity-100'
-                                            }`}
-                                            onTouchStart={() => handleLongPressStart(item.id)}
-                                            onTouchEnd={handleLongPressEnd}
-                                            onMouseDown={() => handleLongPressStart(item.id)}
-                                            onMouseUp={handleLongPressEnd}
-                                            onMouseLeave={handleLongPressEnd}
-                                            onClick={() => handleItemTap(item.id)}
-                                        >
-                                            <div className="flex items-start gap-3">
-                                                {isSelectionMode && (
-                                                    <div className="mt-0.5 flex-shrink-0 w-5 h-5 flex items-center justify-center">
-                                                        {selectedItems.has(item.id) ? (
-                                                            <CheckCircle2 className="w-5 h-5 text-blue-400" />
-                                                        ) : (
-                                                            <Circle className="w-5 h-5 text-gray-600" />
-                                                        )}
-                                                    </div>
-                                                )}
-                                                {!isSelectionMode && (
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            toggleItemDone(item.id, item.is_done);
-                                                        }}
-                                                        className="mt-0.5 flex-shrink-0"
-                                                    >
-                                                        <CheckCircle2 className="w-5 h-5 text-green-400 hover:text-gray-400 transition-colors" />
-                                                    </button>
-                                                )}
-                                                <div className="flex-1">
-                                                    <div className="flex items-start justify-between gap-3">
-                                                        <div className="flex-1">
-                                                            <h4 className="text-gray-400 font-medium line-through text-sm">{item.item_name}</h4>
-                                                            {/* Quick Priority Rating for completed items */}
-                                                            {!isSelectionMode && (
-                                                                <div className="flex items-center gap-1.5 mt-1.5">
-                                                                    <span className="text-xs text-gray-600 font-medium">Priority:</span>
-                                                                    <div className="flex items-center gap-0.5">
-                                                                        {[1, 2, 3, 4, 5].map((priorityLevel) => {
-                                                                            const isActive = priorityLevel === (item.priority || 3);
-                                                                            const buttonColor = priorityLevel === 1 ? 'hover:bg-red-500/20 hover:text-red-400' :
-                                                                                priorityLevel === 2 ? 'hover:bg-orange-500/20 hover:text-orange-400' :
-                                                                                priorityLevel === 3 ? 'hover:bg-yellow-500/20 hover:text-yellow-400' :
-                                                                                priorityLevel === 4 ? 'hover:bg-lime-500/20 hover:text-lime-400' :
-                                                                                'hover:bg-green-500/20 hover:text-green-400';
-                                                                            const activeColor = priorityLevel === 1 ? 'bg-red-500/20 text-red-400' :
-                                                                                priorityLevel === 2 ? 'bg-orange-500/20 text-orange-400' :
-                                                                                priorityLevel === 3 ? 'bg-yellow-500/20 text-yellow-400' :
-                                                                                priorityLevel === 4 ? 'bg-lime-500/20 text-lime-400' :
-                                                                                'bg-green-500/20 text-green-400';
-
-                                                                            return (
-                                                                                <button
-                                                                                    key={priorityLevel}
-                                                                                    type="button"
-                                                                                    onClick={(e) => {
-                                                                                        e.stopPropagation();
-                                                                                        handleQuickPriority(item.id, priorityLevel, item.priority);
-                                                                                    }}
-                                                                                    className={`w-6 h-6 rounded-md text-xs font-bold transition-all ${
-                                                                                        isActive
-                                                                                            ? activeColor
-                                                                                            : `text-gray-700 ${buttonColor}`
-                                                                                    }`}
-                                                                                    title={`Priority ${priorityLevel}${isActive ? ' (current)' : ''}`}
-                                                                                >
-                                                                                    {priorityLevel}
-                                                                                </button>
-                                                                            );
-                                                                        })}
-                                                                    </div>
                                                                 </div>
                                                             )}
-                                                            {item.last_purchased_at && (
-                                                                <p className="text-xs text-gray-500 mt-0.5">
-                                                                    Purchased {new Date(item.last_purchased_at).toLocaleDateString()}
-                                                                </p>
-                                                            )}
                                                         </div>
-                                                        {!isSelectionMode && (
-                                                            <div className="flex items-center gap-1">
-                                                                <button
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        handleEditItem(item);
-                                                                    }}
-                                                                    className="p-1.5 text-gray-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
-                                                                    title="Edit item"
-                                                                >
-                                                                    <Edit2 className="w-3.5 h-3.5" />
-                                                                </button>
-                                                                <button
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        showDeleteConfirmation(item.id, item.item_name);
-                                                                    }}
-                                                                    className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-                                                                    title="Delete item"
-                                                                >
-                                                                    <Trash2 className="w-3.5 h-3.5" />
-                                                                </button>
-                                                            </div>
-                                                        )}
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
-                        )}
+                            )}
+                        </div>
 
                         {/* Empty State */}
                         {filteredItems.length === 0 && (
