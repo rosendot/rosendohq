@@ -48,28 +48,6 @@ export default function DashboardPage() {
                     ))}
                 </div>
             </div>
-
-            {/* Footer Stats */}
-            <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-                    <div>
-                        <div className="text-3xl font-bold text-gray-900 dark:text-white">12</div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400">Active Modules</div>
-                    </div>
-                    <div>
-                        <div className="text-3xl font-bold text-gray-900 dark:text-white">100%</div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400">Completion</div>
-                    </div>
-                    <div>
-                        <div className="text-3xl font-bold text-gray-900 dark:text-white">∞</div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400">Possibilities</div>
-                    </div>
-                    <div>
-                        <div className="text-3xl font-bold text-gray-900 dark:text-white">🎉</div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400">All Done!</div>
-                    </div>
-                </div>
-            </div>
         </div>
     );
 }
