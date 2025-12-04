@@ -186,43 +186,6 @@ export default function FinancePage() {
                     </div>
                 </div>
 
-                {/* Summary Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
-                        <div className="flex items-center justify-between mb-2">
-                            <span className="text-gray-400 text-sm">Accounts</span>
-                            <Wallet className="w-5 h-5 text-blue-400" />
-                        </div>
-                        <div className="text-2xl font-bold text-white">{accounts.length}</div>
-                    </div>
-
-                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
-                        <div className="flex items-center justify-between mb-2">
-                            <span className="text-gray-400 text-sm">Monthly Income</span>
-                            <TrendingUp className="w-5 h-5 text-green-400" />
-                        </div>
-                        <div className="text-2xl font-bold text-green-400">{formatCurrency(monthlyIncome)}</div>
-                    </div>
-
-                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
-                        <div className="flex items-center justify-between mb-2">
-                            <span className="text-gray-400 text-sm">Monthly Expenses</span>
-                            <TrendingDown className="w-5 h-5 text-red-400" />
-                        </div>
-                        <div className="text-2xl font-bold text-red-400">{formatCurrency(monthlyExpenses)}</div>
-                    </div>
-
-                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
-                        <div className="flex items-center justify-between mb-2">
-                            <span className="text-gray-400 text-sm">Net Income</span>
-                            <DollarSign className="w-5 h-5 text-blue-400" />
-                        </div>
-                        <div className={`text-2xl font-bold ${monthlyIncome - monthlyExpenses >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                            {formatCurrency(monthlyIncome - monthlyExpenses)}
-                        </div>
-                    </div>
-                </div>
-
                 {/* Month Selector */}
                 <div className="mb-6">
                     <label className="flex items-center gap-2 text-sm text-gray-400 mb-2">
@@ -347,6 +310,21 @@ export default function FinancePage() {
                             <h3 className="text-lg font-semibold text-white mb-4">Quick Stats</h3>
 
                             <div className="space-y-3">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-gray-400">Monthly Income</span>
+                                    <span className="text-green-400 font-medium">{formatCurrency(monthlyIncome)}</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-gray-400">Monthly Expenses</span>
+                                    <span className="text-red-400 font-medium">{formatCurrency(monthlyExpenses)}</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-gray-400">Net Income</span>
+                                    <span className={`font-medium ${monthlyIncome - monthlyExpenses >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                        {formatCurrency(monthlyIncome - monthlyExpenses)}
+                                    </span>
+                                </div>
+                                <div className="border-t border-gray-700 pt-3"></div>
                                 <div className="flex justify-between items-center">
                                     <span className="text-gray-400">Avg. Transaction</span>
                                     <span className="text-white font-medium">
