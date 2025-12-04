@@ -348,6 +348,154 @@ export type GoalInsert = Omit<Goal, 'id' | 'created_at'> & {
 
 export type GoalUpdate = Partial<Omit<Goal, 'id' | 'owner_id' | 'created_at'>>;
 
+// Finance Types
+export type AccountType = 'checking' | 'savings' | 'credit' | 'cash' | 'other';
+
+export interface Account {
+    id: string;
+    owner_id: string;
+    name: string;
+    type: AccountType;
+    institution: string | null;
+    currency: string;
+    created_at: string;
+}
+
+export interface Category {
+    id: string;
+    owner_id: string;
+    name: string;
+    parent_id: string | null;
+    created_at: string;
+}
+
+export interface Merchant {
+    id: string;
+    owner_id: string;
+    name: string;
+    aliases: Array<{ pattern: string; created_at: string }> | null;
+    created_at: string;
+}
+
+export interface Transaction {
+    id: string;
+    owner_id: string;
+    account_id: string;
+    category_id: string | null;
+    merchant_id: string | null;
+    posted_date: string;
+    description: string;
+    amount_cents: number;
+    currency: string;
+    external_id: string | null;
+    import_run_id: string | null;
+    dedupe_hash: string | null;
+    splits: Array<{ category_id: string; amount_cents: number; note: string }> | null;
+    created_at: string;
+}
+
+export type SubscriptionCadence = 'weekly' | 'monthly' | 'quarterly' | 'yearly';
+
+export interface Subscription {
+    id: string;
+    owner_id: string;
+    name: string;
+    amount_cents: number;
+    currency: string;
+    cadence: SubscriptionCadence;
+    next_renewal: string;
+    account_id: string | null;
+    notes: string | null;
+    created_at: string;
+}
+
+export interface Transfer {
+    id: string;
+    owner_id: string;
+    from_transaction: string;
+    to_transaction: string;
+    created_at: string;
+}
+
+export type ImportModule = 'shared' | 'finance' | 'media' | 'reading' | 'car' | 'travel' | 'habits' | 'nutrition' | 'knowledge';
+
+export interface ImportRun {
+    id: string;
+    owner_id: string;
+    module: ImportModule;
+    source: string | null;
+    mapping: Record<string, any> | null;
+    options: Record<string, any> | null;
+    stats: {
+        total: number;
+        imported: number;
+        duplicates: number;
+        errors: number;
+    } | null;
+    dry_run: boolean;
+    committed_at: string | null;
+    created_at: string;
+}
+
+export interface ImportError {
+    id: string;
+    owner_id: string;
+    run_id: string;
+    row_number: number | null;
+    raw_row: Record<string, any> | null;
+    errors: string[] | null;
+    created_at: string;
+}
+
+export interface ImportMappingPreset {
+    id: string;
+    owner_id: string;
+    module: ImportModule;
+    source_key: string;
+    name: string;
+    mapping: Record<string, any>;
+    created_at: string;
+}
+
+// Insert types for Finance
+export type AccountInsert = Omit<Account, 'id' | 'owner_id' | 'created_at'> & {
+    id?: string;
+    owner_id?: string;
+    created_at?: string;
+};
+
+export type AccountUpdate = Partial<Omit<Account, 'id' | 'owner_id' | 'created_at'>>;
+
+export type CategoryInsert = Omit<Category, 'id' | 'owner_id' | 'created_at'> & {
+    id?: string;
+    owner_id?: string;
+    created_at?: string;
+};
+
+export type CategoryUpdate = Partial<Omit<Category, 'id' | 'owner_id' | 'created_at'>>;
+
+export type TransactionInsert = Omit<Transaction, 'id' | 'owner_id' | 'created_at'> & {
+    id?: string;
+    owner_id?: string;
+    created_at?: string;
+};
+
+export type TransactionUpdate = Partial<Omit<Transaction, 'id' | 'owner_id' | 'created_at'>>;
+
+export type MerchantInsert = Omit<Merchant, 'id' | 'owner_id' | 'created_at'> & {
+    id?: string;
+    owner_id?: string;
+    created_at?: string;
+};
+
+export type SubscriptionInsert = Omit<Subscription, 'id' | 'owner_id' | 'created_at'> & {
+    id?: string;
+    owner_id?: string;
+    created_at?: string;
+};
+
+export type SubscriptionUpdate = Partial<Omit<Subscription, 'id' | 'owner_id' | 'created_at'>>;
+
 // Database type (for Supabase type inference)
 export interface Database {
     public: {
@@ -426,6 +574,51 @@ export interface Database {
                 Row: Goal;
                 Insert: GoalInsert;
                 Update: GoalUpdate;
+            };
+            account: {
+                Row: Account;
+                Insert: AccountInsert;
+                Update: AccountUpdate;
+            };
+            category: {
+                Row: Category;
+                Insert: CategoryInsert;
+                Update: CategoryUpdate;
+            };
+            merchant: {
+                Row: Merchant;
+                Insert: MerchantInsert;
+                Update: Partial<MerchantInsert>;
+            };
+            transaction: {
+                Row: Transaction;
+                Insert: TransactionInsert;
+                Update: TransactionUpdate;
+            };
+            subscription: {
+                Row: Subscription;
+                Insert: SubscriptionInsert;
+                Update: SubscriptionUpdate;
+            };
+            transfer: {
+                Row: Transfer;
+                Insert: Omit<Transfer, 'id' | 'owner_id' | 'created_at'>;
+                Update: Partial<Omit<Transfer, 'id' | 'owner_id' | 'created_at'>>;
+            };
+            import_run: {
+                Row: ImportRun;
+                Insert: Omit<ImportRun, 'id' | 'owner_id' | 'created_at'>;
+                Update: Partial<Omit<ImportRun, 'id' | 'owner_id' | 'created_at'>>;
+            };
+            import_error: {
+                Row: ImportError;
+                Insert: Omit<ImportError, 'id' | 'owner_id' | 'created_at'>;
+                Update: Partial<Omit<ImportError, 'id' | 'owner_id' | 'created_at'>>;
+            };
+            import_mapping_preset: {
+                Row: ImportMappingPreset;
+                Insert: Omit<ImportMappingPreset, 'id' | 'owner_id' | 'created_at'>;
+                Update: Partial<Omit<ImportMappingPreset, 'id' | 'owner_id' | 'created_at'>>;
             };
         };
     };
