@@ -316,7 +316,10 @@ The following modules have fully functional UIs but are using mock data and need
 **Status:** Production-ready with automated CSV import pipeline
 
 **Features:**
-* ✅ Multi-account support (Checking, Savings, Credit Cards)
+* ✅ Multi-account management:
+  - Add accounts via modal form (name, type, institution, currency)
+  - Support for checking, savings, credit, investment, and loan accounts
+  - Real-time account list with type icons
 * ✅ Automated CSV upload system:
   - Support for 6 different CSV formats (Capital One 360 Checking/Savings, Savor, Venture X, Chase Amazon, Discover IT)
   - Upload modal with account selection and source type dropdown
@@ -326,7 +329,7 @@ The following modules have fully functional UIs but are using mock data and need
 * ✅ Transaction tracking with real-time API:
   - Monthly filtering with accurate date range handling
   - Category and account joins for rich transaction data
-  - Income/expense calculations
+  - Income/expense calculations in Quick Stats sidebar
   - Spending breakdown by category
 * ✅ Three-tier data pipeline:
   - **Raw tables**: Store original CSV data unchanged (6 separate tables for different sources)
@@ -340,6 +343,7 @@ The following modules have fully functional UIs but are using mock data and need
 
 **API Endpoints:**
 * `GET /api/finance/accounts` - List all accounts
+* `POST /api/finance/accounts` - Create new account
 * `GET /api/finance/transactions?month=YYYY-MM` - Get transactions by month
 * `GET /api/finance/categories` - List all categories
 * `POST /api/finance/csv-upload` - Upload and process CSV files
@@ -705,12 +709,15 @@ Sentry DSN is configured in Sentry config files.
 
 **Latest Features (Last 30 commits):**
 * **Finance Module Launch**: Complete CSV import pipeline with automated normalization
+* Account management: Add accounts via modal form (checking, savings, credit, etc.)
 * Multi-source CSV support (6 different bank/card formats)
 * Database triggers for automatic raw → normalized → transaction flow
 * Upload modal with account and source selection
 * Month selector with dynamic date calculations
 * Transaction display with category breakdown and spending analysis
+* Quick Stats sidebar with monthly income, expenses, and net income
 * Fixed date range queries for all month lengths
+* Removed top summary badges for cleaner UI
 * Refined UI spacing and sizing for media and shopping pages
 * Removed stats sections for cleaner page layouts
 * Refactored BookCard action buttons UI
