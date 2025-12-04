@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { Plus, TrendingUp, TrendingDown, Wallet, CreditCard, DollarSign, Calendar } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { Plus, TrendingUp, TrendingDown, Wallet, CreditCard, DollarSign, Calendar, Upload } from 'lucide-react';
 
 type TransactionType = 'income' | 'expense';
 type TransactionCategory = 'salary' | 'food' | 'transport' | 'utilities' | 'entertainment' | 'shopping' | 'other';
@@ -38,6 +38,60 @@ export default function FinancePage() {
     const [showAccountModal, setShowAccountModal] = useState(false);
     const [showTransactionModal, setShowTransactionModal] = useState(false);
     const [showBudgetModal, setShowBudgetModal] = useState(false);
+    const [importing, setImporting] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleImportCSV = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        setImporting(true);
+
+        try {
+            // Get Capital One 360 account ID
+            const accountsResponse = await fetch('/api/finance/accounts');
+            const accountsData = await accountsResponse.json();
+
+            const capitalOne360 = accountsData.accounts?.find(
+                (a: any) => a.name === '360 Checking' && a.institution === 'Capital One'
+            );
+
+            if (!capitalOne360) {
+                alert('Capital One 360 Checking account not found');
+                setImporting(false);
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('accountId', capitalOne360.id);
+            formData.append('source', 'capital-one-360');
+            formData.append('dryRun', 'false');
+
+            const response = await fetch('/api/finance/import', {
+                method: 'POST',
+                body: formData,
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                alert(`Import successful!\nTotal: ${result.stats.total}\nImported: ${result.stats.imported}\nDuplicates: ${result.stats.duplicates}`);
+                // Refresh the page to show new transactions
+                window.location.reload();
+            } else {
+                alert(`Import failed: ${result.error}`);
+            }
+        } catch (error) {
+            alert(`Import failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        } finally {
+            setImporting(false);
+            // Reset file input
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
+        }
+    };
 
     // Minimal mock data
     const [accounts] = useState<Account[]>([
@@ -133,6 +187,18 @@ export default function FinancePage() {
                         <p className="text-gray-400">Manage accounts and track expenses</p>
                     </div>
                     <div className="flex gap-3">
+                        <label className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors flex items-center gap-2 cursor-pointer">
+                            <Upload className="w-4 h-4" />
+                            {importing ? 'Importing...' : 'Import CSV'}
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept=".csv"
+                                onChange={handleImportCSV}
+                                disabled={importing}
+                                className="hidden"
+                            />
+                        </label>
                         <button
                             onClick={() => setShowAccountModal(true)}
                             className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors border border-gray-700"
