@@ -185,7 +185,7 @@ export function parseCapitalOne360CSV(
   const lines = csvContent.trim().split('\n');
 
   // Skip header row
-  const [header, ...dataRows] = lines;
+  const [, ...dataRows] = lines;
 
   const transactions: NormalizedTransaction[] = [];
 
