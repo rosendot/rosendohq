@@ -309,7 +309,7 @@ export default function FinancePage() {
                                 {transactions.length === 0 ? (
                                     <p className="text-gray-500 text-center py-8">No transactions yet</p>
                                 ) : (
-                                    transactions.slice(0, 20).map((transaction) => {
+                                    transactions.map((transaction) => {
                                         const isIncome = transaction.amount_cents > 0;
                                         const amount = Math.abs(transaction.amount_cents / 100);
 
