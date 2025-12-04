@@ -255,7 +255,7 @@ export default function FinancePage() {
                                 <span className="text-sm text-gray-400">{transactions.length} this month</span>
                             </div>
 
-                            <div className="space-y-2">
+                            <div className="max-h-[600px] overflow-y-auto pr-2 space-y-2">
                                 {transactions.length === 0 ? (
                                     <p className="text-gray-500 text-center py-8">No transactions yet</p>
                                 ) : (
