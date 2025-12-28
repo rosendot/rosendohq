@@ -56,6 +56,7 @@ function MediaCarousel({
     onEdit,
     onDelete,
     onQuickRate,
+    onQuickIncrement,
     emptyMessage
 }: {
     title: string;
@@ -63,6 +64,7 @@ function MediaCarousel({
     onEdit: (item: MediaItem) => void;
     onDelete: (id: string, title: string) => void;
     onQuickRate: (itemId: string, rating: number) => void;
+    onQuickIncrement?: (itemId: string) => void;
     emptyMessage: string;
 }) {
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -182,6 +184,7 @@ function MediaCarousel({
                         onEdit={onEdit}
                         onDelete={onDelete}
                         onQuickRate={onQuickRate}
+                        onQuickIncrement={onQuickIncrement}
                     />
                 ))}
             </div>
@@ -194,12 +197,14 @@ function MediaCard({
     item,
     onEdit,
     onDelete,
-    onQuickRate
+    onQuickRate,
+    onQuickIncrement
 }: {
     item: MediaItem;
     onEdit: (item: MediaItem) => void;
     onDelete: (id: string, title: string) => void;
     onQuickRate: (itemId: string, rating: number) => void;
+    onQuickIncrement?: (itemId: string) => void;
 }) {
     const Icon = item.type === 'movie' ? Film : Tv;
 
@@ -260,6 +265,17 @@ function MediaCard({
                                 />
                             </button>
                         ))}
+                        {/* Quick increment button - only show if handler is provided (Continue Watching) */}
+                        {onQuickIncrement && (item.type === 'show' || item.type === 'anime') && (
+                            <button
+                                type="button"
+                                onClick={() => onQuickIncrement(item.id)}
+                                className="ml-1 px-2 py-0.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 rounded text-xs font-medium transition-colors"
+                                aria-label="Next episode"
+                            >
+                                +1
+                            </button>
+                        )}
                     </div>
                 </div>
 
@@ -544,6 +560,34 @@ export default function MediaTrackerPage() {
         }
     };
 
+    // Quick increment episode handler
+    const handleQuickIncrement = async (itemId: string) => {
+        const item = items.find(i => i.id === itemId);
+        if (!item) return;
+
+        try {
+            const response = await fetch(`/api/media/${itemId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    current_episode: (item.current_episode || 0) + 1,
+                }),
+            });
+
+            if (!response.ok) throw new Error('Failed to increment episode');
+
+            const updatedItem = await response.json();
+
+            // Update locally
+            setItems(prevItems =>
+                prevItems.map(item => item.id === updatedItem.id ? updatedItem : item)
+            );
+        } catch (error) {
+            console.error('Error incrementing episode:', error);
+            alert('Failed to update episode');
+        }
+    };
+
     const handleEdit = (item: MediaItem) => {
         setEditingItem(item);
         setFormData({
@@ -681,6 +725,7 @@ export default function MediaTrackerPage() {
                     onEdit={handleEdit}
                     onDelete={showDeleteConfirmation}
                     onQuickRate={handleQuickRate}
+                    onQuickIncrement={handleQuickIncrement}
                     emptyMessage="No media currently watching. Start something from your plan to watch list!"
                 />
 
