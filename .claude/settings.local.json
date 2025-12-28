@@ -6,7 +6,8 @@
       "Bash(npx tsc:*)",
       "Bash(taskkill:*)",
       "Bash(npm run dev:*)",
-      "Bash(powershell -Command:*)"
+      "Bash(powershell -Command:*)",
+      "Bash(claude mcp get:*)"
     ],
     "deny": [],
     "ask": []
