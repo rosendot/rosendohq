@@ -411,7 +411,9 @@ export default function MediaTrackerPage() {
         total_seasons: 0,
         episodes_in_season: 0,
         rating: 0,
-        notes: ''
+        notes: '',
+        started_at: '',
+        completed_at: ''
     });
 
     useEffect(() => {
@@ -451,6 +453,8 @@ export default function MediaTrackerPage() {
                         current_season: formData.current_season || null,
                         total_seasons: formData.total_seasons || null,
                         episodes_in_season: formData.episodes_in_season || null,
+                        started_at: formData.started_at || null,
+                        completed_at: formData.completed_at || null,
                     }),
                 });
 
@@ -477,6 +481,8 @@ export default function MediaTrackerPage() {
                         current_season: formData.current_season || null,
                         total_seasons: formData.total_seasons || null,
                         episodes_in_season: formData.episodes_in_season || null,
+                        started_at: formData.started_at || null,
+                        completed_at: formData.completed_at || null,
                     }),
                 });
 
@@ -601,7 +607,9 @@ export default function MediaTrackerPage() {
             total_seasons: item.total_seasons || 0,
             episodes_in_season: item.episodes_in_season || 0,
             rating: item.rating || 0,
-            notes: item.notes || ''
+            notes: item.notes || '',
+            started_at: item.started_at || '',
+            completed_at: item.completed_at || ''
         });
         setShowAddModal(true);
     };
@@ -618,7 +626,9 @@ export default function MediaTrackerPage() {
             total_seasons: 0,
             episodes_in_season: 0,
             rating: 0,
-            notes: ''
+            notes: '',
+            started_at: '',
+            completed_at: ''
         });
     };
 
@@ -935,6 +945,29 @@ export default function MediaTrackerPage() {
                                     className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none"
                                     placeholder="Your thoughts, reminders, etc."
                                 />
+                            </div>
+
+                            {/* Date fields */}
+                            <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Started Date</label>
+                                    <input
+                                        type="date"
+                                        value={formData.started_at}
+                                        onChange={(e) => setFormData({ ...formData, started_at: e.target.value })}
+                                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Completed Date</label>
+                                    <input
+                                        type="date"
+                                        value={formData.completed_at}
+                                        onChange={(e) => setFormData({ ...formData, completed_at: e.target.value })}
+                                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                    />
+                                </div>
                             </div>
 
                             <div className="flex flex-col-reverse sm:flex-row gap-2 pt-2">
