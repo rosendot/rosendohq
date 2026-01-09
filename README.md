@@ -368,25 +368,56 @@ The following modules have fully functional UIs but are using mock data and need
 
 ---
 
-### 8. House Tracker — **UI COMPLETE** 🔴
+### 8. House Tracker — **LIVE** ✅
 
-**Frontend Features:**
-* Room/area management with types
-* Maintenance task tracking (status, priority, due dates)
-* Supply inventory with low-stock alerts
-* Cost tracking and vendor history
-* Quick stats dashboard
-* Upcoming maintenance timeline
+**Status:** Production-ready with 1 property, 7 areas, 6 chore templates
 
-**Database Ready:** `home_property`, `home_area`, `home_appliance`, `home_maintenance_template`, `home_maintenance_record`, `home_supply_item`, `home_supply_stock`, `home_supply_purchase`, `home_supply_usage`
+**Features:**
+* ✅ Property management with full address details
+* ✅ Room/area organization by floor and type
+* ✅ Maintenance task tracking:
+  - Status (pending, scheduled, in_progress, completed, skipped, cancelled)
+  - DIY flag and contractor assignment
+  - Cost tracking with vendor history
+* ✅ Recurring chore templates:
+  - Interval in days or months
+  - Priority levels (1-5)
+  - Category organization
+  - Create tasks from templates
+* ✅ Supply inventory:
+  - Stock levels with min quantity alerts
+  - Purchase and usage tracking
+* ✅ Appliance tracking with warranty info
+* ✅ Contractor management with ratings
+* ✅ Utility bill tracking
+* ✅ Home improvement projects with tasks
+* ✅ Document storage (warranties, manuals, receipts)
+* ✅ Tabbed interface: Dashboard, Maintenance, Supplies, Appliances, Projects, Utilities, Contractors, Documents
 
-**Views Ready:** `v_home_maintenance_next_due`, `v_home_supply_usage_month`
+**Database:** `home_property`, `home_area`, `home_appliance`, `home_contractor`, `home_maintenance_template`, `home_maintenance_record`, `home_supply_item`, `home_supply_stock`, `home_supply_purchase`, `home_supply_usage`, `home_utility_bill`, `home_project`, `home_project_task`, `home_document`
 
-**Backend Needed:**
-* [ ] API routes for properties, areas, maintenance, supplies
-* [ ] Supabase client integration
-* [ ] Next-due maintenance calculations
+**API Endpoints:**
+* `GET/POST /api/house/properties` - Manage properties
+* `GET/PUT/DELETE /api/house/properties/[id]` - Individual property operations
+* `GET/POST /api/house/areas` - Manage areas/rooms
+* `GET/PUT/DELETE /api/house/areas/[id]` - Individual area operations
+* `GET/POST /api/house/appliances` - Manage appliances
+* `GET/POST /api/house/contractors` - Manage contractors
+* `GET/POST /api/house/maintenance/templates` - Recurring chore templates
+* `GET/POST /api/house/maintenance/records` - Maintenance tasks
+* `GET /api/house/maintenance/upcoming` - Upcoming maintenance
+* `GET/POST /api/house/supplies/items` - Supply catalog
+* `GET/POST /api/house/supplies/stock` - Stock levels
+* `GET/POST /api/house/supplies/purchases` - Purchase history
+* `GET/POST /api/house/supplies/usage` - Usage tracking
+* `GET/POST /api/house/utilities` - Utility bills
+* `GET/POST /api/house/projects` - Home projects
+* `GET/POST /api/house/projects/[id]/tasks` - Project tasks
+* `GET/POST /api/house/documents` - Documents
+
+**Remaining:**
 * [ ] CSV import/export
+* [ ] Next-due maintenance calculations view
 
 ---
 
@@ -578,8 +609,9 @@ Materialized views for optimized queries:
 * **Reading Tracker**: 2 books
 * **Habits**: Backend connected, needs data entry
 * **Finance**: 1 account (360 Checking), 37 transactions imported
+* **House Tracker**: 1 property (Brellon Townhome), 7 areas, 6 chore templates
 
-**Total Items Tracked**: 251+ across all modules
+**Total Items Tracked**: 265+ across all modules
 
 ---
 
@@ -603,8 +635,7 @@ Materialized views for optimized queries:
 * [ ] Transaction editing/categorization
 
 ### Priority 3: Connect Next Backend Module
-Choose based on immediate need:
-* [ ] **House** - Maintenance and supply tracking
+* [✅] **House** - Maintenance and supply tracking (COMPLETE)
 * [ ] **Nutrition** - Daily macro tracking
 
 ### Priority 4: Import/Export Framework
@@ -668,7 +699,9 @@ rosendohq/
 │   │   │   ├── media/            # Media API
 │   │   │   ├── books/            # Books API
 │   │   │   ├── car/              # Car API
-│   │   │   └── habits/           # Habits API
+│   │   │   ├── habits/           # Habits API
+│   │   │   ├── finance/          # Finance API
+│   │   │   └── house/            # House Tracker API
 │   │   ├── layout.tsx            # Root layout with sidebar
 │   │   └── page.tsx              # Home page
 │   ├── components/               # Reusable UI components
