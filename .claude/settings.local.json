@@ -7,7 +7,9 @@
       "Bash(taskkill:*)",
       "Bash(npm run dev:*)",
       "Bash(powershell -Command:*)",
-      "Bash(claude mcp get:*)"
+      "Bash(claude mcp get:*)",
+      "mcp__supabase-rosendohq__execute_sql",
+      "mcp__supabase-rosendohq__list_tables"
     ],
     "deny": [],
     "ask": []
