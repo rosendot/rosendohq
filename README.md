@@ -74,6 +74,7 @@ Central hub providing an overview of all modules with quick stats, recent activi
   - Aisle location and store preference
   - Priority rating (1-5 scale with color coding)
   - Notes and needed-by date
+* ✅ **List Management**: Create, edit, and delete shopping lists from sidebar
 * ✅ Quick priority rating (click to set 1-5, click again to reset to default)
 * ✅ Priority-based category sorting (weighted by priority × 0.6 + item count × 0.4)
 * ✅ Mark items complete/incomplete with automatic timestamp
@@ -82,12 +83,14 @@ Central hub providing an overview of all modules with quick stats, recent activi
   - Select multiple items with tap
   - Bulk complete, uncomplete, or delete
   - "Select All" buttons for active and completed sections
+* ✅ **Sorting options**: By Category (default), Priority, Name, Date
 * ✅ Advanced filtering:
   - Real-time search across item names and notes
   - Category filter dropdown
   - Combined category + search filtering
 * ✅ Smart organization:
-  - Active items grouped by category with headers
+  - Active items grouped by category with headers (category view)
+  - Flat sorted list (other sort modes)
   - Categories sorted by weighted score (priority + item count)
   - Items sorted by priority > name within categories
   - Completed items in flat list with purchase date
@@ -102,12 +105,12 @@ Central hub providing an overview of all modules with quick stats, recent activi
 
 **API Endpoints:**
 * `GET/POST /api/shopping/lists` - Manage shopping lists
+* `GET/PATCH/DELETE /api/shopping/lists/[listId]` - Individual list operations
 * `GET/POST /api/shopping/lists/[listId]/items` - Manage list items
 * `GET/PATCH/DELETE /api/shopping/items/[itemId]` - Individual item operations
 * `PATCH/DELETE /api/shopping/items/bulk` - Bulk operations
 
 **Remaining:**
-* [ ] List creation/editing/deletion UI
 * [ ] CSV import/export
 
 ---

@@ -2,11 +2,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Search, ShoppingCart, CheckCircle2, Circle, Calendar, Trash2, Check, X, Edit2 } from 'lucide-react';
+import { Plus, Search, ShoppingCart, CheckCircle2, Circle, Calendar, Trash2, Check, X, Edit2, Loader2 } from 'lucide-react';
 import type { ShoppingList, ShoppingListItem } from '@/types/database.types';
 import DeleteConfirmationModal from '@/components/DeleteConfirmationModal';
 import AddShoppingItemModal from '@/app/shopping/AddShoppingItemModal';
 import EditShoppingItemModal from '@/app/shopping/EditShoppingItemModal';
+
+type SortOption = 'priority_asc' | 'priority_desc' | 'name_asc' | 'name_desc' | 'date_asc' | 'date_desc' | 'category';
 
 export default function ShoppingPage() {
     const [lists, setLists] = useState<ShoppingList[]>([]);
@@ -14,6 +16,7 @@ export default function ShoppingPage() {
     const [selectedListId, setSelectedListId] = useState<string>('');
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
+    const [sortBy, setSortBy] = useState<SortOption>('category');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [showAddModal, setShowAddModal] = useState(false);
@@ -27,7 +30,14 @@ export default function ShoppingPage() {
         itemId: string | null;
         itemName: string;
         isBulk: boolean;
-    }>({ show: false, itemId: null, itemName: '', isBulk: false });
+        isListDelete: boolean;
+    }>({ show: false, itemId: null, itemName: '', isBulk: false, isListDelete: false });
+
+    // List management state
+    const [showListModal, setShowListModal] = useState(false);
+    const [editingList, setEditingList] = useState<ShoppingList | null>(null);
+    const [listFormData, setListFormData] = useState({ name: '', notes: '' });
+    const [listSaving, setListSaving] = useState(false);
 
     // Fetch all shopping lists and their items in parallel on mount
     async function fetchAllData() {
@@ -189,7 +199,8 @@ export default function ShoppingPage() {
             show: true,
             itemId,
             itemName,
-            isBulk: false
+            isBulk: false,
+            isListDelete: false
         });
     };
 
@@ -199,7 +210,19 @@ export default function ShoppingPage() {
             show: true,
             itemId: null,
             itemName: '',
-            isBulk: true
+            isBulk: true,
+            isListDelete: false
+        });
+    };
+
+    // Show list delete confirmation
+    const showListDeleteConfirmation = (listId: string, listName: string) => {
+        setDeleteConfirmation({
+            show: true,
+            itemId: listId,
+            itemName: listName,
+            isBulk: false,
+            isListDelete: true
         });
     };
 
@@ -216,10 +239,105 @@ export default function ShoppingPage() {
                 await refreshListItems(selectedListId);
             }
 
-            setDeleteConfirmation({ show: false, itemId: null, itemName: '', isBulk: false });
+            setDeleteConfirmation({ show: false, itemId: null, itemName: '', isBulk: false, isListDelete: false });
         } catch (err) {
             console.error('Error deleting item:', err);
             alert(err instanceof Error ? err.message : 'Failed to delete item');
+        }
+    };
+
+    // Delete list
+    const handleDeleteList = async (listId: string) => {
+        try {
+            const response = await fetch(`/api/shopping/lists/${listId}`, {
+                method: 'DELETE',
+            });
+
+            if (!response.ok) throw new Error('Failed to delete list');
+
+            // Remove list from state
+            setLists(prev => prev.filter(l => l.id !== listId));
+
+            // Remove items for this list
+            setAllItems(prev => {
+                const newItems = { ...prev };
+                delete newItems[listId];
+                return newItems;
+            });
+
+            // Select another list if the deleted one was selected
+            if (selectedListId === listId) {
+                const remainingLists = lists.filter(l => l.id !== listId);
+                setSelectedListId(remainingLists[0]?.id || '');
+            }
+
+            setDeleteConfirmation({ show: false, itemId: null, itemName: '', isBulk: false, isListDelete: false });
+        } catch (err) {
+            console.error('Error deleting list:', err);
+            alert(err instanceof Error ? err.message : 'Failed to delete list');
+        }
+    };
+
+    // Open list modal for create/edit
+    const openListModal = (list?: ShoppingList) => {
+        if (list) {
+            setEditingList(list);
+            setListFormData({ name: list.name, notes: list.notes || '' });
+        } else {
+            setEditingList(null);
+            setListFormData({ name: '', notes: '' });
+        }
+        setShowListModal(true);
+    };
+
+    // Save list (create or update)
+    const handleSaveList = async () => {
+        if (!listFormData.name.trim()) return;
+
+        setListSaving(true);
+        try {
+            if (editingList) {
+                // Update existing list
+                const response = await fetch(`/api/shopping/lists/${editingList.id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: listFormData.name.trim(),
+                        notes: listFormData.notes.trim() || null,
+                    }),
+                });
+
+                if (!response.ok) throw new Error('Failed to update list');
+                const updatedList = await response.json();
+
+                setLists(prev => prev.map(l => l.id === editingList.id ? updatedList : l));
+            } else {
+                // Create new list
+                const response = await fetch('/api/shopping/lists', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: listFormData.name.trim(),
+                        notes: listFormData.notes.trim() || null,
+                    }),
+                });
+
+                if (!response.ok) throw new Error('Failed to create list');
+                const newList = await response.json();
+
+                setLists(prev => [...prev, newList]);
+                setAllItems(prev => ({ ...prev, [newList.id]: [] }));
+                setSelectedListId(newList.id);
+            }
+
+            setShowListModal(false);
+            setEditingList(null);
+            setListFormData({ name: '', notes: '' });
+        } catch (err) {
+            console.error('Error saving list:', err);
+            alert(err instanceof Error ? err.message : 'Failed to save list');
+        } finally {
+            setListSaving(false);
         }
     };
 
@@ -383,7 +501,7 @@ export default function ShoppingPage() {
                 await refreshListItems(selectedListId);
             }
 
-            setDeleteConfirmation({ show: false, itemId: null, itemName: '', isBulk: false });
+            setDeleteConfirmation({ show: false, itemId: null, itemName: '', isBulk: false, isListDelete: false });
         } catch (err) {
             console.error('Error deleting items:', err);
             alert(err instanceof Error ? err.message : 'Failed to delete items');
@@ -392,7 +510,9 @@ export default function ShoppingPage() {
 
     // Confirm delete action
     const confirmDelete = () => {
-        if (deleteConfirmation.isBulk) {
+        if (deleteConfirmation.isListDelete && deleteConfirmation.itemId) {
+            handleDeleteList(deleteConfirmation.itemId);
+        } else if (deleteConfirmation.isBulk) {
             bulkDeleteItems();
         } else if (deleteConfirmation.itemId) {
             handleDeleteItem(deleteConfirmation.itemId);
@@ -401,7 +521,7 @@ export default function ShoppingPage() {
 
     // Cancel delete action
     const cancelDelete = () => {
-        setDeleteConfirmation({ show: false, itemId: null, itemName: '', isBulk: false });
+        setDeleteConfirmation({ show: false, itemId: null, itemName: '', isBulk: false, isListDelete: false });
     };
 
     const categories = ['all', ...Array.from(new Set(items.map(item => item.category).filter((cat): cat is string => cat !== null)))];
@@ -413,10 +533,42 @@ export default function ShoppingPage() {
         return matchesCategory && matchesSearch;
     });
 
+    // Sort function based on sortBy state
+    const sortItems = (itemsToSort: ShoppingListItem[]) => {
+        return [...itemsToSort].sort((a, b) => {
+            switch (sortBy) {
+                case 'priority_asc':
+                    return (a.priority || 3) - (b.priority || 3);
+                case 'priority_desc':
+                    return (b.priority || 3) - (a.priority || 3);
+                case 'name_asc':
+                    return a.item_name.localeCompare(b.item_name);
+                case 'name_desc':
+                    return b.item_name.localeCompare(a.item_name);
+                case 'date_desc':
+                    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+                case 'date_asc':
+                    return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+                case 'category':
+                default:
+                    // For category sort, first sort by priority then by name within same priority
+                    const priorityA = a.priority || 3;
+                    const priorityB = b.priority || 3;
+                    if (priorityA !== priorityB) {
+                        return priorityA - priorityB;
+                    }
+                    return a.item_name.localeCompare(b.item_name);
+            }
+        });
+    };
+
     const activeItems = filteredItems.filter(i => !i.is_done);
     const completedItems = filteredItems.filter(i => i.is_done);
 
-    // Group active items by category
+    // For non-category sorting, we'll use a flat sorted list
+    const sortedActiveItems = sortBy !== 'category' ? sortItems(activeItems) : activeItems;
+
+    // Group active items by category (only used when sortBy === 'category')
     const groupedActiveItems = activeItems.reduce((acc, item) => {
         const category = item.category || 'Uncategorized';
         if (!acc[category]) {
@@ -447,8 +599,8 @@ export default function ShoppingPage() {
     });
 
     // Within each category, sort items by priority (then by name)
-    sortedCategories.forEach(([, items]) => {
-        items.sort((a, b) => {
+    sortedCategories.forEach(([, catItems]) => {
+        catItems.sort((a, b) => {
             const priorityA = a.priority || 3;
             const priorityB = b.priority || 3;
             if (priorityA !== priorityB) {
@@ -517,38 +669,86 @@ export default function ShoppingPage() {
                     {/* Sidebar - Lists */}
                     <div className="lg:col-span-1">
                         <div className="bg-gray-900 rounded-lg border border-gray-800 p-3">
-                            <h2 className="text-base font-semibold text-white mb-3">Lists</h2>
+                            <div className="flex items-center justify-between mb-3">
+                                <h2 className="text-base font-semibold text-white">Lists</h2>
+                                <button
+                                    onClick={() => openListModal()}
+                                    className="p-1.5 text-gray-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
+                                    title="Create new list"
+                                >
+                                    <Plus className="w-4 h-4" />
+                                </button>
+                            </div>
                             <div className="space-y-1.5">
                                 {lists.map((list) => {
                                     const listItems = allItems[list.id] || [];
                                     const itemCount = listItems.length;
+                                    const isSelected = selectedListId === list.id;
 
                                     return (
-                                        <button
+                                        <div
                                             key={list.id}
-                                            onClick={() => setSelectedListId(list.id)}
-                                            className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${selectedListId === list.id
+                                            className={`group relative rounded-lg transition-colors ${isSelected
                                                 ? 'bg-blue-600 text-white'
                                                 : 'bg-gray-800 text-gray-300 hover:bg-gray-750'
                                                 }`}
                                         >
-                                            <div className="flex items-center justify-between">
-                                                <div className="font-medium text-sm">{list.name}</div>
-                                                <span className={`text-xs px-1.5 py-0.5 rounded-full ${selectedListId === list.id
-                                                    ? 'bg-white/20 text-white'
-                                                    : 'bg-gray-700 text-gray-400'
-                                                    }`}>
-                                                    {itemCount}
-                                                </span>
-                                            </div>
-                                            {list.notes && (
-                                                <div className={`text-xs mt-1 ${selectedListId === list.id ? 'text-blue-100' : 'text-gray-400'}`}>
-                                                    {list.notes}
+                                            <button
+                                                onClick={() => setSelectedListId(list.id)}
+                                                className="w-full text-left px-3 py-2"
+                                            >
+                                                <div className="flex items-center justify-between">
+                                                    <div className="font-medium text-sm">{list.name}</div>
+                                                    <span className={`text-xs px-1.5 py-0.5 rounded-full ${isSelected
+                                                        ? 'bg-white/20 text-white'
+                                                        : 'bg-gray-700 text-gray-400'
+                                                        }`}>
+                                                        {itemCount}
+                                                    </span>
                                                 </div>
-                                            )}
-                                        </button>
+                                                {list.notes && (
+                                                    <div className={`text-xs mt-1 ${isSelected ? 'text-blue-100' : 'text-gray-400'}`}>
+                                                        {list.notes}
+                                                    </div>
+                                                )}
+                                            </button>
+                                            {/* List actions - show on hover */}
+                                            <div className={`absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity ${isSelected ? '' : ''}`}>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        openListModal(list);
+                                                    }}
+                                                    className={`p-1 rounded transition-colors ${isSelected
+                                                        ? 'text-blue-100 hover:text-white hover:bg-white/10'
+                                                        : 'text-gray-400 hover:text-blue-400 hover:bg-blue-500/10'
+                                                        }`}
+                                                    title="Edit list"
+                                                >
+                                                    <Edit2 className="w-3 h-3" />
+                                                </button>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        showListDeleteConfirmation(list.id, list.name);
+                                                    }}
+                                                    className={`p-1 rounded transition-colors ${isSelected
+                                                        ? 'text-blue-100 hover:text-red-300 hover:bg-red-500/20'
+                                                        : 'text-gray-400 hover:text-red-400 hover:bg-red-500/10'
+                                                        }`}
+                                                    title="Delete list"
+                                                >
+                                                    <Trash2 className="w-3 h-3" />
+                                                </button>
+                                            </div>
+                                        </div>
                                     );
                                 })}
+                                {lists.length === 0 && (
+                                    <p className="text-gray-500 text-sm text-center py-4">
+                                        No lists yet. Create one!
+                                    </p>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -579,6 +779,21 @@ export default function ShoppingPage() {
                                             {cat === 'all' ? 'All Categories' : cat}
                                         </option>
                                     ))}
+                                </select>
+
+                                {/* Sort */}
+                                <select
+                                    value={sortBy}
+                                    onChange={(e) => setSortBy(e.target.value as SortOption)}
+                                    className="px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                >
+                                    <option value="category">By Category</option>
+                                    <option value="priority_asc">Priority (High-Low)</option>
+                                    <option value="priority_desc">Priority (Low-High)</option>
+                                    <option value="name_asc">Name (A-Z)</option>
+                                    <option value="name_desc">Name (Z-A)</option>
+                                    <option value="date_desc">Newest First</option>
+                                    <option value="date_asc">Oldest First</option>
                                 </select>
                             </div>
                         </div>
@@ -629,7 +844,7 @@ export default function ShoppingPage() {
 
                         {/* Items Container with Scroll */}
                         <div className="max-h-[calc(100vh-300px)] overflow-y-auto pr-2 space-y-4">
-                            {/* Active Items - Grouped by Category */}
+                            {/* Active Items */}
                             {activeItems.length > 0 && (
                                 <div className="mb-4">
                                     <div className="flex items-center justify-between mb-3">
@@ -643,6 +858,9 @@ export default function ShoppingPage() {
                                             </button>
                                         )}
                                     </div>
+
+                                    {/* Category-grouped view */}
+                                    {sortBy === 'category' ? (
                                     <div className="space-y-4">
                                         {sortedCategories.map(([category, categoryItems]) => (
                                             <div key={category}>
@@ -809,6 +1027,112 @@ export default function ShoppingPage() {
                                             </div>
                                         ))}
                                     </div>
+                                    ) : (
+                                    /* Flat sorted view */
+                                    <div className="space-y-2">
+                                        {sortedActiveItems.map((item) => {
+                                            const priority = item.priority || 3;
+                                            const priorityBorder = priority === 1 ? 'border-red-500/50' :
+                                                priority === 2 ? 'border-orange-500/40' :
+                                                    priority === 3 ? 'border-yellow-500/30' :
+                                                        priority === 4 ? 'border-lime-500/40' :
+                                                            'border-green-500/50';
+
+                                            return (
+                                                <div
+                                                    key={item.id}
+                                                    className={`bg-gray-900 rounded-lg border p-3 transition-all ${selectedItems.has(item.id) ? 'border-blue-500 bg-blue-500/10' : priorityBorder}`}
+                                                    onTouchStart={() => handleLongPressStart(item.id)}
+                                                    onTouchEnd={handleLongPressEnd}
+                                                    onMouseDown={() => handleLongPressStart(item.id)}
+                                                    onMouseUp={handleLongPressEnd}
+                                                    onMouseLeave={handleLongPressEnd}
+                                                    onClick={() => handleItemTap(item.id)}
+                                                >
+                                                    <div className="flex items-start gap-3">
+                                                        {isSelectionMode ? (
+                                                            <div className="mt-0.5 flex-shrink-0 w-5 h-5 flex items-center justify-center">
+                                                                {selectedItems.has(item.id) ? (
+                                                                    <CheckCircle2 className="w-5 h-5 text-blue-400" />
+                                                                ) : (
+                                                                    <Circle className="w-5 h-5 text-gray-600" />
+                                                                )}
+                                                            </div>
+                                                        ) : (
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    toggleItemDone(item.id, item.is_done);
+                                                                }}
+                                                                className="mt-0.5 flex-shrink-0"
+                                                            >
+                                                                <Circle className="w-5 h-5 text-gray-400 hover:text-blue-400 transition-colors" />
+                                                            </button>
+                                                        )}
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="flex items-start justify-between gap-3">
+                                                                <div className="flex-1">
+                                                                    <div className="flex items-baseline gap-2">
+                                                                        <h4 className="text-white font-medium text-sm">{item.item_name}</h4>
+                                                                        {item.quantity && (
+                                                                            <span className="text-base font-semibold text-blue-400">
+                                                                                ×{item.quantity}{item.unit ? ` ${item.unit}` : ''}
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                    {item.category && (
+                                                                        <span className="text-xs text-gray-500">{item.category}</span>
+                                                                    )}
+                                                                    <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1 text-xs">
+                                                                        {item.aisle && (
+                                                                            <span className="text-purple-400">📍 {item.aisle}</span>
+                                                                        )}
+                                                                        {item.store_preference && (
+                                                                            <span className="text-green-400">🏪 {item.store_preference}</span>
+                                                                        )}
+                                                                        {item.needed_by && (
+                                                                            <span className="text-orange-400 flex items-center gap-1">
+                                                                                <Calendar className="w-3 h-3" />
+                                                                                {new Date(item.needed_by).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                    {item.notes && (
+                                                                        <p className="text-gray-400 text-xs mt-1 italic">{item.notes}</p>
+                                                                    )}
+                                                                </div>
+                                                                {!isSelectionMode && (
+                                                                    <div className="flex items-start gap-1">
+                                                                        <button
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                handleEditItem(item);
+                                                                            }}
+                                                                            className="p-1.5 text-gray-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
+                                                                            title="Edit item"
+                                                                        >
+                                                                            <Edit2 className="w-3.5 h-3.5" />
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                showDeleteConfirmation(item.id, item.item_name);
+                                                                            }}
+                                                                            className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                                                                            title="Delete item"
+                                                                        >
+                                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                                        </button>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                    )}
                                 </div>
                             )}
 
@@ -987,6 +1311,82 @@ export default function ShoppingPage() {
                     onSuccess={handleEditSuccess}
                     item={editingItem}
                 />
+
+                {/* List Modal (Create/Edit) */}
+                {showListModal && (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-gray-900 rounded-lg border border-gray-800 w-full max-w-md">
+                            <div className="flex items-center justify-between p-4 border-b border-gray-800">
+                                <h2 className="text-lg font-bold text-white">
+                                    {editingList ? 'Edit List' : 'Create New List'}
+                                </h2>
+                                <button
+                                    onClick={() => {
+                                        setShowListModal(false);
+                                        setEditingList(null);
+                                        setListFormData({ name: '', notes: '' });
+                                    }}
+                                    className="text-gray-400 hover:text-white transition-colors"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+                            <div className="p-4 space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                                        List Name *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={listFormData.name}
+                                        onChange={(e) => setListFormData(prev => ({ ...prev, name: e.target.value }))}
+                                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                        placeholder="e.g., Weekly Groceries"
+                                        autoFocus
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                                        Notes (optional)
+                                    </label>
+                                    <textarea
+                                        value={listFormData.notes}
+                                        onChange={(e) => setListFormData(prev => ({ ...prev, notes: e.target.value }))}
+                                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
+                                        placeholder="Optional notes about this list..."
+                                        rows={2}
+                                    />
+                                </div>
+                                <div className="flex gap-2 pt-2">
+                                    <button
+                                        onClick={() => {
+                                            setShowListModal(false);
+                                            setEditingList(null);
+                                            setListFormData({ name: '', notes: '' });
+                                        }}
+                                        className="flex-1 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white text-sm rounded-lg transition-colors border border-gray-700"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={handleSaveList}
+                                        disabled={!listFormData.name.trim() || listSaving}
+                                        className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                    >
+                                        {listSaving ? (
+                                            <>
+                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                                Saving...
+                                            </>
+                                        ) : (
+                                            editingList ? 'Save Changes' : 'Create List'
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
