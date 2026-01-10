@@ -161,6 +161,35 @@ export default function HabitsPage() {
         return schedule.days.includes(dayOfWeek);
     };
 
+    // Get next scheduled date for a habit (starting from tomorrow)
+    const getNextScheduledDate = (habit: Habit): { date: Date; label: string } | null => {
+        const schedule = habit.schedule as HabitSchedule | null;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // If no schedule or all days, it's daily - next is tomorrow
+        if (!schedule || !schedule.days || schedule.days.length === 0 || schedule.days.length === 7) {
+            const tomorrow = new Date(today);
+            tomorrow.setDate(today.getDate() + 1);
+            return { date: tomorrow, label: 'Tomorrow' };
+        }
+
+        // Find next scheduled day (starting from tomorrow)
+        for (let i = 1; i <= 7; i++) {
+            const checkDate = new Date(today);
+            checkDate.setDate(today.getDate() + i);
+            const checkDow = checkDate.getDay() === 0 ? 7 : checkDate.getDay();
+            if (schedule.days.includes(checkDow)) {
+                if (i === 1) {
+                    return { date: checkDate, label: 'Tomorrow' };
+                }
+                const dayName = checkDate.toLocaleDateString('en-US', { weekday: 'short' });
+                return { date: checkDate, label: dayName };
+            }
+        }
+        return null;
+    };
+
     // Get log for habit
     const getLogForHabit = (habitId: string): HabitLog | undefined => {
         return logs.find(log => log.habit_id === habitId);
@@ -474,6 +503,8 @@ export default function HabitsPage() {
                                                             const log = getLogForHabit(habit.id);
                                                             const schedule = habit.schedule as HabitSchedule | null;
                                                             const targetValue = schedule?.target_per_day || habit.target_value || 1;
+                                                            const nextDue = getNextScheduledDate(habit);
+                                                            const isDaily = !schedule?.days || schedule.days.length === 0 || schedule.days.length === 7;
 
                                                             return (
                                                                 <div
@@ -498,8 +529,17 @@ export default function HabitsPage() {
                                                                             )}
                                                                         </div>
                                                                         <div>
-                                                                            <div className={`font-medium ${isCompleted ? 'text-violet-300' : ''}`}>
+                                                                            <div className={`font-medium flex items-center gap-2 ${isCompleted ? 'text-violet-300' : ''}`}>
                                                                                 {habit.name}
+                                                                                {isToday && (isDaily ? (
+                                                                                    <span className="text-xs px-1.5 py-0.5 rounded font-normal bg-gray-700/50 text-gray-500">
+                                                                                        Daily
+                                                                                    </span>
+                                                                                ) : nextDue && (
+                                                                                    <span className="text-xs px-1.5 py-0.5 rounded font-normal bg-blue-500/20 text-blue-400">
+                                                                                        {nextDue.label}
+                                                                                    </span>
+                                                                                ))}
                                                                             </div>
                                                                             {habit.unit && (
                                                                                 <div className="text-sm text-gray-500">
@@ -729,7 +769,9 @@ export default function HabitsPage() {
                                                             {habit.time_of_day && (
                                                                 <span>{TIME_OF_DAY_LABELS[habit.time_of_day]}</span>
                                                             )}
-                                                            {schedule?.days && schedule.days.length < 7 && (
+                                                            {(!schedule?.days || schedule.days.length === 0 || schedule.days.length === 7) ? (
+                                                                <span>Daily</span>
+                                                            ) : (
                                                                 <span>
                                                                     {schedule.days.map(d => ['', 'M', 'T', 'W', 'T', 'F', 'S', 'S'][d]).join('')}
                                                                 </span>
