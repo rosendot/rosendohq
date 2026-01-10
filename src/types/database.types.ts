@@ -159,6 +159,8 @@ export type ReadingLogInsert = Omit<ReadingLog, 'id' | 'created_at'>;
 export type VehicleStatus = 'active' | 'sold' | 'traded' | 'totaled';
 export type FuelType = 'regular' | 'premium' | 'diesel' | 'electric';
 export type MaintenancePriority = 'critical' | 'recommended' | 'optional';
+export type MaintenanceRecordType = 'maintenance' | 'incident' | 'ticket' | 'toll' | 'parking' | 'other';
+export type TireStatus = 'active' | 'removed' | 'sold' | 'disposed';
 
 export interface Vehicle {
     id: string;
@@ -178,6 +180,13 @@ export interface Vehicle {
     insurance_policy_number: string | null;
     insurance_renewal_date: string | null;
     insurance_premium_cents: number | null;
+    // Registration fields
+    registration_expiration_date: string | null;
+    registration_state: string | null;
+    registration_cost_cents: number | null;
+    // Inspection/Emissions fields
+    inspection_expiration_date: string | null;
+    emissions_expiration_date: string | null;
     created_at: string;
 }
 
@@ -239,6 +248,31 @@ export interface MaintenanceRecord {
     parts_cost_cents: number | null;
     labor_cost_cents: number | null;
     is_diy: boolean;
+    // New fields for record types
+    record_type: MaintenanceRecordType;
+    incident_date: string | null;
+    insurance_claim_number: string | null;
+    at_fault: boolean | null;
+    created_at: string;
+}
+
+// Tire Set for tracking tires
+export interface TireSet {
+    id: string;
+    owner_id: string;
+    vehicle_id: string;
+    brand: string | null;
+    model: string | null;
+    size: string | null;
+    purchase_date: string | null;
+    purchase_price_cents: number | null;
+    mileage_installed: number | null;
+    mileage_removed: number | null;
+    tread_depth_initial: number | null;
+    tread_depth_current: number | null;
+    position: string | null; // 'all', 'front', 'rear'
+    status: TireStatus;
+    notes: string | null;
     created_at: string;
 }
 
@@ -274,6 +308,14 @@ export type MaintenanceRecordInsert = Omit<MaintenanceRecord, 'id' | 'owner_id' 
 };
 
 export type MaintenanceRecordUpdate = Partial<Omit<MaintenanceRecord, 'id' | 'owner_id' | 'created_at'>>;
+
+export type TireSetInsert = Omit<TireSet, 'id' | 'owner_id' | 'created_at'> & {
+    id?: string;
+    owner_id?: string;
+    created_at?: string;
+};
+
+export type TireSetUpdate = Partial<Omit<TireSet, 'id' | 'owner_id' | 'created_at'>>;
 
 // Habits & Goals Types
 export interface HabitSchedule {
@@ -559,6 +601,11 @@ export interface Database {
                 Row: MaintenanceRecord;
                 Insert: MaintenanceRecordInsert;
                 Update: MaintenanceRecordUpdate;
+            };
+            tire_set: {
+                Row: TireSet;
+                Insert: TireSetInsert;
+                Update: TireSetUpdate;
             };
             habit: {
                 Row: Habit;

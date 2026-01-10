@@ -178,48 +178,70 @@ Central hub providing an overview of all modules with quick stats, recent activi
 
 ### 4. Car Tracker — **LIVE** ✅
 
-**Status:** Partial data (1 vehicle, 15 templates, 2 records)
+**Status:** Production-ready with tabbed interface (1 vehicle, 15 templates, 2 records)
 
 **Features:**
-* ✅ Vehicle management:
+* ✅ **Tabbed Interface**: Dashboard, Maintenance, Fuel, Tires, Incidents
+* ✅ **Dashboard Tab**:
+  - Alerts for expiring insurance, registration, inspection, emissions (30-day warnings)
+  - Quick stats: Current mileage, Avg MPG, Service count, Spending (YTD/all-time), Active tires
+  - Recent activity feed (last 5 maintenance records)
+  - Upcoming maintenance section
+  - Vehicle summary with all dates
+* ✅ **Vehicle management**:
   - Add/edit/delete vehicles
   - Track make, model, year, VIN, license plate
   - Purchase details (date, price, mileage)
-  - Insurance information
+  - Insurance information with renewal date
+  - Registration state and expiration date
+  - Inspection and emissions expiration dates
   - Vehicle status (active, sold, etc.)
-* ✅ Maintenance tracking:
-  - Maintenance templates with intervals
+* ✅ **Maintenance Tab**:
+  - Maintenance records filtered by record_type
+  - Quick add from templates dropdown
   - Service records with timeline view
   - Cost tracking (parts + labor)
-  - Vendor history
-  - Warranty work indicator
+  - Vendor history and warranty work indicator
   - Next due date/mileage calculations
   - DIY maintenance flag
-* ✅ Odometer logging
-* ✅ Fuel tracking:
-  - MPG calculations
-  - Price per gallon
-  - Station tracking
+* ✅ **Fuel Tab**:
+  - Fuel log management with add/edit/delete
+  - Auto-calculated MPG and price per gallon
+  - Stats: Avg MPG, Total gallons, Total spent, Avg $/gallon
+  - Station and fuel type tracking
   - Full tank indicator
-* ✅ Delete confirmation modals for vehicles and records
-* ✅ Create/edit modals for vehicles and maintenance
-* ✅ Stats display with averages
+* ✅ **Tires Tab**:
+  - Tire set management (brand, model, size)
+  - Status tracking: active, removed, sold, disposed
+  - Purchase info and mileage tracking
+  - Tread depth monitoring (initial/current)
+  - Quick status change buttons
+* ✅ **Incidents Tab**:
+  - Track incidents, tickets, tolls, parking, other expenses
+  - Type filter tabs
+  - At-fault and insurance claim tracking
+  - Cost and date tracking
+* ✅ Delete confirmation modals throughout
+* ✅ Odometer logging
 
-**Database:** `vehicle`, `odometer_log`, `maintenance_template`, `maintenance_record`, `fuel_log`
+**Database:** `vehicle`, `odometer_log`, `maintenance_template`, `maintenance_record`, `fuel_log`, `tire_set`
 
 **API Endpoints:**
 * `GET/POST /api/car/vehicles` - Manage vehicles
 * `GET/PUT/DELETE /api/car/vehicles/[id]` - Individual vehicle operations
 * `GET/POST /api/car/odometer` - Odometer logs
+* `GET/PATCH/DELETE /api/car/odometer/[id]` - Individual odometer operations
 * `GET/POST /api/car/fuel` - Fuel entries
+* `GET/PATCH/DELETE /api/car/fuel/[id]` - Individual fuel operations
 * `GET/POST /api/car/maintenance/records` - Maintenance records
 * `GET/PUT/DELETE /api/car/maintenance/records/[id]` - Individual records
 * `GET/POST /api/car/maintenance/templates` - Maintenance templates
+* `GET/POST /api/car/tires` - Tire sets
+* `GET/PATCH/DELETE /api/car/tires/[id]` - Individual tire operations
 
-**Views:** `v_vehicle_last_odo`, `v_maintenance_next_due`
+**Views:** `v_vehicle_last_odo`, `v_maintenance_next_due`, `v_vehicle_alerts`, `v_fuel_efficiency`
 
 **Remaining:**
-* [ ] Fuel logging UI
 * [ ] Service history charts
 * [ ] CSV import/export
 
@@ -685,6 +707,7 @@ rosendohq/
 │   │   ├── wishlist/             # Wishlist module
 │   │   ├── media/                # Media tracker module
 │   │   ├── car/                  # Car tracker module
+│   │   │   └── components/       # Tab components (Dashboard, Maintenance, Fuel, Tires, Incidents)
 │   │   ├── reading/              # Reading tracker module
 │   │   ├── habits/               # Habits & Goals module
 │   │   ├── finance/              # Finance module (UI only)
