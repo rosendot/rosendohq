@@ -6,28 +6,10 @@ import { Plus, Search, Heart, ExternalLink, Tag, DollarSign, Calendar, Store, Sh
 import AddWishlistItemModal from '@/app/wishlist/AddWishlistItemModal';
 import EditWishlistItemModal from '@/app/wishlist/EditWishlistItemModal';
 import DeleteConfirmationModal from '@/components/DeleteConfirmationModal';
+import type { WishlistItem } from '@/types/database.types';
 
-// Database-aligned types
-type WishlistStatus = 'wanted' | 'considering' | 'on_hold' | 'purchased' | 'declined';
-
-interface WishlistItem {
-    id: string;
-    title: string;
-    category?: string;
-    status: WishlistStatus;
-    url?: string;
-    notes?: string;
-    priority?: number; // 1-5
-    price_cents?: number;
-    currency?: string;
-    image_url?: string;
-    purchased_at?: string;
-    vendor?: string;
-    brand?: string;
-    color?: string;
-    size?: string;
-    created_at: string;
-}
+type WishlistStatus = WishlistItem['status'];
+type SortOption = 'date_desc' | 'date_asc' | 'price_desc' | 'price_asc' | 'priority_desc' | 'priority_asc' | 'title_asc';
 
 // Status configuration matching database enums
 const STATUSES: { value: WishlistStatus; label: string; color: string }[] = [
@@ -42,6 +24,7 @@ export default function WishlistPage() {
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
     const [selectedStatus, setSelectedStatus] = useState<WishlistStatus | 'all'>('wanted');
     const [searchQuery, setSearchQuery] = useState('');
+    const [sortBy, setSortBy] = useState<SortOption>('priority_desc');
     const [items, setItems] = useState<WishlistItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -136,18 +119,39 @@ export default function WishlistPage() {
         setDeleteConfirmation({ show: false, itemId: null, itemTitle: '' });
     };
 
-    const categories = ['all', ...Array.from(new Set(items.map(item => item.category).filter(Boolean)))];
+    const categories = ['all', ...Array.from(new Set(items.map(item => item.category).filter((c): c is string => c !== null)))];
 
-    const filteredItems = items.filter(item => {
-        const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
-        const matchesStatus = selectedStatus === 'all' || item.status === selectedStatus;
-        const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            item.notes?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            item.brand?.toLowerCase().includes(searchQuery.toLowerCase());
-        return matchesCategory && matchesStatus && matchesSearch;
-    });
+    const filteredItems = items
+        .filter(item => {
+            const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
+            const matchesStatus = selectedStatus === 'all' || item.status === selectedStatus;
+            const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                item.notes?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                item.brand?.toLowerCase().includes(searchQuery.toLowerCase());
+            return matchesCategory && matchesStatus && matchesSearch;
+        })
+        .sort((a, b) => {
+            switch (sortBy) {
+                case 'date_desc':
+                    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+                case 'date_asc':
+                    return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+                case 'price_desc':
+                    return (b.price_cents || 0) - (a.price_cents || 0);
+                case 'price_asc':
+                    return (a.price_cents || 0) - (b.price_cents || 0);
+                case 'priority_desc':
+                    return (b.priority || 0) - (a.priority || 0);
+                case 'priority_asc':
+                    return (a.priority || 0) - (b.priority || 0);
+                case 'title_asc':
+                    return a.title.localeCompare(b.title);
+                default:
+                    return 0;
+            }
+        });
 
-    const getPriorityColor = (priority?: number) => {
+    const getPriorityColor = (priority: number | null) => {
         if (!priority) return 'bg-gray-500/20 text-gray-400 border-gray-500/20';
         switch (priority) {
             case 1: return 'bg-red-500/20 text-red-400 border-red-500/20';
@@ -163,11 +167,11 @@ export default function WishlistPage() {
         return STATUSES.find(s => s.value === status) || STATUSES[0];
     };
 
-    const formatPrice = (cents?: number, currency: string = 'USD') => {
+    const formatPrice = (cents: number | null, currency: string | null = 'USD') => {
         if (!cents) return null;
         return new Intl.NumberFormat('en-US', {
             style: 'currency',
-            currency: currency,
+            currency: currency || 'USD',
         }).format(cents / 100);
     };
 
@@ -257,6 +261,21 @@ export default function WishlistPage() {
                             {STATUSES.map(({ value, label }) => (
                                 <option key={value} value={value}>{label}</option>
                             ))}
+                        </select>
+
+                        {/* Sort */}
+                        <select
+                            value={sortBy}
+                            onChange={(e) => setSortBy(e.target.value as SortOption)}
+                            className="px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        >
+                            <option value="priority_desc">Priority (High-Low)</option>
+                            <option value="priority_asc">Priority (Low-High)</option>
+                            <option value="price_desc">Price (High-Low)</option>
+                            <option value="price_asc">Price (Low-High)</option>
+                            <option value="date_desc">Newest First</option>
+                            <option value="date_asc">Oldest First</option>
+                            <option value="title_asc">Title (A-Z)</option>
                         </select>
                     </div>
                 </div>

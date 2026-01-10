@@ -118,14 +118,16 @@ Central hub providing an overview of all modules with quick stats, recent activi
 
 **Features:**
 * ✅ Grid view with comprehensive item details
-* ✅ Priority-based sorting (1-5 scale)
-* ✅ Category and status filtering
+* ✅ Category and status filtering (wanted, considering, on_hold, purchased, declined)
+* ✅ Sorting options: Priority, Price, Date, Title (ascending/descending)
+* ✅ Priority system (1-5 scale with color coding)
 * ✅ URL links for items
 * ✅ Purchase tracking with timestamps
 * ✅ Multi-currency price support (stored as cents)
 * ✅ Product details: vendor, brand, color, size, image URL
 * ✅ Add/edit/delete functionality with modals
-* ✅ Real-time search across titles and notes
+* ✅ Real-time search across titles, notes, and brand
+* ✅ Shared TypeScript types from `database.types.ts`
 
 **Database:** `wishlist_item`
 

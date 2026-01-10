@@ -3,27 +3,9 @@
 
 import { useState, useEffect } from 'react';
 import { X, Save, Loader2 } from 'lucide-react';
+import type { WishlistItem } from '@/types/database.types';
 
-type WishlistStatus = 'wanted' | 'considering' | 'on_hold' | 'purchased' | 'declined';
-
-interface WishlistItem {
-    id: string;
-    title: string;
-    category?: string;
-    status: WishlistStatus;
-    url?: string;
-    notes?: string;
-    priority?: number;
-    price_cents?: number;
-    currency?: string;
-    image_url?: string;
-    vendor?: string;
-    brand?: string;
-    color?: string;
-    size?: string;
-    purchased_at?: string;
-    created_at: string;
-}
+type WishlistStatus = WishlistItem['status'];
 
 interface EditItemModalProps {
     isOpen: boolean;
