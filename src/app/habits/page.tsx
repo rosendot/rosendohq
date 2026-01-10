@@ -773,7 +773,7 @@ export default function HabitsPage() {
                                                                 <span>Daily</span>
                                                             ) : (
                                                                 <span>
-                                                                    {schedule.days.map(d => ['', 'M', 'T', 'W', 'T', 'F', 'S', 'S'][d]).join('')}
+                                                                    {schedule.days.sort((a, b) => a - b).map(d => ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][d]).join(', ')}
                                                                 </span>
                                                             )}
                                                         </div>
