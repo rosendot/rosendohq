@@ -2,8 +2,10 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { BookOpen, Edit2, Trash2 } from 'lucide-react';
-import { Book, BookStatus, BookFormat } from '@/types/database.types';
+import { Book, BookStatus, BookFormat, ReadingLog, Highlight } from '@/types/database.types';
 import DeleteConfirmationModal from '@/components/DeleteConfirmationModal';
+
+type SortOption = 'date_desc' | 'date_asc' | 'title_asc' | 'title_desc' | 'author_asc' | 'rating_desc' | 'rating_asc' | 'progress_desc' | 'progress_asc';
 
 export default function ReadingTracker() {
     const [books, setBooks] = useState<Book[]>([]);
@@ -11,6 +13,7 @@ export default function ReadingTracker() {
     const [searchQuery, setSearchQuery] = useState('');
     const [filterStatus, setFilterStatus] = useState<BookStatus | 'all'>('all');
     const [filterFormat, setFilterFormat] = useState<BookFormat | 'all'>('all');
+    const [sortBy, setSortBy] = useState<SortOption>('date_desc');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingBook, setEditingBook] = useState<Book | null>(null);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -37,6 +40,40 @@ export default function ReadingTracker() {
         }
     };
 
+    // Sort function
+    const sortBooks = (booksToSort: Book[]): Book[] => {
+        return [...booksToSort].sort((a, b) => {
+            switch (sortBy) {
+                case 'date_desc':
+                    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+                case 'date_asc':
+                    return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+                case 'title_asc':
+                    return a.title.localeCompare(b.title);
+                case 'title_desc':
+                    return b.title.localeCompare(a.title);
+                case 'author_asc':
+                    return (a.author || '').localeCompare(b.author || '');
+                case 'rating_desc':
+                    return (b.rating || 0) - (a.rating || 0);
+                case 'rating_asc':
+                    return (a.rating || 0) - (b.rating || 0);
+                case 'progress_desc': {
+                    const progressA = a.total_pages ? (a.current_page || 0) / a.total_pages : 0;
+                    const progressB = b.total_pages ? (b.current_page || 0) / b.total_pages : 0;
+                    return progressB - progressA;
+                }
+                case 'progress_asc': {
+                    const progressA = a.total_pages ? (a.current_page || 0) / a.total_pages : 0;
+                    const progressB = b.total_pages ? (b.current_page || 0) / b.total_pages : 0;
+                    return progressA - progressB;
+                }
+                default:
+                    return 0;
+            }
+        });
+    };
+
     // Filter books by search query
     const filteredBooks = books.filter(book => {
         const matchesSearch =
@@ -47,13 +84,16 @@ export default function ReadingTracker() {
         return matchesSearch;
     });
 
-    // Group books by status
+    // Apply sorting to filtered books
+    const sortedBooks = sortBooks(filteredBooks);
+
+    // Group books by status (using sorted books)
     const groupedBooks = {
-        reading: filteredBooks.filter(b => b.status === 'reading'),
-        planned: filteredBooks.filter(b => b.status === 'planned'),
-        finished: filteredBooks.filter(b => b.status === 'finished'),
-        on_hold: filteredBooks.filter(b => b.status === 'on_hold'),
-        dropped: filteredBooks.filter(b => b.status === 'dropped'),
+        reading: sortedBooks.filter(b => b.status === 'reading'),
+        planned: sortedBooks.filter(b => b.status === 'planned'),
+        finished: sortedBooks.filter(b => b.status === 'finished'),
+        on_hold: sortedBooks.filter(b => b.status === 'on_hold'),
+        dropped: sortedBooks.filter(b => b.status === 'dropped'),
     };
 
     const openModal = (book?: Book) => {
@@ -168,6 +208,21 @@ export default function ReadingTracker() {
                         <option value="physical">Physical</option>
                         <option value="ebook">eBook</option>
                         <option value="audiobook">Audiobook</option>
+                    </select>
+                    <select
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value as SortOption)}
+                        className="px-4 py-3 bg-gray-900 border border-gray-800 rounded-lg text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    >
+                        <option value="date_desc">Newest First</option>
+                        <option value="date_asc">Oldest First</option>
+                        <option value="title_asc">Title A-Z</option>
+                        <option value="title_desc">Title Z-A</option>
+                        <option value="author_asc">Author A-Z</option>
+                        <option value="rating_desc">Rating High-Low</option>
+                        <option value="rating_asc">Rating Low-High</option>
+                        <option value="progress_desc">Progress High-Low</option>
+                        <option value="progress_asc">Progress Low-High</option>
                     </select>
                 </div>
             </div>
@@ -413,7 +468,7 @@ function BookCard({
     );
 }
 
-// Book Modal Component
+// Book Modal Component with Tabs for Info, Reading Log, and Highlights
 function BookModal({
     book,
     onSave,
@@ -423,6 +478,7 @@ function BookModal({
     onSave: (data: Partial<Book>) => void;
     onClose: () => void;
 }) {
+    const [activeTab, setActiveTab] = useState<'info' | 'logs' | 'highlights'>('info');
     const [formData, setFormData] = useState<Partial<Book>>({
         title: book?.title || '',
         author: book?.author || '',
@@ -434,197 +490,502 @@ function BookModal({
         notes: book?.notes || '',
         started_at: book?.started_at || null,
         finished_at: book?.finished_at || null,
+        highlights: book?.highlights || [],
     });
+
+    // Reading logs state
+    const [readingLogs, setReadingLogs] = useState<ReadingLog[]>([]);
+    const [loadingLogs, setLoadingLogs] = useState(false);
+    const [newLog, setNewLog] = useState({ log_date: new Date().toISOString().split('T')[0], pages: '', minutes: '', note: '' });
+    const [savingLog, setSavingLog] = useState(false);
+
+    // Highlights state
+    const [newHighlight, setNewHighlight] = useState({ text: '', location: '' });
+
+    // Fetch reading logs when editing existing book
+    useEffect(() => {
+        if (book?.id) {
+            fetchReadingLogs();
+        }
+    }, [book?.id]);
+
+    const fetchReadingLogs = async () => {
+        if (!book?.id) return;
+        setLoadingLogs(true);
+        try {
+            const response = await fetch(`/api/books/${book.id}/logs`);
+            const data = await response.json();
+            setReadingLogs(data);
+        } catch (error) {
+            console.error('Error fetching reading logs:', error);
+        } finally {
+            setLoadingLogs(false);
+        }
+    };
+
+    const handleAddLog = async () => {
+        if (!book?.id) return;
+        setSavingLog(true);
+        try {
+            const response = await fetch(`/api/books/${book.id}/logs`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    log_date: newLog.log_date,
+                    pages: newLog.pages ? parseInt(newLog.pages) : null,
+                    minutes: newLog.minutes ? parseInt(newLog.minutes) : null,
+                    note: newLog.note || null,
+                }),
+            });
+            if (response.ok) {
+                setNewLog({ log_date: new Date().toISOString().split('T')[0], pages: '', minutes: '', note: '' });
+                fetchReadingLogs();
+            }
+        } catch (error) {
+            console.error('Error adding reading log:', error);
+        } finally {
+            setSavingLog(false);
+        }
+    };
+
+    const handleDeleteLog = async (logId: string) => {
+        try {
+            await fetch(`/api/books/logs/${logId}`, { method: 'DELETE' });
+            fetchReadingLogs();
+        } catch (error) {
+            console.error('Error deleting reading log:', error);
+        }
+    };
+
+    const handleAddHighlight = () => {
+        if (!newHighlight.text.trim()) return;
+        const highlight: Highlight = {
+            text: newHighlight.text.trim(),
+            location: newHighlight.location.trim() || '',
+            created_at: new Date().toISOString(),
+        };
+        const currentHighlights = formData.highlights || [];
+        setFormData({ ...formData, highlights: [...currentHighlights, highlight] });
+        setNewHighlight({ text: '', location: '' });
+    };
+
+    const handleDeleteHighlight = (index: number) => {
+        const currentHighlights = formData.highlights || [];
+        setFormData({ ...formData, highlights: currentHighlights.filter((_, i) => i !== index) });
+    };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         onSave(formData);
     };
 
+    const tabs = [
+        { id: 'info' as const, label: 'Book Info' },
+        ...(book ? [
+            { id: 'logs' as const, label: `Reading Log (${readingLogs.length})` },
+            { id: 'highlights' as const, label: `Highlights (${(formData.highlights || []).length})` },
+        ] : []),
+    ];
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
             <div className="bg-gray-900 rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
                 <div className="p-6">
-                    <h2 className="text-2xl font-bold text-white mb-6">
+                    <h2 className="text-2xl font-bold text-white mb-4">
                         {book ? 'Edit Book' : 'Add New Book'}
                     </h2>
 
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        {/* Title */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-1">
-                                Title *
-                            </label>
-                            <input
-                                type="text"
-                                required
-                                value={formData.title}
-                                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                        </div>
+                    {/* Tabs */}
+                    <div className="flex gap-1 mb-6 border-b border-gray-800">
+                        {tabs.map(tab => (
+                            <button
+                                key={tab.id}
+                                type="button"
+                                onClick={() => setActiveTab(tab.id)}
+                                className={`px-4 py-2 text-sm font-medium transition-colors ${
+                                    activeTab === tab.id
+                                        ? 'text-blue-400 border-b-2 border-blue-400'
+                                        : 'text-gray-400 hover:text-white'
+                                }`}
+                            >
+                                {tab.label}
+                            </button>
+                        ))}
+                    </div>
 
-                        {/* Author */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-1">
-                                Author
-                            </label>
-                            <input
-                                type="text"
-                                value={formData.author || ''}
-                                onChange={(e) => setFormData({ ...formData, author: e.target.value })}
-                                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                        </div>
-
-                        {/* Status and Format */}
-                        <div className="grid grid-cols-2 gap-4">
+                    {/* Book Info Tab */}
+                    {activeTab === 'info' && (
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            {/* Title */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-300 mb-1">
-                                    Status
-                                </label>
-                                <select
-                                    value={formData.status}
-                                    onChange={(e) => setFormData({ ...formData, status: e.target.value as BookStatus })}
-                                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                >
-                                    <option value="planned">Planned</option>
-                                    <option value="reading">Reading</option>
-                                    <option value="finished">Finished</option>
-                                    <option value="on_hold">On Hold</option>
-                                    <option value="dropped">Dropped</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">
-                                    Format
-                                </label>
-                                <select
-                                    value={formData.format || ''}
-                                    onChange={(e) => setFormData({ ...formData, format: e.target.value as BookFormat || null })}
-                                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                >
-                                    <option value="">Select format</option>
-                                    <option value="physical">Physical</option>
-                                    <option value="ebook">eBook</option>
-                                    <option value="audiobook">Audiobook</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        {/* Pages */}
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">
-                                    Current Page
+                                    Title *
                                 </label>
                                 <input
-                                    type="number"
-                                    min="0"
-                                    value={formData.current_page || 0}
-                                    onChange={(e) => setFormData({ ...formData, current_page: parseInt(e.target.value) || 0 })}
+                                    type="text"
+                                    required
+                                    value={formData.title}
+                                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                                     className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 />
                             </div>
 
+                            {/* Author */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-300 mb-1">
-                                    Total Pages
+                                    Author
                                 </label>
                                 <input
-                                    type="number"
-                                    min="0"
-                                    value={formData.total_pages || ''}
-                                    onChange={(e) => setFormData({ ...formData, total_pages: parseInt(e.target.value) || null })}
+                                    type="text"
+                                    value={formData.author || ''}
+                                    onChange={(e) => setFormData({ ...formData, author: e.target.value })}
                                     className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 />
                             </div>
-                        </div>
 
-                        {/* Rating */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-1">
-                                Rating
-                            </label>
-                            <div className="flex gap-2">
-                                {[1, 2, 3, 4, 5].map((star) => (
-                                    <button
-                                        key={star}
-                                        type="button"
-                                        onClick={() => setFormData({ ...formData, rating: star })}
-                                        className="text-3xl focus:outline-none"
+                            {/* Status and Format */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                                        Status
+                                    </label>
+                                    <select
+                                        value={formData.status}
+                                        onChange={(e) => setFormData({ ...formData, status: e.target.value as BookStatus })}
+                                        className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     >
-                                        {formData.rating && star <= formData.rating ? '★' : '☆'}
+                                        <option value="planned">Planned</option>
+                                        <option value="reading">Reading</option>
+                                        <option value="finished">Finished</option>
+                                        <option value="on_hold">On Hold</option>
+                                        <option value="dropped">Dropped</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                                        Format
+                                    </label>
+                                    <select
+                                        value={formData.format || ''}
+                                        onChange={(e) => setFormData({ ...formData, format: e.target.value as BookFormat || null })}
+                                        className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    >
+                                        <option value="">Select format</option>
+                                        <option value="physical">Physical</option>
+                                        <option value="ebook">eBook</option>
+                                        <option value="audiobook">Audiobook</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            {/* Pages */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                                        Current Page
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        value={formData.current_page || 0}
+                                        onChange={(e) => setFormData({ ...formData, current_page: parseInt(e.target.value) || 0 })}
+                                        className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                                        Total Pages
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        value={formData.total_pages || ''}
+                                        onChange={(e) => setFormData({ ...formData, total_pages: parseInt(e.target.value) || null })}
+                                        className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Rating */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300 mb-1">
+                                    Rating
+                                </label>
+                                <div className="flex gap-2">
+                                    {[1, 2, 3, 4, 5].map((star) => (
+                                        <button
+                                            key={star}
+                                            type="button"
+                                            onClick={() => setFormData({ ...formData, rating: star })}
+                                            className="text-3xl focus:outline-none"
+                                        >
+                                            {formData.rating && star <= formData.rating ? '★' : '☆'}
+                                        </button>
+                                    ))}
+                                    <button
+                                        type="button"
+                                        onClick={() => setFormData({ ...formData, rating: null })}
+                                        className="ml-2 text-sm text-gray-400 hover:text-white"
+                                    >
+                                        Clear
                                     </button>
-                                ))}
+                                </div>
+                            </div>
+
+                            {/* Dates */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                                        Started
+                                    </label>
+                                    <input
+                                        type="date"
+                                        value={formData.started_at || ''}
+                                        onChange={(e) => setFormData({ ...formData, started_at: e.target.value || null })}
+                                        className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                                        Finished
+                                    </label>
+                                    <input
+                                        type="date"
+                                        value={formData.finished_at || ''}
+                                        onChange={(e) => setFormData({ ...formData, finished_at: e.target.value || null })}
+                                        className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Notes */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300 mb-1">
+                                    Notes
+                                </label>
+                                <textarea
+                                    rows={3}
+                                    value={formData.notes || ''}
+                                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex gap-3 pt-4">
+                                <button
+                                    type="submit"
+                                    className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                                >
+                                    {book ? 'Update' : 'Add'} Book
+                                </button>
                                 <button
                                     type="button"
-                                    onClick={() => setFormData({ ...formData, rating: null })}
-                                    className="ml-2 text-sm text-gray-400 hover:text-white"
+                                    onClick={onClose}
+                                    className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors"
                                 >
-                                    Clear
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    )}
+
+                    {/* Reading Log Tab */}
+                    {activeTab === 'logs' && book && (
+                        <div className="space-y-4">
+                            {/* Add New Log */}
+                            <div className="p-4 bg-gray-800 rounded-lg">
+                                <h3 className="text-sm font-medium text-gray-300 mb-3">Log a Reading Session</h3>
+                                <div className="grid grid-cols-2 gap-3 mb-3">
+                                    <div>
+                                        <label className="block text-xs text-gray-400 mb-1">Date</label>
+                                        <input
+                                            type="date"
+                                            value={newLog.log_date}
+                                            onChange={(e) => setNewLog({ ...newLog, log_date: e.target.value })}
+                                            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs text-gray-400 mb-1">Pages Read</label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            placeholder="e.g. 30"
+                                            value={newLog.pages}
+                                            onChange={(e) => setNewLog({ ...newLog, pages: e.target.value })}
+                                            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-3 mb-3">
+                                    <div>
+                                        <label className="block text-xs text-gray-400 mb-1">Minutes</label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            placeholder="e.g. 45"
+                                            value={newLog.minutes}
+                                            onChange={(e) => setNewLog({ ...newLog, minutes: e.target.value })}
+                                            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs text-gray-400 mb-1">Note (optional)</label>
+                                        <input
+                                            type="text"
+                                            placeholder="Quick note..."
+                                            value={newLog.note}
+                                            onChange={(e) => setNewLog({ ...newLog, note: e.target.value })}
+                                            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                        />
+                                    </div>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={handleAddLog}
+                                    disabled={savingLog || (!newLog.pages && !newLog.minutes)}
+                                    className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded transition-colors text-sm"
+                                >
+                                    {savingLog ? 'Saving...' : 'Add Log Entry'}
+                                </button>
+                            </div>
+
+                            {/* Log List */}
+                            <div>
+                                <h3 className="text-sm font-medium text-gray-300 mb-3">Reading History</h3>
+                                {loadingLogs ? (
+                                    <p className="text-gray-500 text-sm">Loading...</p>
+                                ) : readingLogs.length === 0 ? (
+                                    <p className="text-gray-500 text-sm">No reading sessions logged yet.</p>
+                                ) : (
+                                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                                        {readingLogs.map(log => (
+                                            <div key={log.id} className="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
+                                                <div>
+                                                    <p className="text-white text-sm">
+                                                        {new Date(log.log_date).toLocaleDateString()}
+                                                        {log.pages && <span className="text-gray-400 ml-2">{log.pages} pages</span>}
+                                                        {log.minutes && <span className="text-gray-400 ml-2">{log.minutes} min</span>}
+                                                    </p>
+                                                    {log.note && <p className="text-gray-500 text-xs mt-1">{log.note}</p>}
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleDeleteLog(log.id)}
+                                                    className="p-1 hover:bg-gray-700 rounded"
+                                                >
+                                                    <Trash2 className="w-4 h-4 text-red-400" />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Close button */}
+                            <div className="flex justify-end pt-4">
+                                <button
+                                    type="button"
+                                    onClick={onClose}
+                                    className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors"
+                                >
+                                    Close
                                 </button>
                             </div>
                         </div>
+                    )}
 
-                        {/* Dates */}
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">
-                                    Started
-                                </label>
-                                <input
-                                    type="date"
-                                    value={formData.started_at || ''}
-                                    onChange={(e) => setFormData({ ...formData, started_at: e.target.value || null })}
-                                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                />
+                    {/* Highlights Tab */}
+                    {activeTab === 'highlights' && book && (
+                        <div className="space-y-4">
+                            {/* Add New Highlight */}
+                            <div className="p-4 bg-gray-800 rounded-lg">
+                                <h3 className="text-sm font-medium text-gray-300 mb-3">Add a Highlight</h3>
+                                <div className="space-y-3">
+                                    <div>
+                                        <label className="block text-xs text-gray-400 mb-1">Quote / Text *</label>
+                                        <textarea
+                                            rows={2}
+                                            placeholder="Enter the quote or highlighted text..."
+                                            value={newHighlight.text}
+                                            onChange={(e) => setNewHighlight({ ...newHighlight, text: e.target.value })}
+                                            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs text-gray-400 mb-1">Location (page, chapter, etc.)</label>
+                                        <input
+                                            type="text"
+                                            placeholder="e.g. Page 42, Chapter 3"
+                                            value={newHighlight.location}
+                                            onChange={(e) => setNewHighlight({ ...newHighlight, location: e.target.value })}
+                                            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                        />
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={handleAddHighlight}
+                                        disabled={!newHighlight.text.trim()}
+                                        className="w-full px-4 py-2 bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded transition-colors text-sm"
+                                    >
+                                        Add Highlight
+                                    </button>
+                                </div>
                             </div>
 
+                            {/* Highlights List */}
                             <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">
-                                    Finished
-                                </label>
-                                <input
-                                    type="date"
-                                    value={formData.finished_at || ''}
-                                    onChange={(e) => setFormData({ ...formData, finished_at: e.target.value || null })}
-                                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                />
+                                <h3 className="text-sm font-medium text-gray-300 mb-3">Saved Highlights</h3>
+                                {(formData.highlights || []).length === 0 ? (
+                                    <p className="text-gray-500 text-sm">No highlights saved yet.</p>
+                                ) : (
+                                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                                        {(formData.highlights || []).map((highlight, index) => (
+                                            <div key={index} className="p-3 bg-gray-800 rounded-lg border-l-4 border-yellow-500">
+                                                <div className="flex justify-between items-start">
+                                                    <div className="flex-1">
+                                                        <p className="text-white text-sm italic">&quot;{highlight.text}&quot;</p>
+                                                        {highlight.location && (
+                                                            <p className="text-xs text-gray-400 mt-2">{highlight.location}</p>
+                                                        )}
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleDeleteHighlight(index)}
+                                                        className="p-1 hover:bg-gray-700 rounded ml-2"
+                                                    >
+                                                        <Trash2 className="w-4 h-4 text-red-400" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Save & Close buttons */}
+                            <div className="flex gap-3 pt-4">
+                                <button
+                                    type="button"
+                                    onClick={() => onSave(formData)}
+                                    className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                                >
+                                    Save Highlights
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={onClose}
+                                    className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors"
+                                >
+                                    Cancel
+                                </button>
                             </div>
                         </div>
-
-                        {/* Notes */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-1">
-                                Notes
-                            </label>
-                            <textarea
-                                rows={3}
-                                value={formData.notes || ''}
-                                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                        </div>
-
-                        {/* Actions */}
-                        <div className="flex gap-3 pt-4">
-                            <button
-                                type="submit"
-                                className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-                            >
-                                {book ? 'Update' : 'Add'} Book
-                            </button>
-                            <button
-                                type="button"
-                                onClick={onClose}
-                                className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors"
-                            >
-                                Cancel
-                            </button>
-                        </div>
-                    </form>
+                    )}
                 </div>
             </div>
         </div>

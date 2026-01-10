@@ -260,15 +260,24 @@ Central hub providing an overview of all modules with quick stats, recent activi
 * ✅ Book status tracking (Planned, Reading, Finished, On Hold, Dropped)
 * ✅ Rating system (1-5 stars with quick rating)
 * ✅ Format filtering (Physical, eBook, Audiobook)
+* ✅ **Sorting options**: Newest/Oldest, Title A-Z/Z-A, Author A-Z, Rating High-Low, Progress High-Low
 * ✅ Progress tracking:
   - Current page / total pages
   - Progress percentage display
   - Start and completion date tracking
-* ✅ Book highlights feature:
+* ✅ **Reading Log** (track daily reading sessions):
+  - Log date, pages read, minutes spent
+  - Session notes
+  - View reading history per book
+  - Add/delete log entries
+* ✅ **Book Highlights**:
+  - Add quotes/highlights with location reference
   - Store highlights as JSON array
-  - Display highlights with book details
+  - Add/delete highlights
+  - Yellow accent styling for highlight cards
+* ✅ **Tabbed Edit Modal**: Book Info, Reading Log, Highlights tabs
 * ✅ Add/edit/delete functionality with modals
-* ✅ Grid view with book cards
+* ✅ Carousel view grouped by status
 * ✅ Status filter dropdown
 * ✅ Delete confirmation modal
 * ✅ Real-time search
@@ -278,12 +287,13 @@ Central hub providing an overview of all modules with quick stats, recent activi
 **API Endpoints:**
 * `GET /api/books` - Query books (supports `?status=*` and `?format=*`)
 * `POST /api/books` - Create book
-* `GET/PUT/DELETE /api/books/[id]` - Individual book operations
+* `GET/PATCH/DELETE /api/books/[id]` - Individual book operations
+* `GET/POST /api/books/[id]/logs` - Reading log entries for a book
+* `GET/PATCH/DELETE /api/books/logs/[logId]` - Individual log operations
 
 **Views:** `v_reading_pace_week`
 
 **Remaining:**
-* [ ] Reading log UI for tracking daily progress
 * [ ] Reading statistics and charts
 * [ ] CSV import/export
 

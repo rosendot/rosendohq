@@ -155,6 +155,13 @@ export type BookInsert = Omit<Book, 'id' | 'created_at' | 'updated_at'>;
 export type BookUpdate = Partial<Omit<Book, 'id' | 'owner_id' | 'created_at'>>;
 
 export type ReadingLogInsert = Omit<ReadingLog, 'id' | 'created_at'>;
+export type ReadingLogUpdate = Partial<Omit<ReadingLog, 'id' | 'owner_id' | 'created_at'>>;
+
+export interface Highlight {
+    location: string;
+    text: string;
+    created_at: string;
+}
 
 export type VehicleStatus = 'active' | 'sold' | 'traded' | 'totaled';
 export type FuelType = 'regular' | 'premium' | 'diesel' | 'electric';
