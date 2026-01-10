@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import Link from 'next/link';
-import { BookOpen, X } from 'lucide-react';
-import { Book, BookStatus, BookFormat } from '@/types/database.types';
+import { BookOpen, Edit2, Trash2 } from 'lucide-react';
+import { Book, BookStatus, BookFormat, ReadingLog, Highlight } from '@/types/database.types';
+import DeleteConfirmationModal from '@/components/DeleteConfirmationModal';
 
 type SortOption = 'date_desc' | 'date_asc' | 'title_asc' | 'title_desc' | 'author_asc' | 'rating_desc' | 'rating_asc' | 'progress_desc' | 'progress_asc';
 
@@ -14,7 +14,10 @@ export default function ReadingTracker() {
     const [filterStatus, setFilterStatus] = useState<BookStatus | 'all'>('all');
     const [filterFormat, setFilterFormat] = useState<BookFormat | 'all'>('all');
     const [sortBy, setSortBy] = useState<SortOption>('date_desc');
-    const [showAddModal, setShowAddModal] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingBook, setEditingBook] = useState<Book | null>(null);
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [bookToDelete, setBookToDelete] = useState<{ id: string; title: string } | null>(null);
 
     // Fetch books
     useEffect(() => {
@@ -93,6 +96,64 @@ export default function ReadingTracker() {
         dropped: sortedBooks.filter(b => b.status === 'dropped'),
     };
 
+    const openModal = (book?: Book) => {
+        setEditingBook(book || null);
+        setIsModalOpen(true);
+    };
+
+    const closeModal = () => {
+        setIsModalOpen(false);
+        setEditingBook(null);
+    };
+
+    const handleSave = async (bookData: Partial<Book>) => {
+        try {
+            if (editingBook) {
+                // Update existing book
+                await fetch(`/api/books/${editingBook.id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(bookData),
+                });
+            } else {
+                // Create new book
+                await fetch('/api/books', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(bookData),
+                });
+            }
+            fetchBooks();
+            closeModal();
+        } catch (error) {
+            console.error('Error saving book:', error);
+        }
+    };
+
+    const handleDeleteClick = (book: Book) => {
+        setBookToDelete({ id: book.id, title: book.title });
+        setDeleteModalOpen(true);
+    };
+
+    const handleDeleteConfirm = async () => {
+        if (!bookToDelete) return;
+
+        try {
+            await fetch(`/api/books/${bookToDelete.id}`, { method: 'DELETE' });
+            fetchBooks();
+        } catch (error) {
+            console.error('Error deleting book:', error);
+        } finally {
+            setDeleteModalOpen(false);
+            setBookToDelete(null);
+        }
+    };
+
+    const handleDeleteCancel = () => {
+        setDeleteModalOpen(false);
+        setBookToDelete(null);
+    };
+
     if (loading) {
         return <div className="p-8">Loading...</div>;
     }
@@ -108,7 +169,7 @@ export default function ReadingTracker() {
                             <p className="text-gray-400">Track your reading progress</p>
                         </div>
                         <button
-                            onClick={() => setShowAddModal(true)}
+                            onClick={() => openModal()}
                             className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
                         >
                             <BookOpen className="w-5 h-5" />
@@ -172,6 +233,8 @@ export default function ReadingTracker() {
                     <BookCarousel
                         title={`Continue Reading (${groupedBooks.reading.length})`}
                         books={groupedBooks.reading}
+                        onEdit={openModal}
+                        onDelete={handleDeleteClick}
                     />
                 )}
 
@@ -179,6 +242,8 @@ export default function ReadingTracker() {
                     <BookCarousel
                         title={`Plan to Read (${groupedBooks.planned.length})`}
                         books={groupedBooks.planned}
+                        onEdit={openModal}
+                        onDelete={handleDeleteClick}
                     />
                 )}
 
@@ -186,6 +251,8 @@ export default function ReadingTracker() {
                     <BookCarousel
                         title={`Completed (${groupedBooks.finished.length})`}
                         books={groupedBooks.finished}
+                        onEdit={openModal}
+                        onDelete={handleDeleteClick}
                     />
                 )}
 
@@ -193,6 +260,8 @@ export default function ReadingTracker() {
                     <BookCarousel
                         title={`On Hold (${groupedBooks.on_hold.length})`}
                         books={groupedBooks.on_hold}
+                        onEdit={openModal}
+                        onDelete={handleDeleteClick}
                     />
                 )}
 
@@ -200,20 +269,29 @@ export default function ReadingTracker() {
                     <BookCarousel
                         title={`Dropped (${groupedBooks.dropped.length})`}
                         books={groupedBooks.dropped}
+                        onEdit={openModal}
+                        onDelete={handleDeleteClick}
                     />
                 )}
             </div>
 
-            {/* Add Book Modal */}
-            {showAddModal && (
-                <AddBookModal
-                    onClose={() => setShowAddModal(false)}
-                    onSuccess={() => {
-                        setShowAddModal(false);
-                        fetchBooks();
-                    }}
+            {/* Book Edit Modal */}
+            {isModalOpen && (
+                <BookModal
+                    book={editingBook}
+                    onSave={handleSave}
+                    onClose={closeModal}
                 />
             )}
+
+            {/* Delete Confirmation Modal */}
+            <DeleteConfirmationModal
+                isOpen={deleteModalOpen}
+                onClose={handleDeleteCancel}
+                onConfirm={handleDeleteConfirm}
+                itemName={bookToDelete?.title}
+                title="Delete Book"
+            />
         </div>
     );
 }
@@ -222,9 +300,13 @@ export default function ReadingTracker() {
 function BookCarousel({
     title,
     books,
+    onEdit,
+    onDelete,
 }: {
     title: string;
     books: Book[];
+    onEdit: (book: Book) => void;
+    onDelete: (book: Book) => void;
 }) {
     const scrollRef = useRef<HTMLDivElement>(null);
     const [showLeftArrow, setShowLeftArrow] = useState(false);
@@ -256,7 +338,7 @@ function BookCarousel({
     };
 
     return (
-        <div className="relative mb-8">
+        <div className="relative">
             <h2 className="text-2xl font-bold text-white mb-4">{title}</h2>
 
             <div className="relative group">
@@ -274,7 +356,12 @@ function BookCarousel({
                     className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth"
                 >
                     {books.map((book) => (
-                        <BookCard key={book.id} book={book} />
+                        <BookCard
+                            key={book.id}
+                            book={book}
+                            onEdit={() => onEdit(book)}
+                            onDelete={() => onDelete(book)}
+                        />
                     ))}
                 </div>
 
@@ -291,17 +378,22 @@ function BookCarousel({
     );
 }
 
-// Book Card Component - Now clickable, navigates to detail page
-function BookCard({ book }: { book: Book }) {
+// Book Card Component
+function BookCard({
+    book,
+    onEdit,
+    onDelete,
+}: {
+    book: Book;
+    onEdit: () => void;
+    onDelete: () => void;
+}) {
     const progressPercentage = book.total_pages && book.current_page
         ? Math.round((book.current_page / book.total_pages) * 100)
         : null;
 
     return (
-        <Link
-            href={`/reading/${book.id}`}
-            className="group flex-shrink-0 w-64 bg-gray-900 rounded-lg overflow-hidden border border-gray-800 hover:border-blue-500/50 transition-all cursor-pointer"
-        >
+        <div className="group flex-shrink-0 w-64 bg-gray-900 rounded-lg overflow-hidden border border-gray-800 hover:border-gray-700 transition-all">
             {/* Book Cover Placeholder */}
             <div className="h-40 bg-gradient-to-br from-blue-900 to-purple-900 flex items-center justify-center relative">
                 <div className="text-center p-4">
@@ -310,8 +402,26 @@ function BookCard({ book }: { book: Book }) {
             </div>
 
             {/* Book Info */}
-            <div className="p-4">
-                <h3 className="font-semibold text-white text-sm line-clamp-2 mb-1">
+            <div className="p-4 relative">
+                {/* Action Buttons - Top Right */}
+                <div className="absolute top-2 right-2 flex gap-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
+                    <button
+                        onClick={onEdit}
+                        className="p-2 hover:bg-gray-800 rounded-lg transition-colors active:bg-gray-700"
+                        aria-label="Edit book"
+                    >
+                        <Edit2 className="w-4 h-4 text-gray-400" />
+                    </button>
+                    <button
+                        onClick={onDelete}
+                        className="p-2 hover:bg-gray-800 rounded-lg transition-colors active:bg-gray-700"
+                        aria-label="Delete book"
+                    >
+                        <Trash2 className="w-4 h-4 text-red-400" />
+                    </button>
+                </div>
+
+                <h3 className="font-semibold text-white text-sm line-clamp-2 mb-1 pr-20">
                     {book.title}
                 </h3>
                 {book.author && (
@@ -354,151 +464,529 @@ function BookCard({ book }: { book: Book }) {
                     <p className="text-gray-500 text-xs mt-2 line-clamp-2">{book.notes}</p>
                 )}
             </div>
-        </Link>
+        </div>
     );
 }
 
-// Simple Add Book Modal
-function AddBookModal({
+// Book Modal Component with Tabs for Info, Reading Log, and Highlights
+function BookModal({
+    book,
+    onSave,
     onClose,
-    onSuccess,
 }: {
+    book: Book | null;
+    onSave: (data: Partial<Book>) => void;
     onClose: () => void;
-    onSuccess: () => void;
 }) {
-    const [formData, setFormData] = useState({
-        title: '',
-        author: '',
-        status: 'planned' as BookStatus,
-        format: '' as BookFormat | '',
+    const [activeTab, setActiveTab] = useState<'info' | 'logs' | 'highlights'>('info');
+    const [formData, setFormData] = useState<Partial<Book>>({
+        title: book?.title || '',
+        author: book?.author || '',
+        status: book?.status || 'planned',
+        current_page: book?.current_page || 0,
+        total_pages: book?.total_pages || null,
+        format: book?.format || null,
+        rating: book?.rating || null,
+        notes: book?.notes || '',
+        started_at: book?.started_at || null,
+        finished_at: book?.finished_at || null,
+        highlights: book?.highlights || [],
     });
-    const [saving, setSaving] = useState(false);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!formData.title.trim()) return;
+    // Reading logs state
+    const [readingLogs, setReadingLogs] = useState<ReadingLog[]>([]);
+    const [loadingLogs, setLoadingLogs] = useState(false);
+    const [newLog, setNewLog] = useState({ log_date: new Date().toISOString().split('T')[0], pages: '', minutes: '', note: '' });
+    const [savingLog, setSavingLog] = useState(false);
 
-        setSaving(true);
+    // Highlights state
+    const [newHighlight, setNewHighlight] = useState({ text: '', location: '' });
+
+    // Fetch reading logs when editing existing book
+    useEffect(() => {
+        if (book?.id) {
+            fetchReadingLogs();
+        }
+    }, [book?.id]);
+
+    const fetchReadingLogs = async () => {
+        if (!book?.id) return;
+        setLoadingLogs(true);
         try {
-            const response = await fetch('/api/books', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    title: formData.title.trim(),
-                    author: formData.author.trim() || null,
-                    status: formData.status,
-                    format: formData.format || null,
-                }),
-            });
-
-            if (response.ok) {
-                onSuccess();
-            }
+            const response = await fetch(`/api/books/${book.id}/logs`);
+            const data = await response.json();
+            setReadingLogs(data);
         } catch (error) {
-            console.error('Error creating book:', error);
+            console.error('Error fetching reading logs:', error);
         } finally {
-            setSaving(false);
+            setLoadingLogs(false);
         }
     };
 
+    const handleAddLog = async () => {
+        if (!book?.id) return;
+        setSavingLog(true);
+        try {
+            const response = await fetch(`/api/books/${book.id}/logs`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    log_date: newLog.log_date,
+                    pages: newLog.pages ? parseInt(newLog.pages) : null,
+                    minutes: newLog.minutes ? parseInt(newLog.minutes) : null,
+                    note: newLog.note || null,
+                }),
+            });
+            if (response.ok) {
+                setNewLog({ log_date: new Date().toISOString().split('T')[0], pages: '', minutes: '', note: '' });
+                fetchReadingLogs();
+            }
+        } catch (error) {
+            console.error('Error adding reading log:', error);
+        } finally {
+            setSavingLog(false);
+        }
+    };
+
+    const handleDeleteLog = async (logId: string) => {
+        try {
+            await fetch(`/api/books/logs/${logId}`, { method: 'DELETE' });
+            fetchReadingLogs();
+        } catch (error) {
+            console.error('Error deleting reading log:', error);
+        }
+    };
+
+    const handleAddHighlight = () => {
+        if (!newHighlight.text.trim()) return;
+        const highlight: Highlight = {
+            text: newHighlight.text.trim(),
+            location: newHighlight.location.trim() || '',
+            created_at: new Date().toISOString(),
+        };
+        const currentHighlights = formData.highlights || [];
+        setFormData({ ...formData, highlights: [...currentHighlights, highlight] });
+        setNewHighlight({ text: '', location: '' });
+    };
+
+    const handleDeleteHighlight = (index: number) => {
+        const currentHighlights = formData.highlights || [];
+        setFormData({ ...formData, highlights: currentHighlights.filter((_, i) => i !== index) });
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        onSave(formData);
+    };
+
+    const tabs = [
+        { id: 'info' as const, label: 'Book Info' },
+        ...(book ? [
+            { id: 'logs' as const, label: `Reading Log (${readingLogs.length})` },
+            { id: 'highlights' as const, label: `Highlights (${(formData.highlights || []).length})` },
+        ] : []),
+    ];
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-            <div className="bg-gray-900 rounded-lg w-full max-w-md">
-                <div className="flex items-center justify-between p-4 border-b border-gray-800">
-                    <h2 className="text-xl font-bold text-white">Add New Book</h2>
-                    <button
-                        onClick={onClose}
-                        className="text-gray-400 hover:text-white transition-colors"
-                    >
-                        <X className="w-5 h-5" />
-                    </button>
+            <div className="bg-gray-900 rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                <div className="p-6">
+                    <h2 className="text-2xl font-bold text-white mb-4">
+                        {book ? 'Edit Book' : 'Add New Book'}
+                    </h2>
+
+                    {/* Tabs */}
+                    <div className="flex gap-1 mb-6 border-b border-gray-800">
+                        {tabs.map(tab => (
+                            <button
+                                key={tab.id}
+                                type="button"
+                                onClick={() => setActiveTab(tab.id)}
+                                className={`px-4 py-2 text-sm font-medium transition-colors ${
+                                    activeTab === tab.id
+                                        ? 'text-blue-400 border-b-2 border-blue-400'
+                                        : 'text-gray-400 hover:text-white'
+                                }`}
+                            >
+                                {tab.label}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Book Info Tab */}
+                    {activeTab === 'info' && (
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            {/* Title */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300 mb-1">
+                                    Title *
+                                </label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={formData.title}
+                                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                            </div>
+
+                            {/* Author */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300 mb-1">
+                                    Author
+                                </label>
+                                <input
+                                    type="text"
+                                    value={formData.author || ''}
+                                    onChange={(e) => setFormData({ ...formData, author: e.target.value })}
+                                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                            </div>
+
+                            {/* Status and Format */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                                        Status
+                                    </label>
+                                    <select
+                                        value={formData.status}
+                                        onChange={(e) => setFormData({ ...formData, status: e.target.value as BookStatus })}
+                                        className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    >
+                                        <option value="planned">Planned</option>
+                                        <option value="reading">Reading</option>
+                                        <option value="finished">Finished</option>
+                                        <option value="on_hold">On Hold</option>
+                                        <option value="dropped">Dropped</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                                        Format
+                                    </label>
+                                    <select
+                                        value={formData.format || ''}
+                                        onChange={(e) => setFormData({ ...formData, format: e.target.value as BookFormat || null })}
+                                        className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    >
+                                        <option value="">Select format</option>
+                                        <option value="physical">Physical</option>
+                                        <option value="ebook">eBook</option>
+                                        <option value="audiobook">Audiobook</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            {/* Pages */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                                        Current Page
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        value={formData.current_page || 0}
+                                        onChange={(e) => setFormData({ ...formData, current_page: parseInt(e.target.value) || 0 })}
+                                        className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                                        Total Pages
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        value={formData.total_pages || ''}
+                                        onChange={(e) => setFormData({ ...formData, total_pages: parseInt(e.target.value) || null })}
+                                        className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Rating */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300 mb-1">
+                                    Rating
+                                </label>
+                                <div className="flex gap-2">
+                                    {[1, 2, 3, 4, 5].map((star) => (
+                                        <button
+                                            key={star}
+                                            type="button"
+                                            onClick={() => setFormData({ ...formData, rating: star })}
+                                            className="text-3xl focus:outline-none"
+                                        >
+                                            {formData.rating && star <= formData.rating ? '★' : '☆'}
+                                        </button>
+                                    ))}
+                                    <button
+                                        type="button"
+                                        onClick={() => setFormData({ ...formData, rating: null })}
+                                        className="ml-2 text-sm text-gray-400 hover:text-white"
+                                    >
+                                        Clear
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Dates */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                                        Started
+                                    </label>
+                                    <input
+                                        type="date"
+                                        value={formData.started_at || ''}
+                                        onChange={(e) => setFormData({ ...formData, started_at: e.target.value || null })}
+                                        className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                                        Finished
+                                    </label>
+                                    <input
+                                        type="date"
+                                        value={formData.finished_at || ''}
+                                        onChange={(e) => setFormData({ ...formData, finished_at: e.target.value || null })}
+                                        className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Notes */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300 mb-1">
+                                    Notes
+                                </label>
+                                <textarea
+                                    rows={3}
+                                    value={formData.notes || ''}
+                                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex gap-3 pt-4">
+                                <button
+                                    type="submit"
+                                    className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                                >
+                                    {book ? 'Update' : 'Add'} Book
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={onClose}
+                                    className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    )}
+
+                    {/* Reading Log Tab */}
+                    {activeTab === 'logs' && book && (
+                        <div className="space-y-4">
+                            {/* Add New Log */}
+                            <div className="p-4 bg-gray-800 rounded-lg">
+                                <h3 className="text-sm font-medium text-gray-300 mb-3">Log a Reading Session</h3>
+                                <div className="grid grid-cols-2 gap-3 mb-3">
+                                    <div>
+                                        <label className="block text-xs text-gray-400 mb-1">Date</label>
+                                        <input
+                                            type="date"
+                                            value={newLog.log_date}
+                                            onChange={(e) => setNewLog({ ...newLog, log_date: e.target.value })}
+                                            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs text-gray-400 mb-1">Pages Read</label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            placeholder="e.g. 30"
+                                            value={newLog.pages}
+                                            onChange={(e) => setNewLog({ ...newLog, pages: e.target.value })}
+                                            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-3 mb-3">
+                                    <div>
+                                        <label className="block text-xs text-gray-400 mb-1">Minutes</label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            placeholder="e.g. 45"
+                                            value={newLog.minutes}
+                                            onChange={(e) => setNewLog({ ...newLog, minutes: e.target.value })}
+                                            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs text-gray-400 mb-1">Note (optional)</label>
+                                        <input
+                                            type="text"
+                                            placeholder="Quick note..."
+                                            value={newLog.note}
+                                            onChange={(e) => setNewLog({ ...newLog, note: e.target.value })}
+                                            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                        />
+                                    </div>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={handleAddLog}
+                                    disabled={savingLog || (!newLog.pages && !newLog.minutes)}
+                                    className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded transition-colors text-sm"
+                                >
+                                    {savingLog ? 'Saving...' : 'Add Log Entry'}
+                                </button>
+                            </div>
+
+                            {/* Log List */}
+                            <div>
+                                <h3 className="text-sm font-medium text-gray-300 mb-3">Reading History</h3>
+                                {loadingLogs ? (
+                                    <p className="text-gray-500 text-sm">Loading...</p>
+                                ) : readingLogs.length === 0 ? (
+                                    <p className="text-gray-500 text-sm">No reading sessions logged yet.</p>
+                                ) : (
+                                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                                        {readingLogs.map(log => (
+                                            <div key={log.id} className="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
+                                                <div>
+                                                    <p className="text-white text-sm">
+                                                        {new Date(log.log_date).toLocaleDateString()}
+                                                        {log.pages && <span className="text-gray-400 ml-2">{log.pages} pages</span>}
+                                                        {log.minutes && <span className="text-gray-400 ml-2">{log.minutes} min</span>}
+                                                    </p>
+                                                    {log.note && <p className="text-gray-500 text-xs mt-1">{log.note}</p>}
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleDeleteLog(log.id)}
+                                                    className="p-1 hover:bg-gray-700 rounded"
+                                                >
+                                                    <Trash2 className="w-4 h-4 text-red-400" />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Close button */}
+                            <div className="flex justify-end pt-4">
+                                <button
+                                    type="button"
+                                    onClick={onClose}
+                                    className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors"
+                                >
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Highlights Tab */}
+                    {activeTab === 'highlights' && book && (
+                        <div className="space-y-4">
+                            {/* Add New Highlight */}
+                            <div className="p-4 bg-gray-800 rounded-lg">
+                                <h3 className="text-sm font-medium text-gray-300 mb-3">Add a Highlight</h3>
+                                <div className="space-y-3">
+                                    <div>
+                                        <label className="block text-xs text-gray-400 mb-1">Quote / Text *</label>
+                                        <textarea
+                                            rows={2}
+                                            placeholder="Enter the quote or highlighted text..."
+                                            value={newHighlight.text}
+                                            onChange={(e) => setNewHighlight({ ...newHighlight, text: e.target.value })}
+                                            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs text-gray-400 mb-1">Location (page, chapter, etc.)</label>
+                                        <input
+                                            type="text"
+                                            placeholder="e.g. Page 42, Chapter 3"
+                                            value={newHighlight.location}
+                                            onChange={(e) => setNewHighlight({ ...newHighlight, location: e.target.value })}
+                                            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                        />
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={handleAddHighlight}
+                                        disabled={!newHighlight.text.trim()}
+                                        className="w-full px-4 py-2 bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded transition-colors text-sm"
+                                    >
+                                        Add Highlight
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Highlights List */}
+                            <div>
+                                <h3 className="text-sm font-medium text-gray-300 mb-3">Saved Highlights</h3>
+                                {(formData.highlights || []).length === 0 ? (
+                                    <p className="text-gray-500 text-sm">No highlights saved yet.</p>
+                                ) : (
+                                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                                        {(formData.highlights || []).map((highlight, index) => (
+                                            <div key={index} className="p-3 bg-gray-800 rounded-lg border-l-4 border-yellow-500">
+                                                <div className="flex justify-between items-start">
+                                                    <div className="flex-1">
+                                                        <p className="text-white text-sm italic">&quot;{highlight.text}&quot;</p>
+                                                        {highlight.location && (
+                                                            <p className="text-xs text-gray-400 mt-2">{highlight.location}</p>
+                                                        )}
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleDeleteHighlight(index)}
+                                                        className="p-1 hover:bg-gray-700 rounded ml-2"
+                                                    >
+                                                        <Trash2 className="w-4 h-4 text-red-400" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Save & Close buttons */}
+                            <div className="flex gap-3 pt-4">
+                                <button
+                                    type="button"
+                                    onClick={() => onSave(formData)}
+                                    className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                                >
+                                    Save Highlights
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={onClose}
+                                    className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
-
-                <form onSubmit={handleSubmit} className="p-4 space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-1">
-                            Title *
-                        </label>
-                        <input
-                            type="text"
-                            required
-                            autoFocus
-                            value={formData.title}
-                            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="Book title"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-1">
-                            Author
-                        </label>
-                        <input
-                            type="text"
-                            value={formData.author}
-                            onChange={(e) => setFormData({ ...formData, author: e.target.value })}
-                            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="Author name"
-                        />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-1">
-                                Status
-                            </label>
-                            <select
-                                value={formData.status}
-                                onChange={(e) => setFormData({ ...formData, status: e.target.value as BookStatus })}
-                                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            >
-                                <option value="planned">Planned</option>
-                                <option value="reading">Reading</option>
-                                <option value="finished">Finished</option>
-                                <option value="on_hold">On Hold</option>
-                                <option value="dropped">Dropped</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-1">
-                                Format
-                            </label>
-                            <select
-                                value={formData.format}
-                                onChange={(e) => setFormData({ ...formData, format: e.target.value as BookFormat | '' })}
-                                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            >
-                                <option value="">Select format</option>
-                                <option value="physical">Physical</option>
-                                <option value="ebook">eBook</option>
-                                <option value="audiobook">Audiobook</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <p className="text-xs text-gray-500">
-                        You can add more details like pages, rating, notes, and highlights after creating the book.
-                    </p>
-
-                    <div className="flex gap-3 pt-2">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="flex-1 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={saving || !formData.title.trim()}
-                            className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {saving ? 'Creating...' : 'Add Book'}
-                        </button>
-                    </div>
-                </form>
             </div>
         </div>
     );

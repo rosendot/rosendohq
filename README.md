@@ -265,24 +265,18 @@ Central hub providing an overview of all modules with quick stats, recent activi
   - Current page / total pages
   - Progress percentage display
   - Start and completion date tracking
-* ✅ **Book Detail Page** (`/reading/[bookId]`):
-  - Dedicated page for each book (click card to navigate)
-  - View mode (default) with all book info displayed read-only
-  - Edit mode toggle via Edit icon in header
-  - Delete with confirmation → redirects to main page
-  - Back navigation to reading tracker
 * ✅ **Reading Log** (track daily reading sessions):
   - Log date, pages read, minutes spent
   - Session notes
   - View reading history per book
-  - Add/delete log entries from detail page
+  - Add/delete log entries
 * ✅ **Book Highlights**:
   - Add quotes/highlights with location reference
   - Store highlights as JSON array
-  - Add/delete highlights from detail page
+  - Add/delete highlights
   - Yellow accent styling for highlight cards
-* ✅ Simple Add Book modal on main page
-* ✅ Clickable book cards (navigate to detail page)
+* ✅ **Tabbed Edit Modal**: Book Info, Reading Log, Highlights tabs
+* ✅ Add/edit/delete functionality with modals
 * ✅ Carousel view grouped by status
 * ✅ Status filter dropdown
 * ✅ Delete confirmation modal
