@@ -124,6 +124,9 @@ Central hub providing an overview of all modules with quick stats, recent activi
 * ✅ Category and status filtering (wanted, considering, on_hold, purchased, declined)
 * ✅ Sorting options: Priority, Price, Date, Title (ascending/descending)
 * ✅ Priority system (1-5 scale with color coding)
+* ✅ **Quick Actions** (inline, no modal needed):
+  - Quick status dropdown on each card
+  - Quick priority selector (1-5 buttons) on each card
 * ✅ URL links for items
 * ✅ Purchase tracking with timestamps
 * ✅ Multi-currency price support (stored as cents)

@@ -119,6 +119,28 @@ export default function WishlistPage() {
         setDeleteConfirmation({ show: false, itemId: null, itemTitle: '' });
     };
 
+    // Quick update handler for status and priority
+    const handleQuickUpdate = async (itemId: string, updates: { status?: WishlistStatus; priority?: number }) => {
+        try {
+            const response = await fetch(`/api/wishlist/${itemId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updates),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to update');
+            }
+
+            const updatedItem = await response.json();
+            setItems(prevItems =>
+                prevItems.map(item => item.id === itemId ? updatedItem : item)
+            );
+        } catch (err) {
+            console.error('Quick update error:', err);
+        }
+    };
+
     const categories = ['all', ...Array.from(new Set(items.map(item => item.category).filter((c): c is string => c !== null)))];
 
     const filteredItems = items
@@ -151,21 +173,6 @@ export default function WishlistPage() {
             }
         });
 
-    const getPriorityColor = (priority: number | null) => {
-        if (!priority) return 'bg-gray-500/20 text-gray-400 border-gray-500/20';
-        switch (priority) {
-            case 1: return 'bg-red-500/20 text-red-400 border-red-500/20';
-            case 2: return 'bg-orange-500/20 text-orange-400 border-orange-500/20';
-            case 3: return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/20';
-            case 4: return 'bg-blue-500/20 text-blue-400 border-blue-500/20';
-            case 5: return 'bg-green-500/20 text-green-400 border-green-500/20';
-            default: return 'bg-gray-500/20 text-gray-400 border-gray-500/20';
-        }
-    };
-
-    const getStatusConfig = (status: WishlistStatus) => {
-        return STATUSES.find(s => s.value === status) || STATUSES[0];
-    };
 
     const formatPrice = (cents: number | null, currency: string | null = 'USD') => {
         if (!cents) return null;
@@ -283,9 +290,7 @@ export default function WishlistPage() {
                 {/* Items Grid */}
                 {filteredItems.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {filteredItems.map((item) => {
-                            const statusConfig = getStatusConfig(item.status);
-                            return (
+                        {filteredItems.map((item) => (
                                 <div
                                     key={item.id}
                                     className="bg-gray-900 rounded-lg border border-gray-800 p-4 hover:border-gray-700 transition-all"
@@ -304,15 +309,34 @@ export default function WishlistPage() {
                                     <div className="flex items-start justify-between mb-3">
                                         <div className="flex-1">
                                             <h3 className="text-base font-semibold text-white mb-1.5">{item.title}</h3>
-                                            <div className="flex flex-wrap gap-1.5 mb-1.5">
+                                            <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
                                                 {item.category && (
-                                                    <span className="inline-block px-1.5 py-0.5 bg-blue-500/20 text-blue-400 rounded text-xs font-medium border border-blue-500/20">
+                                                    <span className="inline-flex items-center px-1.5 h-5 bg-blue-500/20 text-blue-400 rounded text-xs font-medium border border-blue-500/20">
                                                         {item.category}
                                                     </span>
                                                 )}
-                                                <span className={`inline-block px-1.5 py-0.5 ${statusConfig.color}/20 text-${statusConfig.color.split('-')[1]}-400 rounded text-xs font-medium border border-${statusConfig.color.split('-')[1]}-500/20`}>
-                                                    {statusConfig.label}
-                                                </span>
+                                                {/* Quick Status Dropdown - auto-width based on selected option */}
+                                                <div className="relative inline-flex items-center h-5">
+                                                    <select
+                                                        value={item.status}
+                                                        onChange={(e) => handleQuickUpdate(item.id, { status: e.target.value as WishlistStatus })}
+                                                        className={`appearance-none h-5 pl-1.5 pr-5 rounded text-xs font-medium border cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-500 ${
+                                                            item.status === 'wanted' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
+                                                            item.status === 'considering' ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' :
+                                                            item.status === 'on_hold' ? 'bg-gray-500/20 text-gray-400 border-gray-500/30' :
+                                                            item.status === 'purchased' ? 'bg-green-500/20 text-green-400 border-green-500/30' :
+                                                            'bg-red-500/20 text-red-400 border-red-500/30'
+                                                        }`}
+                                                        style={{ width: `${(STATUSES.find(s => s.value === item.status)?.label.length || 4) * 7 + 28}px` }}
+                                                    >
+                                                        {STATUSES.map(({ value, label }) => (
+                                                            <option key={value} value={value}>{label}</option>
+                                                        ))}
+                                                    </select>
+                                                    <svg className="absolute right-1 top-1/2 -translate-y-1/2 w-3 h-3 pointer-events-none text-current opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                                    </svg>
+                                                </div>
                                             </div>
                                         </div>
                                         <div className="flex gap-0.5 ml-2">
@@ -383,13 +407,29 @@ export default function WishlistPage() {
                                         <p className="text-gray-400 text-xs mb-3">{item.notes}</p>
                                     )}
 
-                                    {/* Priority & Actions */}
-                                    <div className="flex items-center gap-1.5 mb-3">
-                                        {item.priority && (
-                                            <span className={`px-1.5 py-0.5 rounded text-xs font-medium border ${getPriorityColor(item.priority)}`}>
-                                                Priority {item.priority}
-                                            </span>
-                                        )}
+                                    {/* Quick Priority Selector & Link */}
+                                    <div className="flex items-center justify-between mb-3">
+                                        <div className="flex items-center gap-1">
+                                            <span className="text-xs text-gray-500 mr-1">Priority:</span>
+                                            {[1, 2, 3, 4, 5].map((p) => (
+                                                <button
+                                                    key={p}
+                                                    onClick={() => handleQuickUpdate(item.id, { priority: p })}
+                                                    className={`w-6 h-6 rounded text-xs font-medium transition-all ${
+                                                        item.priority === p
+                                                            ? p === 1 ? 'bg-red-500 text-white' :
+                                                              p === 2 ? 'bg-orange-500 text-white' :
+                                                              p === 3 ? 'bg-yellow-500 text-black' :
+                                                              p === 4 ? 'bg-blue-500 text-white' :
+                                                              'bg-green-500 text-white'
+                                                            : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                                                    }`}
+                                                    title={`Priority ${p}`}
+                                                >
+                                                    {p}
+                                                </button>
+                                            ))}
+                                        </div>
                                         {item.url && (
                                             <a
                                                 href={item.url}
@@ -415,8 +455,7 @@ export default function WishlistPage() {
                                         </div>
                                     </div>
                                 </div>
-                            );
-                        })}
+                        ))}
                     </div>
                 ) : (
                     <div className="bg-gray-900 rounded-lg border border-gray-800 p-8 text-center">
