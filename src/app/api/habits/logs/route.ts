@@ -5,6 +5,8 @@ import { supabase } from '@/lib/supabase/client';
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const date = searchParams.get('date');
+    const startDate = searchParams.get('start_date');
+    const endDate = searchParams.get('end_date');
     const habitId = searchParams.get('habit_id');
 
     let query = supabase
@@ -12,8 +14,11 @@ export async function GET(request: Request) {
         .select('*')
         .order('log_date', { ascending: false });
 
+    // Support single date or date range
     if (date) {
         query = query.eq('log_date', date);
+    } else if (startDate && endDate) {
+        query = query.gte('log_date', startDate).lte('log_date', endDate);
     }
 
     if (habitId) {

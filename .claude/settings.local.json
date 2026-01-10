@@ -9,7 +9,8 @@
       "Bash(powershell -Command:*)",
       "Bash(claude mcp get:*)",
       "mcp__supabase-rosendohq__execute_sql",
-      "mcp__supabase-rosendohq__list_tables"
+      "mcp__supabase-rosendohq__list_tables",
+      "Bash(npx eslint:*)"
     ],
     "deny": [],
     "ask": []

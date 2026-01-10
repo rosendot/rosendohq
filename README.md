@@ -310,28 +310,44 @@ Central hub providing an overview of all modules with quick stats, recent activi
 
 ### 6. Habits & Goals — **LIVE** ✅
 
-**Status:** Backend connected, needs more data entry
+**Status:** Production-ready with full CRUD (30 habits, 0 logs, 0 goals)
 
 **Features:**
-* ✅ Daily habit tracking:
-  - Categories (Oral Care, Beard Care, Hair Care, Skincare, Body Care, Mental Health, etc.)
+* ✅ **Three-tab interface**: Habits, Goals, Manage
+* ✅ **Habits Tab** - Daily habit tracking with date navigation:
+  - Categories (Oral Care, Beard Care, Hair Care, Shower, Body Care, Supplements, Exercise, Mindfulness, Productivity, Other)
   - Time-of-day organization (Morning, Midday, Evening)
   - Progress bars showing completion
-  - Streak tracking
+  - Quick toggle (checkbox) for fast logging
+  - Detailed log button (...) for full entry
   - Target values with units
-  - Sort order customization
-* ✅ Habit logging:
-  - Daily value entry
-  - Notes and mood (1-5 scale)
-  - Time-of-day tracking
-* ✅ Goal tracking:
+* ✅ **Manage Tab** - Habit management:
+  - View all habits with edit/delete buttons
+  - Active/inactive status toggle
+  - Schedule display (days of week)
+  - Category and time-of-day badges
+* ✅ **Add/Edit Habit Modals**:
+  - Name, category, time of day
+  - Unit and target value
+  - Schedule picker (Mon-Sun toggle buttons)
+  - Sort order for custom ordering
+  - Active/inactive toggle (edit only)
+* ✅ **Habit Log Modal** with enhanced fields:
+  - Value input with target display
+  - Time of day picker
+  - Mood selector (5 emoji scale: 😫😕😐🙂😄)
+  - Note textarea
+* ✅ **Goal tracking** with full CRUD:
   - Goal name, target value, unit
   - Progress tracking (current vs. target)
-  - Status (Active, Completed, Abandoned, On Hold)
-  - Due date tracking
-  - Link to related habits for automatic progress updates
-* ✅ Today/Goals tabs for organization
-* ✅ Stats section with summary
+  - Status buttons (Active, Completed, On Hold, Abandoned)
+  - Start date and due date
+  - **Progress source**: Manual or Habit-linked
+  - Habit dropdown when linked to habit
+  - Auto-set completed_at when marking complete
+* ✅ Header buttons for Add Habit + Add Goal
+* ✅ Delete confirmation modals for both habits and goals
+* ✅ Stats section with completion summary
 
 **Database:** `habit`, `habit_log`, `goal`
 
@@ -339,15 +355,13 @@ Central hub providing an overview of all modules with quick stats, recent activi
 * `GET/POST /api/habits` - Manage habits
 * `GET/PUT/DELETE /api/habits/[id]` - Individual habits
 * `GET/POST /api/habits/logs` - Habit logs (supports `?date=YYYY-MM-DD`)
-* `GET/PUT/DELETE /api/habits/logs/[id]` - Individual logs
+* `GET/PATCH/DELETE /api/habits/logs/[id]` - Individual logs
 * `GET/POST /api/habits/goals` - Goal management
 * `GET/PUT/DELETE /api/habits/goals/[id]` - Individual goals
 
 **Views:** `v_habit_daily_totals`, `v_goal_progress`
 
 **Remaining:**
-* [ ] Habit editing UI
-* [ ] Goal editing UI
 * [ ] Habit streak calculations
 * [ ] CSV import/export
 
@@ -788,6 +802,7 @@ Sentry DSN is configured in Sentry config files.
 ## 📈 Recent Updates
 
 **Latest Features (Last 30 commits):**
+* **Habits & Goals Overhaul**: Full CRUD with Add/Edit/Delete modals, enhanced logging with mood/time/notes, goal status management with habit-linking
 * **Finance Module Launch**: Complete CSV import pipeline with automated normalization
 * Account management: Add accounts via modal form (checking, savings, credit, etc.)
 * Multi-source CSV support (6 different bank/card formats)
