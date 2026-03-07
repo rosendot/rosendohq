@@ -1,16 +1,27 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git mv:*)",
-      "Bash(npm run build:*)",
-      "Bash(npx tsc:*)",
+      "Bash(git:*)",
+      "Bash(npm:*)",
+      "Bash(npx:*)",
+      "Bash(node:*)",
+      "Bash(powershell:*)",
       "Bash(taskkill:*)",
-      "Bash(npm run dev:*)",
-      "Bash(powershell -Command:*)",
-      "Bash(claude mcp get:*)",
-      "mcp__supabase-rosendohq__execute_sql",
-      "mcp__supabase-rosendohq__list_tables",
-      "Bash(npx eslint:*)"
+      "Bash(claude:*)",
+      "Bash(cat:*)",
+      "Bash(ls:*)",
+      "Bash(mkdir:*)",
+      "Bash(cp:*)",
+      "Bash(mv:*)",
+      "Bash(rm:*)",
+      "Bash(curl:*)",
+      "Bash(echo:*)",
+      "Bash(which:*)",
+      "Bash(env:*)",
+      "Bash(gh:*)",
+      "mcp__supabase-rosendohq__*",
+      "mcp__supabase-boost__*",
+      "mcp__claude_ai_Vercel__*"
     ],
     "deny": [],
     "ask": []
