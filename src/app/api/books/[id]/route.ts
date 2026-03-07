@@ -1,6 +1,6 @@
 // src/app/api/books/[id]/route.ts
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from "@/lib/supabase/server";
 import type { BookUpdate } from '@/types/database.types';
 
 // GET single book
@@ -8,6 +8,7 @@ export async function GET(
     request: Request,
     { params }: { params: Promise<{ id: string }> }
 ) {
+    const supabase = await createClient();
     const { id } = await params;
 
     const { data, error } = await supabase
@@ -31,6 +32,7 @@ export async function PATCH(
     request: Request,
     { params }: { params: Promise<{ id: string }> }
 ) {
+    const supabase = await createClient();
     const { id } = await params;
     const body: BookUpdate = await request.json();
 
@@ -69,6 +71,7 @@ export async function DELETE(
     request: Request,
     { params }: { params: Promise<{ id: string }> }
 ) {
+    const supabase = await createClient();
     const { id } = await params;
 
     const { error } = await supabase

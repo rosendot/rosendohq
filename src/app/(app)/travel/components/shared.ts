@@ -9,8 +9,6 @@ import {
 } from "lucide-react";
 import type { ItineraryType, TripStatus } from "@/types/database.types";
 
-export const OWNER_ID = "e2b952a0-c81a-4ff0-b362-82f906e02094";
-
 export const STATUS_COLORS: Record<TripStatus, string> = {
   planning: "text-blue-400 bg-blue-500/10 border-blue-500/20",
   upcoming: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",

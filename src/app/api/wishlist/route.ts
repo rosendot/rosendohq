@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from "@/lib/supabase/server";
 
 // GET - Fetch all wishlist items
 export async function GET() {
+    const supabase = await createClient();
     try {
         const { data, error } = await supabase
             .from('wishlist_item')
@@ -23,6 +24,7 @@ export async function GET() {
 
 // POST - Create new wishlist item
 export async function POST(request: Request) {
+    const supabase = await createClient();
     try {
         const body = await request.json();
 

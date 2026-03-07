@@ -5,8 +5,6 @@ import { useState } from 'react';
 import { X, Plus, Loader2 } from 'lucide-react';
 import type { Goal, Habit, GoalProgressSource } from '@/types/database.types';
 
-const OWNER_ID = 'd5682543-5b15-4bf2-90a3-6a3ddf9dc509';
-
 const CATEGORIES = [
     { value: 'health', label: 'Health' },
     { value: 'fitness', label: 'Fitness' },
@@ -65,7 +63,6 @@ export default function AddGoalModal({ isOpen, habits, onClose, onSuccess }: Add
 
         try {
             const payload = {
-                owner_id: OWNER_ID,
                 name: formData.name.trim(),
                 category: formData.category || null,
                 target_value: formData.target_value ? parseFloat(formData.target_value) : null,

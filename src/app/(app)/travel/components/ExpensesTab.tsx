@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Plus, Trash2, DollarSign } from "lucide-react";
 import type { TripExpense } from "@/types/database.types";
-import { OWNER_ID, formatDate, formatCents } from "./shared";
+import { formatDate, formatCents } from "./shared";
 
 interface ExpensesTabProps {
   tripId: string;
@@ -32,7 +32,6 @@ export default function ExpensesTab({ tripId, expenses, setExpenses, onDelete }:
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        owner_id: OWNER_ID,
         trip_id: tripId,
         description: form.description.trim(),
         amount_cents: amountCents,

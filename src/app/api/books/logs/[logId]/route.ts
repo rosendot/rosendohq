@@ -1,6 +1,6 @@
 // src/app/api/books/logs/[logId]/route.ts
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from "@/lib/supabase/server";
 import type { ReadingLogUpdate } from '@/types/database.types';
 
 // GET single reading log
@@ -8,6 +8,7 @@ export async function GET(
     request: Request,
     { params }: { params: Promise<{ logId: string }> }
 ) {
+    const supabase = await createClient();
     const { logId } = await params;
 
     const { data, error } = await supabase
@@ -28,6 +29,7 @@ export async function PATCH(
     request: Request,
     { params }: { params: Promise<{ logId: string }> }
 ) {
+    const supabase = await createClient();
     const { logId } = await params;
     const body: ReadingLogUpdate = await request.json();
 
@@ -50,6 +52,7 @@ export async function DELETE(
     request: Request,
     { params }: { params: Promise<{ logId: string }> }
 ) {
+    const supabase = await createClient();
     const { logId } = await params;
 
     const { error } = await supabase

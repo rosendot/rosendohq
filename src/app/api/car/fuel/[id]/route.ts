@@ -1,12 +1,13 @@
 // src/app/api/car/fuel/[id]/route.ts
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from "@/lib/supabase/server";
 import type { FuelLog } from '@/types/database.types';
 
 export async function GET(
     request: Request,
     props: { params: Promise<{ id: string }> }
 ) {
+    const supabase = await createClient();
     const params = await props.params;
     const { data, error } = await supabase
         .from('fuel_log')
@@ -25,6 +26,7 @@ export async function PATCH(
     request: Request,
     props: { params: Promise<{ id: string }> }
 ) {
+    const supabase = await createClient();
     const params = await props.params;
     const body: Partial<FuelLog> = await request.json();
 
@@ -46,6 +48,7 @@ export async function DELETE(
     request: Request,
     props: { params: Promise<{ id: string }> }
 ) {
+    const supabase = await createClient();
     const params = await props.params;
     const { error } = await supabase
         .from('fuel_log')

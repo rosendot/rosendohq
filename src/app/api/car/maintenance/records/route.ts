@@ -1,9 +1,10 @@
 // src/app/api/car/maintenance/records/route.ts
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from "@/lib/supabase/server";
 import type { MaintenanceRecordInsert } from '@/types/database.types';
 
 export async function GET(request: Request) {
+    const supabase = await createClient();
     const { searchParams } = new URL(request.url);
     const vehicleId = searchParams.get('vehicleId');
 
@@ -26,6 +27,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+    const supabase = await createClient();
     const body: MaintenanceRecordInsert = await request.json();
 
     const { data, error } = await supabase

@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase/client";
+import { createClient } from "@/lib/supabase/server";
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ entryId: string }> }) {
+  const supabase = await createClient();
   const { entryId } = await params;
   const body = await request.json();
 
@@ -24,6 +25,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ en
 }
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ entryId: string }> }) {
+  const supabase = await createClient();
   const { entryId } = await params;
 
   const { error } = await supabase.from("trip_entry").delete().eq("id", entryId);

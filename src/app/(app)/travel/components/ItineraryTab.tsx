@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Plus, Trash2, Clock } from "lucide-react";
 import type { ItineraryItem, ItineraryType } from "@/types/database.types";
-import { OWNER_ID, TYPE_ICONS, TYPE_COLORS, formatDateTime } from "./shared";
+import { TYPE_ICONS, TYPE_COLORS, formatDateTime } from "./shared";
 
 interface ItineraryTabProps {
   tripId: string;
@@ -27,7 +27,6 @@ export default function ItineraryTab({ tripId, itinerary, setItinerary, onDelete
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        owner_id: OWNER_ID,
         trip_id: tripId,
         at: form.at,
         type: form.type,

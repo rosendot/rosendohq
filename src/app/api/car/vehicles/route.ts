@@ -1,9 +1,10 @@
 // src/app/api/car/vehicles/route.ts
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from "@/lib/supabase/server";
 import type { VehicleInsert } from '@/types/database.types';
 
 export async function GET() {
+    const supabase = await createClient();
     const { data, error } = await supabase
         .from('vehicle')
         .select('*')
@@ -17,6 +18,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+    const supabase = await createClient();
     const body: VehicleInsert = await request.json();
 
     const { data, error } = await supabase

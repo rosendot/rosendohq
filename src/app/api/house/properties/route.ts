@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from "@/lib/supabase/server";
 import type { HomePropertyInsert } from '@/types/database.types';
 
 export async function GET() {
+    const supabase = await createClient();
     try {
         const { data, error } = await supabase
             .from('home_property')
@@ -22,6 +23,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+    const supabase = await createClient();
     try {
         const body: HomePropertyInsert = await request.json();
 

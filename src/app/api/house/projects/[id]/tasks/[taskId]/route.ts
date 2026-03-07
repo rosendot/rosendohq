@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from "@/lib/supabase/server";
 import type { HomeProjectTaskUpdate } from '@/types/database.types';
 
 export async function GET(
     request: Request,
     { params }: { params: Promise<{ id: string; taskId: string }> }
 ) {
+    const supabase = await createClient();
     try {
         const { taskId } = await params;
 
@@ -31,6 +32,7 @@ export async function PATCH(
     request: Request,
     { params }: { params: Promise<{ id: string; taskId: string }> }
 ) {
+    const supabase = await createClient();
     try {
         const { taskId } = await params;
         const body: HomeProjectTaskUpdate = await request.json();
@@ -64,6 +66,7 @@ export async function DELETE(
     request: Request,
     { params }: { params: Promise<{ id: string; taskId: string }> }
 ) {
+    const supabase = await createClient();
     try {
         const { taskId } = await params;
 

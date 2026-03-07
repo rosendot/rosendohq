@@ -5,8 +5,8 @@ import { useState, useEffect } from 'react';
 import { Plus, Search, ShoppingCart, CheckCircle2, Circle, Calendar, Trash2, Check, X, Edit2, Loader2 } from 'lucide-react';
 import type { ShoppingList, ShoppingListItem } from '@/types/database.types';
 import DeleteConfirmationModal from '@/components/DeleteConfirmationModal';
-import AddShoppingItemModal from '@/app/shopping/AddShoppingItemModal';
-import EditShoppingItemModal from '@/app/shopping/EditShoppingItemModal';
+import AddShoppingItemModal from './AddShoppingItemModal';
+import EditShoppingItemModal from './EditShoppingItemModal';
 
 type SortOption = 'priority_asc' | 'priority_desc' | 'name_asc' | 'name_desc' | 'date_asc' | 'date_desc' | 'category';
 

@@ -3,7 +3,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
 import {
     LayoutDashboard,
     ShoppingCart,
@@ -21,6 +22,7 @@ import {
     ChevronRight,
     ChevronLeft,
     Menu,
+    LogOut,
 } from 'lucide-react';
 
 interface NavItem {
@@ -76,6 +78,8 @@ const navGroups: NavGroup[] = [
 
 export default function Sidebar() {
     const pathname = usePathname();
+    const router = useRouter();
+    const supabase = createClient();
     const [isExpanded, setIsExpanded] = useState(false);
     const [isMobileOpen, setIsMobileOpen] = useState(false);
     const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
@@ -315,16 +319,28 @@ export default function Sidebar() {
                 {/* Footer */}
                 <div className="border-t border-gray-800 p-4">
                     {(isExpanded || isMobile) ? (
-                        <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-400 hover:bg-gray-900 hover:text-gray-100">
-                            <Package className="h-5 w-5" />
-                            <span>Import/Export</span>
+                        <button
+                            onClick={async () => {
+                                await supabase.auth.signOut();
+                                router.push('/login');
+                                router.refresh();
+                            }}
+                            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-400 hover:bg-gray-900 hover:text-red-400"
+                        >
+                            <LogOut className="h-5 w-5" />
+                            <span>Sign out</span>
                         </button>
                     ) : (
                         <button
-                            title="Import/Export"
-                            className="flex w-full items-center justify-center rounded-lg px-3 py-2 text-gray-400 hover:bg-gray-900 hover:text-gray-100"
+                            title="Sign out"
+                            onClick={async () => {
+                                await supabase.auth.signOut();
+                                router.push('/login');
+                                router.refresh();
+                            }}
+                            className="flex w-full items-center justify-center rounded-lg px-3 py-2 text-gray-400 hover:bg-gray-900 hover:text-red-400"
                         >
-                            <Package className="h-5 w-5" />
+                            <LogOut className="h-5 w-5" />
                         </button>
                     )}
                 </div>

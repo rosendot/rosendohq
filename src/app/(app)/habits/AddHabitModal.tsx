@@ -5,8 +5,6 @@ import { useState } from 'react';
 import { X, Plus, Loader2 } from 'lucide-react';
 import type { Habit, HabitSchedule } from '@/types/database.types';
 
-const OWNER_ID = 'd5682543-5b15-4bf2-90a3-6a3ddf9dc509';
-
 const CATEGORIES = [
     { value: 'oral_care', label: 'Oral Care' },
     { value: 'beard_care', label: 'Beard Care' },
@@ -97,7 +95,6 @@ export default function AddHabitModal({ isOpen, onClose, onSuccess }: AddHabitMo
             };
 
             const payload = {
-                owner_id: OWNER_ID,
                 name: formData.name.trim(),
                 category: formData.category || null,
                 time_of_day: formData.time_of_day || null,

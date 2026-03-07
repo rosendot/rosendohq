@@ -471,7 +471,6 @@ export default function MediaTrackerPage() {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        owner_id: 'd5682543-5b15-4bf2-90a3-6a3ddf9dc509',
                         ...formData,
                         rating: formData.rating || null,
                         platform: formData.platform || null,

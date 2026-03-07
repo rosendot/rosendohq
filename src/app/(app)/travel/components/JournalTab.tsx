@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Plus, Trash2, BookOpen } from "lucide-react";
 import type { TripEntry } from "@/types/database.types";
-import { OWNER_ID, formatDate } from "./shared";
+import { formatDate } from "./shared";
 
 interface JournalTabProps {
   tripId: string;
@@ -22,7 +22,6 @@ export default function JournalTab({ tripId, entries, setEntries, onDelete }: Jo
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        owner_id: OWNER_ID,
         trip_id: tripId,
         entry_date: form.entry_date,
         content_md: form.content_md.trim(),

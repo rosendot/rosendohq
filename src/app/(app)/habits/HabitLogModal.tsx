@@ -5,8 +5,6 @@ import { useState, useEffect } from 'react';
 import { X, Save, Loader2 } from 'lucide-react';
 import type { Habit, HabitLog, HabitSchedule } from '@/types/database.types';
 
-const OWNER_ID = 'd5682543-5b15-4bf2-90a3-6a3ddf9dc509';
-
 const MOOD_OPTIONS = [
     { value: 1, label: '😫', description: 'Terrible' },
     { value: 2, label: '😕', description: 'Bad' },
@@ -80,7 +78,6 @@ export default function HabitLogModal({
 
         try {
             const payload = {
-                owner_id: OWNER_ID,
                 habit_id: habit.id,
                 log_date: selectedDate,
                 value: parseFloat(formData.value) || 1,

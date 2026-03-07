@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from "@/lib/supabase/server";
 import type { HomeProjectTaskInsert } from '@/types/database.types';
 
 export async function GET(
     request: Request,
     { params }: { params: Promise<{ id: string }> }
 ) {
+    const supabase = await createClient();
     try {
         const { id: projectId } = await params;
 
@@ -32,6 +33,7 @@ export async function POST(
     request: Request,
     { params }: { params: Promise<{ id: string }> }
 ) {
+    const supabase = await createClient();
     try {
         const { id: projectId } = await params;
         const body: HomeProjectTaskInsert = await request.json();

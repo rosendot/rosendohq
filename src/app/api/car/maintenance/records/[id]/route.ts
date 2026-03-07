@@ -1,12 +1,13 @@
 // src/app/api/car/maintenance/records/[id]/route.ts
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from "@/lib/supabase/server";
 
 export async function DELETE(
     request: Request,
     props: { params: Promise<{ id: string }> }
 ) {
-    const params = await props.params;
+    const supabase = await createClient();
+const params = await props.params;
     const { error } = await supabase
         .from('maintenance_record')
         .delete()

@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from "@/lib/supabase/server";
 import type { HomeDocumentInsert } from '@/types/database.types';
 
 export async function GET(request: Request) {
+    const supabase = await createClient();
     try {
         const { searchParams } = new URL(request.url);
         const propertyId = searchParams.get('propertyId');
@@ -46,6 +47,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+    const supabase = await createClient();
     try {
         const body: HomeDocumentInsert = await request.json();
 

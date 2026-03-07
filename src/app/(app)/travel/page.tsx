@@ -33,8 +33,6 @@ import ExpensesTab from "./components/ExpensesTab";
 import DocumentsTab from "./components/DocumentsTab";
 import JournalTab from "./components/JournalTab";
 
-const OWNER_ID = "e2b952a0-c81a-4ff0-b362-82f906e02094";
-
 type TabId = "overview" | "itinerary" | "checklist" | "expenses" | "documents" | "journal";
 
 const TABS: { id: TabId; label: string; icon: typeof Plane }[] = [
@@ -133,7 +131,6 @@ export default function TravelPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        owner_id: OWNER_ID,
         name: tripForm.name.trim(),
         destination: tripForm.destination.trim() || null,
         start_date: tripForm.start_date,

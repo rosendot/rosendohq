@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { Plus, Trash2, Package, CheckSquare, Square } from "lucide-react";
 import type { TripPackingItem } from "@/types/database.types";
-import { OWNER_ID } from "./shared";
 
 interface ChecklistTabProps {
   tripId: string;
@@ -36,7 +35,6 @@ export default function ChecklistTab({ tripId, packingItems, setPackingItems, on
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        owner_id: OWNER_ID,
         trip_id: tripId,
         item: form.item.trim(),
         qty: form.qty,

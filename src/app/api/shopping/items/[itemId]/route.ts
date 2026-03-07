@@ -1,11 +1,12 @@
 // src/app/api/shopping/items/[itemId]/route.ts
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from "@/lib/supabase/server";
 
 export async function PATCH(
     request: Request,
     { params }: { params: Promise<{ itemId: string }> }
 ) {
+    const supabase = await createClient();
     try {
         const { itemId } = await params;
         const body = await request.json();
@@ -53,6 +54,7 @@ export async function DELETE(
     request: Request,
     { params }: { params: Promise<{ itemId: string }> }
 ) {
+    const supabase = await createClient();
     try {
         const { itemId } = await params;
 

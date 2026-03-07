@@ -1,9 +1,10 @@
 // src/app/api/shopping/items/bulk/route.ts
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from "@/lib/supabase/server";
 
 // Bulk update items (for marking as complete)
 export async function PATCH(request: Request) {
+    const supabase = await createClient();
     try {
         const body = await request.json();
         const { itemIds, updates } = body;
@@ -55,6 +56,7 @@ export async function PATCH(request: Request) {
 
 // Bulk delete items
 export async function DELETE(request: Request) {
+    const supabase = await createClient();
     try {
         const body = await request.json();
         const { itemIds } = body;

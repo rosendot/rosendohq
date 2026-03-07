@@ -1,12 +1,13 @@
 // src/app/api/shopping/lists/[listId]/route.ts
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from "@/lib/supabase/server";
 import type { ShoppingListUpdate } from '@/types/database.types';
 
 export async function GET(
     request: Request,
     { params }: { params: Promise<{ listId: string }> }
 ) {
+    const supabase = await createClient();
     const { listId } = await params;
 
     const { data, error } = await supabase
@@ -26,6 +27,7 @@ export async function PATCH(
     request: Request,
     { params }: { params: Promise<{ listId: string }> }
 ) {
+    const supabase = await createClient();
     const { listId } = await params;
     const body: ShoppingListUpdate = await request.json();
 
@@ -47,6 +49,7 @@ export async function DELETE(
     request: Request,
     { params }: { params: Promise<{ listId: string }> }
 ) {
+    const supabase = await createClient();
     const { listId } = await params;
 
     // First delete all items in the list

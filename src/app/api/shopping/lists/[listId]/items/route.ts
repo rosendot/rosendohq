@@ -1,11 +1,12 @@
 // src/app/api/shopping/lists/[listId]/items/route.ts
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from "@/lib/supabase/server";
 
 export async function GET(
     request: Request,
     { params }: { params: Promise<{ listId: string }> }
 ) {
+    const supabase = await createClient();
     try {
         const { listId } = await params;
 
@@ -37,6 +38,7 @@ export async function POST(
     request: Request,
     { params }: { params: Promise<{ listId: string }> }
 ) {
+    const supabase = await createClient();
     try {
         const { listId } = await params;
         const body = await request.json();

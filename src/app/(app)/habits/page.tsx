@@ -236,7 +236,6 @@ export default function HabitsPage() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    owner_id: 'd5682543-5b15-4bf2-90a3-6a3ddf9dc509',
                     habit_id: habit.id,
                     log_date: selectedDate,
                     value: targetValue,

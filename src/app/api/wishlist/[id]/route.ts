@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from "@/lib/supabase/server";
 
 // DELETE - Remove a wishlist item
 export async function DELETE(
     request: Request,
     { params }: { params: Promise<{ id: string }> }
 ) {
+    const supabase = await createClient();
     try {
         const { id } = await params;
 
@@ -64,6 +65,7 @@ export async function PUT(
     request: Request,
     { params }: { params: Promise<{ id: string }> }
 ) {
+    const supabase = await createClient();
     try {
         const { id } = await params;
         const body = await request.json();

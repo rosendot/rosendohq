@@ -1,11 +1,12 @@
 // src/app/api/habits/logs/[id]/route.ts
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from "@/lib/supabase/server";
 
 export async function PATCH(
     request: Request,
     { params }: { params: Promise<{ id: string }> }
 ) {
+    const supabase = await createClient();
     const { id } = await params;
     const body = await request.json();
 
@@ -27,6 +28,7 @@ export async function DELETE(
     request: Request,
     { params }: { params: Promise<{ id: string }> }
 ) {
+    const supabase = await createClient();
     const { id } = await params;
 
     const { error } = await supabase

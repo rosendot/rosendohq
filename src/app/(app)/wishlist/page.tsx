@@ -3,8 +3,8 @@
 
 import { useState, useEffect } from 'react';
 import { Plus, Search, Heart, ExternalLink, Tag, DollarSign, Calendar, Store, Shirt, Palette, Edit } from 'lucide-react';
-import AddWishlistItemModal from '@/app/wishlist/AddWishlistItemModal';
-import EditWishlistItemModal from '@/app/wishlist/EditWishlistItemModal';
+import AddWishlistItemModal from './AddWishlistItemModal';
+import EditWishlistItemModal from './EditWishlistItemModal';
 import DeleteConfirmationModal from '@/components/DeleteConfirmationModal';
 import type { WishlistItem } from '@/types/database.types';
 

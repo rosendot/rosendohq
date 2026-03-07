@@ -105,8 +105,9 @@ export interface MediaLog {
 }
 
 // Insert and Update types
-export type MediaItemInsert = Omit<MediaItem, 'id' | 'created_at' | 'updated_at'> & {
+export type MediaItemInsert = Omit<MediaItem, 'id' | 'owner_id' | 'created_at' | 'updated_at'> & {
     id?: string;
+    owner_id?: string;
     created_at?: string;
     updated_at?: string;
 };
@@ -154,7 +155,7 @@ export interface ReadingLog {
 export type BookInsert = Omit<Book, 'id' | 'created_at' | 'updated_at'>;
 export type BookUpdate = Partial<Omit<Book, 'id' | 'owner_id' | 'created_at'>>;
 
-export type ReadingLogInsert = Omit<ReadingLog, 'id' | 'created_at'>;
+export type ReadingLogInsert = Omit<ReadingLog, 'id' | 'owner_id' | 'created_at'> & { owner_id?: string };
 export type ReadingLogUpdate = Partial<Omit<ReadingLog, 'id' | 'owner_id' | 'created_at'>>;
 
 export interface Highlight {

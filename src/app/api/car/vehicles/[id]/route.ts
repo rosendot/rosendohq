@@ -1,12 +1,13 @@
 // src/app/api/car/vehicles/[id]/route.ts
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from "@/lib/supabase/server";
 import type { VehicleInsert } from '@/types/database.types';
 
 export async function GET(
     request: Request,
     props: { params: Promise<{ id: string }> }
 ) {
+    const supabase = await createClient();
     const params = await props.params;
     const { data, error } = await supabase
         .from('vehicle')
@@ -25,6 +26,7 @@ export async function PATCH(
     request: Request,
     props: { params: Promise<{ id: string }> }
 ) {
+    const supabase = await createClient();
     const params = await props.params;
     const body: Partial<VehicleInsert> = await request.json();
 
@@ -46,6 +48,7 @@ export async function DELETE(
     request: Request,
     props: { params: Promise<{ id: string }> }
 ) {
+    const supabase = await createClient();
     const params = await props.params;
     const { error } = await supabase
         .from('vehicle')

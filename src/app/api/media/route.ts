@@ -1,10 +1,11 @@
 // src/app/api/media/route.ts
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from "@/lib/supabase/server";
 import type { MediaItemInsert } from '@/types/database.types';
 
 // GET all media items
 export async function GET(request: Request) {
+    const supabase = await createClient();
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
     const type = searchParams.get('type');
@@ -37,6 +38,7 @@ export async function GET(request: Request) {
 
 // POST - Create new media item
 export async function POST(request: Request) {
+    const supabase = await createClient();
     try {
         const body: MediaItemInsert = await request.json();
 
@@ -49,7 +51,7 @@ export async function POST(request: Request) {
         }
 
         const insertData: MediaItemInsert = {
-            owner_id: body.owner_id,
+            // owner_id set by DB default
             title: body.title.trim(),
             type: body.type,
             status: body.status || 'planned',

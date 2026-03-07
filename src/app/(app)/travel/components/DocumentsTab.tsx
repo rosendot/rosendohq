@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { Plus, Trash2, FileText } from "lucide-react";
 import type { TripDocument } from "@/types/database.types";
-import { OWNER_ID } from "./shared";
 
 interface DocumentsTabProps {
   tripId: string;
@@ -22,7 +21,6 @@ export default function DocumentsTab({ tripId, documents, setDocuments, onDelete
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        owner_id: OWNER_ID,
         trip_id: tripId,
         name: form.name.trim(),
         url: form.url.trim() || null,

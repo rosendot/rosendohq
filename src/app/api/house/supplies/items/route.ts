@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from "@/lib/supabase/server";
 import type { HomeSupplyItemInsert } from '@/types/database.types';
 
 export async function GET(request: Request) {
+    const supabase = await createClient();
     try {
         const { searchParams } = new URL(request.url);
         const category = searchParams.get('category');
@@ -32,6 +33,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+    const supabase = await createClient();
     try {
         const body: HomeSupplyItemInsert = await request.json();
 

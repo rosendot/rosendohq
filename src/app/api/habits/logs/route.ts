@@ -1,8 +1,9 @@
 // src/app/api/habits/logs/route.ts
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from "@/lib/supabase/server";
 
 export async function GET(request: Request) {
+    const supabase = await createClient();
     const { searchParams } = new URL(request.url);
     const date = searchParams.get('date');
     const startDate = searchParams.get('start_date');
@@ -35,6 +36,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+    const supabase = await createClient();
     const body = await request.json();
 
     const { data, error } = await supabase

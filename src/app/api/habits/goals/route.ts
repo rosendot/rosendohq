@@ -1,8 +1,9 @@
 // src/app/api/habits/goals/route.ts
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from "@/lib/supabase/server";
 
 export async function GET() {
+    const supabase = await createClient();
     const { data, error } = await supabase
         .from('goal')
         .select('*, habit:habit_id(*)')
@@ -17,6 +18,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+    const supabase = await createClient();
     const body = await request.json();
 
     const { data, error } = await supabase

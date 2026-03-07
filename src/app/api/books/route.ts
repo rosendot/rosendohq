@@ -1,10 +1,11 @@
 // src/app/api/books/route.ts
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from "@/lib/supabase/server";
 import type { BookInsert } from '@/types/database.types';
 
 // GET all books
 export async function GET(request: Request) {
+    const supabase = await createClient();
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
     const format = searchParams.get('format');
@@ -37,6 +38,7 @@ export async function GET(request: Request) {
 
 // POST - Create new book
 export async function POST(request: Request) {
+    const supabase = await createClient();
     try {
         const body: BookInsert = await request.json();
 

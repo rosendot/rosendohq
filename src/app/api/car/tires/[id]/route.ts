@@ -1,12 +1,13 @@
 // src/app/api/car/tires/[id]/route.ts
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from "@/lib/supabase/server";
 import type { TireSetUpdate } from '@/types/database.types';
 
 export async function GET(
     request: Request,
     props: { params: Promise<{ id: string }> }
 ) {
+    const supabase = await createClient();
     const params = await props.params;
     const { data, error } = await supabase
         .from('tire_set')
@@ -25,6 +26,7 @@ export async function PATCH(
     request: Request,
     props: { params: Promise<{ id: string }> }
 ) {
+    const supabase = await createClient();
     const params = await props.params;
     const body: TireSetUpdate = await request.json();
 
@@ -46,6 +48,7 @@ export async function DELETE(
     request: Request,
     props: { params: Promise<{ id: string }> }
 ) {
+    const supabase = await createClient();
     const params = await props.params;
     const { error } = await supabase
         .from('tire_set')
