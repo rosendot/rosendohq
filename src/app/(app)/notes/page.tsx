@@ -18,6 +18,7 @@ import {
   Search,
   X,
   Download,
+  ArrowLeft,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -256,20 +257,18 @@ export default function NotesPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen bg-gray-950">
-        <div className="w-56 border-r border-gray-800 bg-gray-900/50 p-4">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="mb-2 h-8 animate-pulse rounded bg-gray-800" />
-          ))}
-        </div>
-        <div className="flex-1 p-8">
-          <div className="mx-auto max-w-5xl space-y-6">
-            <div className="h-10 w-64 animate-pulse rounded bg-gray-800" />
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-32 animate-pulse rounded-lg border border-gray-800 bg-gray-900" />
-              ))}
-            </div>
+      <div className="min-h-screen bg-gray-950 p-8">
+        <div className="mx-auto max-w-5xl space-y-6">
+          <div className="h-10 w-64 animate-pulse rounded bg-gray-800" />
+          <div className="flex gap-2">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="h-8 w-20 animate-pulse rounded-lg bg-gray-800" />
+            ))}
+          </div>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-32 animate-pulse rounded-lg border border-gray-800 bg-gray-900" />
+            ))}
           </div>
         </div>
       </div>
@@ -335,59 +334,10 @@ export default function NotesPage() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-950">
-      {/* Category Sidebar */}
-      <div className="w-56 shrink-0 border-r border-gray-800 bg-gray-900/50 p-4">
-        <h2 className="mb-4 text-xs font-semibold uppercase tracking-wider text-gray-500">
-          Categories
-        </h2>
-
-        {/* All Notes */}
-        <button
-          onClick={() => setSelectedCategory("all")}
-          className={`mb-1 flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors ${
-            selectedCategory === "all"
-              ? "bg-emerald-500/10 text-emerald-400"
-              : "text-gray-400 hover:bg-gray-800 hover:text-white"
-          }`}
-        >
-          <span className="flex items-center gap-2">
-            <FileText className="h-4 w-4" />
-            All Notes
-          </span>
-          <span className="text-xs text-gray-600">{notes.length}</span>
-        </button>
-
-        <div className="my-3 border-t border-gray-800" />
-
-        {CATEGORIES.map((cat) => {
-          const count = categoryCounts[cat.value] || 0;
-          const Icon = cat.icon;
-          return (
-            <button
-              key={cat.value}
-              onClick={() => setSelectedCategory(cat.value)}
-              className={`mb-0.5 flex w-full items-center justify-between rounded-lg px-3 py-1.5 text-sm transition-colors ${
-                selectedCategory === cat.value
-                  ? "bg-emerald-500/10 text-emerald-400"
-                  : "text-gray-400 hover:bg-gray-800 hover:text-white"
-              }`}
-            >
-              <span className="flex items-center gap-2">
-                <Icon className={`h-3.5 w-3.5 ${selectedCategory === cat.value ? "text-emerald-400" : cat.color}`} />
-                {cat.label}
-              </span>
-              {count > 0 && <span className="text-xs text-gray-600">{count}</span>}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Main Content */}
-      <div className="flex-1 overflow-auto">
-        <div className="mx-auto max-w-5xl p-8">
-          {/* Header */}
-          <div className="mb-6 flex items-center justify-between">
+    <div className="min-h-screen bg-gray-950 p-8">
+      <div className="mx-auto max-w-5xl">
+        {/* Header */}
+        <div className="mb-6 flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-white">Vault</h1>
               <p className="text-sm text-gray-500">Your personal knowledge base</p>
@@ -404,7 +354,42 @@ export default function NotesPage() {
               <Plus className="h-4 w-4" />
               New Note
             </button>
-          </div>
+        </div>
+
+        {/* Category Pills */}
+        <div className="mb-4 flex flex-wrap gap-2">
+          <button
+            onClick={() => setSelectedCategory("all")}
+            className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm transition-colors ${
+              selectedCategory === "all"
+                ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-400"
+                : "border-gray-800 bg-gray-900 text-gray-400 hover:border-gray-700 hover:text-white"
+            }`}
+          >
+            <FileText className="h-3.5 w-3.5" />
+            All
+            <span className="text-xs text-gray-600">{notes.length}</span>
+          </button>
+          {CATEGORIES.map((cat) => {
+            const count = categoryCounts[cat.value] || 0;
+            const Icon = cat.icon;
+            return (
+              <button
+                key={cat.value}
+                onClick={() => setSelectedCategory(cat.value)}
+                className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm transition-colors ${
+                  selectedCategory === cat.value
+                    ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-400"
+                    : "border-gray-800 bg-gray-900 text-gray-400 hover:border-gray-700 hover:text-white"
+                }`}
+              >
+                <Icon className={`h-3.5 w-3.5 ${selectedCategory === cat.value ? "text-emerald-400" : cat.color}`} />
+                {cat.label}
+                {count > 0 && <span className="text-xs text-gray-600">{count}</span>}
+              </button>
+            );
+          })}
+        </div>
 
           {/* Search & Tag Filters */}
           <div className="mb-6 space-y-3">
@@ -547,6 +532,13 @@ export default function NotesPage() {
           {/* Selected Note Viewer */}
           {selectedNote && !isCreating && !editingNote && (
             <div className="mb-6 rounded-xl border border-gray-800 bg-gray-900 p-6">
+              <button
+                onClick={() => setSelectedNote(null)}
+                className="mb-4 flex items-center gap-1 text-sm text-gray-400 transition-colors hover:text-white"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back to notes
+              </button>
               <div className="mb-4 flex items-start justify-between">
                 <div className="flex-1">
                   <div className="mb-2 flex items-center gap-2">
@@ -677,7 +669,6 @@ export default function NotesPage() {
               )}
             </div>
           )}
-        </div>
       </div>
 
       <DeleteConfirmationModal
