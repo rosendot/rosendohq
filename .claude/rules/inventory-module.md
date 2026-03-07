@@ -2,33 +2,43 @@
 
 ## Overview
 
-The Inventory module tracks personal possessions with location, quantity, purchase info, and notes. Currently **UI-only** — the frontend uses hardcoded mock data and local state. A Supabase table (`inventory_item`) exists but is not yet connected.
+The Inventory module tracks personal possessions with category, location, quantity, purchase price, acquisition date, and notes. Fully connected to Supabase with API routes and RLS.
 
 ## Architecture
 
 ### Frontend
 
-- **Page**: `src/app/inventory/page.tsx` — Single page with stats cards, search/filter bar, item grid, and add/edit modal
-- **No components directory** — everything is inline in `page.tsx`
-- **No API routes** — all data is local `useState` with hardcoded seed items
+- **Page**: `src/app/(app)/inventory/page.tsx` — Single page with stats cards, search/filter bar, item grid, and add/edit modal
+- **No components directory** — everything inline in `page.tsx` except `DeleteConfirmationModal` from `@/components/`
 
 ### Page Layout
 
-1. **Stats Bar** — Total items (sum of quantities), total value (price × quantity), unique locations count
-2. **Filters** — Text search (name + notes), category dropdown, location dropdown
-3. **Item Grid** — 3-column card grid with name, category, location, quantity, value, purchase date, notes
-4. **Add/Edit Modal** — Shared modal for create and edit with inline form
+1. **Header** — "Inventory" title + "Add Item" button (blue)
+2. **Stats Bar** — Total items (sum of quantities), total value (price x quantity in USD), unique locations count
+3. **Filters** — Text search (name + notes) with clear button, category dropdown, location dropdown
+4. **Item Grid** — 3-column responsive card grid with name, category badge, location, quantity/unit, value, acquired date, notes
+5. **Add/Edit Modal** — Shared modal for create and edit with inline form
+6. **Empty State** — Package icon with contextual message
 
 ### Client-Side Constants
 
 - **Categories**: Electronics, Furniture, Appliances, Tools, Clothing, Books, Kitchen, Sports, Other
 - **Locations**: Living Room, Bedroom, Kitchen, Garage, Storage, Office, Basement, Attic
 
+### API Routes
+
+All under `src/app/api/inventory/`:
+
+| Route | Methods | Table | Notes |
+|-------|---------|-------|-------|
+| `/` | GET, POST | `inventory_item` | GET filterable by `search` (ilike on name/notes), `category`, `location`. Ordered by `updated_at` desc. POST validates name required. |
+| `[id]/` | GET, PATCH, DELETE | `inventory_item` | Full CRUD. PATCH sets `updated_at` server-side, strips undefined fields. |
+
 ### Database Tables (Supabase)
 
 | Table | Purpose |
 |-------|---------|
-| `inventory_item` | Personal possessions with name, quantity, unit, location, acquisition date, and notes. Not yet connected to the frontend. |
+| `inventory_item` | Personal possessions with name, quantity (numeric), unit, location, category, purchase_price_cents (integer), acquired_at (date), notes, timestamps |
 
 ### Database Views
 
@@ -36,12 +46,21 @@ None.
 
 ### Types
 
-No types defined in `src/types/database.types.ts` for this module yet. The frontend uses a local `InventoryItem` type defined inline in `page.tsx`.
+Defined in `src/types/database.types.ts`:
+
+- **Interface**: `InventoryItem` — id, owner_id, name, quantity, unit, location, category, purchase_price_cents, acquired_at, notes, created_at, updated_at
+- **Insert/Update types**: `InventoryItemInsert` (omits id, owner_id, created_at, updated_at), `InventoryItemUpdate` (Partial, omits id, owner_id, created_at)
 
 ## Key Patterns
 
-- UI-only module — needs API routes and Supabase integration to become functional
-- The DB table (`inventory_item`) differs from the frontend type: DB has `unit`, `acquired_at`, `updated_at` but no `category`, `purchasePrice`, or `imageUrl`
-- Frontend stores price as dollars (float), but the DB table has no price column — will need `purchase_price_cents` (integer) when connected
-- Frontend uses `Date.now().toString()` for IDs; DB uses UUID
-- `owner_id` has a hardcoded default UUID in the DB table
+- Fully connected to Supabase with API routes and RLS via `auth.uid()`
+- Price stored as `purchase_price_cents` (integer), displayed as dollars via `Intl.NumberFormat`
+- Frontend converts dollar input to cents: `Math.round(parseFloat(price) * 100)`
+- Total value = sum of (price_cents x quantity) across filtered items
+- Categories and locations are client-side constants (not DB enums) — used in both filter dropdowns and modal form
+- All filtering (search, category, location) is client-side after initial fetch
+- Uses `DeleteConfirmationModal` for destructive actions (no `window.confirm`)
+- Shared Add/Edit modal (not separate modals like some other modules)
+- `owner_id` set automatically via RLS default `auth.uid()`
+- Blue color theme (matching the module's sidebar color)
+- Loading skeleton with animate-pulse placeholders
