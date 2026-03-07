@@ -44,36 +44,31 @@ const navGroups: NavGroup[] = [
     {
         name: 'Shopping & Lists',
         items: [
-            { name: 'Shopping Lists', href: '/shopping', icon: ShoppingCart },
+            { name: 'Shopping', href: '/shopping', icon: ShoppingCart },
             { name: 'Wishlist', href: '/wishlist', icon: Heart },
         ],
     },
     {
         name: 'Home & Assets',
         items: [
-            { name: 'House Tracker', href: '/house', icon: Home },
+            { name: 'House', href: '/house', icon: Home },
             { name: 'Inventory', href: '/inventory', icon: Package },
-            { name: 'Car Tracker', href: '/car', icon: Car },
-        ],
-    },
-    {
-        name: 'Health',
-        items: [
-            { name: 'Nutrition', href: '/nutrition', icon: Apple },
+            { name: 'Car', href: '/car', icon: Car },
         ],
     },
     {
         name: 'Personal Growth',
         items: [
-            { name: 'Reading Tracker', href: '/reading', icon: BookOpen },
-            { name: 'Media Tracker', href: '/media', icon: Film },
+            { name: 'Library', href: '/reading', icon: BookOpen },
+            { name: 'Media', href: '/media', icon: Film },
             { name: 'Habits & Goals', href: '/habits', icon: Target },
+            { name: 'Nutrition', href: '/nutrition', icon: Apple },
         ],
     },
     {
         name: 'Planning',
         items: [
-            { name: 'Travel Planner', href: '/travel', icon: Plane },
+            { name: 'Travel', href: '/travel', icon: Plane },
             { name: 'Notes', href: '/notes', icon: StickyNote },
         ],
     },
