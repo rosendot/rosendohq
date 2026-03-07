@@ -97,14 +97,6 @@ export const modules: ModuleCard[] = [
         href: '/house',
         color: 'bg-orange-500',
         description: 'Home maintenance'
-    },
-    {
-        id: 'finance',
-        name: 'Finance',
-        icon: '💰',
-        href: '/finance',
-        color: 'bg-emerald-500',
-        description: 'Financial tracking'
     }
 ];
 

@@ -11,7 +11,6 @@ import {
     Home,
     Package,
     Car,
-    DollarSign,
     Apple,
     BookOpen,
     Film,
@@ -58,9 +57,8 @@ const navGroups: NavGroup[] = [
         ],
     },
     {
-        name: 'Finance & Health',
+        name: 'Health',
         items: [
-            { name: 'Finance', href: '/finance', icon: DollarSign },
             { name: 'Nutrition', href: '/nutrition', icon: Apple },
         ],
     },

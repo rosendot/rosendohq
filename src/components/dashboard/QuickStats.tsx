@@ -24,13 +24,11 @@ export default function QuickStats() {
                     fetch('/api/shopping/lists').then(r => r.json()),
                     fetch('/api/wishlist').then(r => r.json()),
                     fetch('/api/habits').then(r => r.json()),
-                    fetch('/api/finance/accounts').then(r => r.json()),
                 ]);
 
                 const shoppingLists = responses[0].status === 'fulfilled' ? responses[0].value : [];
                 const wishlistItems = responses[1].status === 'fulfilled' ? responses[1].value : [];
                 const habits = responses[2].status === 'fulfilled' ? responses[2].value : [];
-                const accounts = responses[3].status === 'fulfilled' ? responses[3].value : [];
 
                 setStats([
                     {
@@ -50,12 +48,6 @@ export default function QuickStats() {
                         value: Array.isArray(habits) ? habits.filter((h: { active?: boolean }) => h.active).length : 0,
                         icon: '🎯',
                         color: 'bg-teal-500',
-                    },
-                    {
-                        label: 'Financial Accounts',
-                        value: Array.isArray(accounts) ? accounts.length : 0,
-                        icon: '💰',
-                        color: 'bg-emerald-500',
                     },
                 ]);
             } catch (error) {
