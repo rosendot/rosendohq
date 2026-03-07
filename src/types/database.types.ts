@@ -495,12 +495,16 @@ export type TripDocumentUpdate = Partial<TripDocumentInsert>;
 // NOTES TYPES
 // ============================================
 
+export type NoteCategory = 'reference' | 'idea' | 'guide' | 'journal' | 'finance' | 'health' | 'work' | 'personal' | 'archive' | 'other';
+
 export interface Note {
     id: string;
     owner_id: string;
     title: string;
     content_md: string | null;
     tags: string[];
+    category: NoteCategory;
+    is_pinned: boolean;
     created_at: string;
     updated_at: string;
 }

@@ -7,14 +7,20 @@ export async function GET(request: Request) {
   const supabase = await createClient();
   const { searchParams } = new URL(request.url);
   const search = searchParams.get("search");
+  const category = searchParams.get("category");
 
   let query = supabase
     .from("note")
-    .select("id, title, content_md, tags, created_at, updated_at")
+    .select("*")
+    .order("is_pinned", { ascending: false })
     .order("updated_at", { ascending: false });
 
   if (search) {
     query = query.or(`title.ilike.%${search}%,content_md.ilike.%${search}%`);
+  }
+
+  if (category && category !== "all") {
+    query = query.eq("category", category);
   }
 
   const { data, error } = await query;
@@ -41,6 +47,8 @@ export async function POST(request: Request) {
       title: body.title.trim(),
       content_md: body.content_md?.trim() || null,
       tags: body.tags || [],
+      category: body.category || "other",
+      is_pinned: body.is_pinned || false,
     };
 
     const { data, error } = await supabase.from("note").insert([insertData]).select().single();
