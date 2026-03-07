@@ -491,6 +491,29 @@ export type TripExpenseUpdate = Partial<TripExpenseInsert>;
 export type TripDocumentInsert = Omit<TripDocument, 'id' | 'owner_id' | 'created_at'>;
 export type TripDocumentUpdate = Partial<TripDocumentInsert>;
 
+// ============================================
+// NOTES TYPES
+// ============================================
+
+export interface Note {
+    id: string;
+    owner_id: string;
+    title: string;
+    content_md: string | null;
+    tags: string[];
+    created_at: string;
+    updated_at: string;
+}
+
+export type NoteInsert = Omit<Note, 'id' | 'owner_id' | 'created_at' | 'updated_at'> & {
+    id?: string;
+    owner_id?: string;
+    created_at?: string;
+    updated_at?: string;
+};
+
+export type NoteUpdate = Partial<Omit<Note, 'id' | 'owner_id' | 'created_at'>>;
+
 // Database type (for Supabase type inference)
 export interface Database {
     public: {
@@ -574,6 +597,11 @@ export interface Database {
                 Row: Goal;
                 Insert: GoalInsert;
                 Update: GoalUpdate;
+            };
+            note: {
+                Row: Note;
+                Insert: NoteInsert;
+                Update: NoteUpdate;
             };
         };
     };
