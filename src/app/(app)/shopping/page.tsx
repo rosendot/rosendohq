@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Search, ShoppingCart, CheckCircle2, Circle, Calendar, Trash2, Check, X, Edit2, Loader2 } from 'lucide-react';
+import { Plus, Search, ShoppingCart, CheckCircle2, Circle, Calendar, Trash2, Check, X, Edit2, Loader2, CheckSquare } from 'lucide-react';
 import type { ShoppingList, ShoppingListItem } from '@/types/database.types';
 import DeleteConfirmationModal from '@/components/DeleteConfirmationModal';
 import AddShoppingItemModal from './AddShoppingItemModal';
@@ -25,7 +25,6 @@ export default function ShoppingPage() {
     const [editingItem, setEditingItem] = useState<ShoppingListItem | null>(null);
     const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
     const [isSelectionMode, setIsSelectionMode] = useState(false);
-    const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
     const [deleteConfirmation, setDeleteConfirmation] = useState<{
         show: boolean;
         itemId: string | null;
@@ -105,13 +104,6 @@ export default function ShoppingPage() {
         setSelectedItems(new Set());
         setIsSelectionMode(false);
     }, [selectedListId]);
-
-    // Exit selection mode when no items are selected
-    useEffect(() => {
-        if (selectedItems.size === 0 && isSelectionMode) {
-            setIsSelectionMode(false);
-        }
-    }, [selectedItems, isSelectionMode]);
 
     // Get items for the currently selected list
     const items = selectedListId ? (allItems[selectedListId] || []) : [];
@@ -393,23 +385,7 @@ export default function ShoppingPage() {
         setIsSelectionMode(false);
     };
 
-    // Long press handlers to enter selection mode
-    const handleLongPressStart = (itemId: string) => {
-        const timer = setTimeout(() => {
-            setIsSelectionMode(true);
-            setSelectedItems(new Set([itemId]));
-        }, 500); // 500ms long press
-        setLongPressTimer(timer);
-    };
-
-    const handleLongPressEnd = () => {
-        if (longPressTimer) {
-            clearTimeout(longPressTimer);
-            setLongPressTimer(null);
-        }
-    };
-
-    // Handle item tap based on mode
+    // Handle item tap in selection mode
     const handleItemTap = (itemId: string) => {
         if (isSelectionMode) {
             toggleItemSelection(itemId);
@@ -812,6 +788,21 @@ export default function ShoppingPage() {
                                     </span>
                                 </button>
                             </div>
+
+                            {/* Select Mode Toggle */}
+                            <button
+                                onClick={() => {
+                                    if (isSelectionMode) {
+                                        clearSelection();
+                                    } else {
+                                        setIsSelectionMode(true);
+                                    }
+                                }}
+                                className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${isSelectionMode ? 'border-blue-500 bg-blue-600 text-white' : 'border-gray-700 bg-gray-800 text-gray-400 hover:text-gray-200'}`}
+                            >
+                                <CheckSquare className="h-3.5 w-3.5" />
+                                Select
+                            </button>
                         </div>
 
                         {/* Bulk Actions Toolbar */}
@@ -904,11 +895,6 @@ export default function ShoppingPage() {
                                                                 key={item.id}
                                                                 className={`bg-gray-900 rounded-lg border p-3 transition-all ${selectedItems.has(item.id) ? 'border-blue-500 bg-blue-500/10' : priorityBorder
                                                                     }`}
-                                                                onTouchStart={() => handleLongPressStart(item.id)}
-                                                                onTouchEnd={handleLongPressEnd}
-                                                                onMouseDown={() => handleLongPressStart(item.id)}
-                                                                onMouseUp={handleLongPressEnd}
-                                                                onMouseLeave={handleLongPressEnd}
                                                                 onClick={() => handleItemTap(item.id)}
                                                             >
                                                                 <div className="flex items-start gap-3">
@@ -1057,11 +1043,6 @@ export default function ShoppingPage() {
                                                 <div
                                                     key={item.id}
                                                     className={`bg-gray-900 rounded-lg border p-3 transition-all ${selectedItems.has(item.id) ? 'border-blue-500 bg-blue-500/10' : priorityBorder}`}
-                                                    onTouchStart={() => handleLongPressStart(item.id)}
-                                                    onTouchEnd={handleLongPressEnd}
-                                                    onMouseDown={() => handleLongPressStart(item.id)}
-                                                    onMouseUp={handleLongPressEnd}
-                                                    onMouseLeave={handleLongPressEnd}
                                                     onClick={() => handleItemTap(item.id)}
                                                 >
                                                     <div className="flex items-start gap-3">
@@ -1191,11 +1172,6 @@ export default function ShoppingPage() {
                                                             <div
                                                                 key={item.id}
                                                                 className={`bg-gray-900 rounded-lg border p-3 transition-all ${selectedItems.has(item.id) ? 'border-blue-500 bg-blue-500/10' : priorityBorder}`}
-                                                                onTouchStart={() => handleLongPressStart(item.id)}
-                                                                onTouchEnd={handleLongPressEnd}
-                                                                onMouseDown={() => handleLongPressStart(item.id)}
-                                                                onMouseUp={handleLongPressEnd}
-                                                                onMouseLeave={handleLongPressEnd}
                                                                 onClick={() => handleItemTap(item.id)}
                                                             >
                                                                 <div className="flex items-start gap-3">
@@ -1343,11 +1319,6 @@ export default function ShoppingPage() {
                                                 <div
                                                     key={item.id}
                                                     className={`bg-gray-900 rounded-lg border p-3 transition-all ${selectedItems.has(item.id) ? 'border-blue-500 bg-blue-500/10' : priorityBorder}`}
-                                                    onTouchStart={() => handleLongPressStart(item.id)}
-                                                    onTouchEnd={handleLongPressEnd}
-                                                    onMouseDown={() => handleLongPressStart(item.id)}
-                                                    onMouseUp={handleLongPressEnd}
-                                                    onMouseLeave={handleLongPressEnd}
                                                     onClick={() => handleItemTap(item.id)}
                                                 >
                                                     <div className="flex items-start gap-3">
