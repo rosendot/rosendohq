@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Plus, X, Trash2, Edit2, AlertTriangle, FileText, Car, ParkingCircle, Receipt, Calendar } from 'lucide-react';
-import type { MaintenanceRecord, MaintenanceRecordInsert, MaintenanceRecordType } from '@/types/database.types';
+import type { MaintenanceRecord, MaintenanceRecordInsert, MaintenanceRecordType } from '@/types/car.types';
 import DeleteConfirmationModal from '@/components/DeleteConfirmationModal';
 
 interface IncidentsTabProps {

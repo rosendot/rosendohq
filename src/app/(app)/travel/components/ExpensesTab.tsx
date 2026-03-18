@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Plus, Trash2, DollarSign } from "lucide-react";
-import type { TripExpense } from "@/types/database.types";
+import type { TripExpense } from "@/types/travel.types";
 import { formatDate, formatCents } from "./shared";
 
 interface ExpensesTabProps {

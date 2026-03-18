@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from "@/lib/supabase/server";
-import type { HomePropertyInsert } from '@/types/database.types';
+import type { HomePropertyInsert } from '@/types/house.types';
 
 export async function GET() {
     const supabase = await createClient();

@@ -1,7 +1,7 @@
 // src/app/api/books/[id]/logs/route.ts
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import type { ReadingLogInsert } from "@/types/database.types";
+import type { ReadingLogInsert } from "@/types/reading.types";
 
 // GET all logs for a specific book
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {

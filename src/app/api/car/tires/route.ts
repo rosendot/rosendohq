@@ -1,7 +1,7 @@
 // src/app/api/car/tires/route.ts
 import { NextResponse } from 'next/server';
 import { createClient } from "@/lib/supabase/server";
-import type { TireSetInsert } from '@/types/database.types';
+import type { TireSetInsert } from '@/types/car.types';
 
 export async function GET(request: Request) {
     const supabase = await createClient();

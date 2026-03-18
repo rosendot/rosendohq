@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, X, Trash2, Edit2, Home } from 'lucide-react';
-import type { HomeArea, HomeAreaInsert } from '@/types/database.types';
+import { Plus, Trash2, Edit2, Home } from 'lucide-react';
+import BaseFormModal from '@/components/BaseFormModal';
+import type { HomeArea, HomeAreaInsert } from '@/types/house.types';
 
 interface AreasTabProps {
     areas: HomeArea[];
@@ -170,95 +171,69 @@ export default function AreasTab({ areas, propertyId, onRefresh }: AreasTabProps
             )}
 
             {/* Modal */}
-            {showModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-6 max-w-md w-full">
-                        <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-xl font-semibold text-white">
-                                {editingArea ? 'Edit Area' : 'Add Area'}
-                            </h2>
-                            <button
-                                onClick={() => setShowModal(false)}
-                                className="text-gray-400 hover:text-white"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
-
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">
-                                    Name *
-                                </label>
-                                <input
-                                    type="text"
-                                    value={formData.name}
-                                    onChange={(e) =>
-                                        setFormData({ ...formData, name: e.target.value })
-                                    }
-                                    required
-                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                    placeholder="e.g., Master Bedroom"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">
-                                    Type
-                                </label>
-                                <select
-                                    value={formData.type || ''}
-                                    onChange={(e) =>
-                                        setFormData({
-                                            ...formData,
-                                            type: e.target.value || null,
-                                        })
-                                    }
-                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                >
-                                    <option value="">Select type...</option>
-                                    {areaTypes.map((type) => (
-                                        <option key={type} value={type}>
-                                            {type.replace('_', ' ')}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">
-                                    Notes
-                                </label>
-                                <textarea
-                                    value={formData.notes || ''}
-                                    onChange={(e) =>
-                                        setFormData({ ...formData, notes: e.target.value || null })
-                                    }
-                                    rows={2}
-                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                />
-                            </div>
-
-                            <div className="flex gap-3 pt-4">
-                                <button
-                                    type="button"
-                                    onClick={() => setShowModal(false)}
-                                    className="flex-1 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors border border-gray-700"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={loading || !formData.name.trim()}
-                                    className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50"
-                                >
-                                    {loading ? 'Saving...' : editingArea ? 'Update' : 'Create'}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
+            <BaseFormModal
+                isOpen={showModal}
+                onClose={() => setShowModal(false)}
+                title={editingArea ? 'Edit Area' : 'Add Area'}
+                onSubmit={handleSubmit}
+                loading={loading}
+                submitLabel={editingArea ? 'Update' : 'Create'}
+                submitDisabled={!formData.name.trim()}
+                maxWidth="md"
+            >
+                <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Name *
+                    </label>
+                    <input
+                        type="text"
+                        value={formData.name}
+                        onChange={(e) =>
+                            setFormData({ ...formData, name: e.target.value })
+                        }
+                        required
+                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                        placeholder="e.g., Master Bedroom"
+                    />
                 </div>
-            )}
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Type
+                    </label>
+                    <select
+                        value={formData.type || ''}
+                        onChange={(e) =>
+                            setFormData({
+                                ...formData,
+                                type: e.target.value || null,
+                            })
+                        }
+                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                    >
+                        <option value="">Select type...</option>
+                        {areaTypes.map((type) => (
+                            <option key={type} value={type}>
+                                {type.replace('_', ' ')}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Notes
+                    </label>
+                    <textarea
+                        value={formData.notes || ''}
+                        onChange={(e) =>
+                            setFormData({ ...formData, notes: e.target.value || null })
+                        }
+                        rows={2}
+                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                    />
+                </div>
+            </BaseFormModal>
         </div>
     );
 }

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import type { InventoryItemInsert } from "@/types/database.types";
+import type { InventoryItemInsert } from "@/types/inventory.types";
 
 // GET all inventory items
 export async function GET(request: Request) {

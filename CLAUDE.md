@@ -61,7 +61,16 @@ src/
 │   ├── finance/csv-importers/  # CSV import utilities
 │   └── dashboard-utils.ts
 └── types/
-    └── database.types.ts   # Auto-generated Supabase types
+    ├── wishlist.types.ts   # Wishlist types
+    ├── shopping.types.ts   # Shopping types
+    ├── media.types.ts      # Media tracker types
+    ├── reading.types.ts    # Reading tracker types
+    ├── car.types.ts        # Car tracker types
+    ├── habits.types.ts     # Habits & Goals types
+    ├── travel.types.ts     # Travel types
+    ├── notes.types.ts      # Notes vault types
+    ├── inventory.types.ts  # Inventory types
+    └── house.types.ts      # House tracker types
 ```
 
 ## Modules

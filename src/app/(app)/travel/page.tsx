@@ -16,6 +16,7 @@ import {
   Clock,
 } from "lucide-react";
 import DeleteConfirmationModal from "@/components/DeleteConfirmationModal";
+import BaseFormModal from "@/components/BaseFormModal";
 import type {
   Trip,
   TripStatus,
@@ -24,7 +25,7 @@ import type {
   TripPackingItem,
   TripExpense,
   TripDocument,
-} from "@/types/database.types";
+} from "@/types/travel.types";
 import { STATUS_COLORS, formatDate } from "./components/shared";
 import OverviewTab from "./components/OverviewTab";
 import ItineraryTab from "./components/ItineraryTab";
@@ -212,96 +213,91 @@ export default function TravelPage() {
   };
 
   // Trip Modal
-  const tripModal = isAddingTrip && (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div className="w-full max-w-lg rounded-xl border border-gray-800 bg-gray-900 p-6">
-        <h3 className="mb-4 text-lg font-semibold text-white">
-          {editingTrip ? "Edit Trip" : "Add New Trip"}
-        </h3>
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-300">Trip Name*</label>
-              <input
-                type="text"
-                value={tripForm.name}
-                onChange={(e) => setTripForm({ ...tripForm, name: e.target.value })}
-                className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                placeholder="e.g., Move to Dallas"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-300">Destination</label>
-              <input
-                type="text"
-                value={tripForm.destination}
-                onChange={(e) => setTripForm({ ...tripForm, destination: e.target.value })}
-                className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                placeholder="e.g., Dallas, TX"
-              />
-            </div>
-          </div>
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-300">Start Date*</label>
-              <input
-                type="date"
-                value={tripForm.start_date}
-                onChange={(e) => setTripForm({ ...tripForm, start_date: e.target.value })}
-                className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-300">End Date*</label>
-              <input
-                type="date"
-                value={tripForm.end_date}
-                onChange={(e) => setTripForm({ ...tripForm, end_date: e.target.value })}
-                className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-300">Status</label>
-              <select
-                value={tripForm.status}
-                onChange={(e) => setTripForm({ ...tripForm, status: e.target.value as TripStatus })}
-                className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-              >
-                <option value="planning">Planning</option>
-                <option value="upcoming">Upcoming</option>
-                <option value="active">Active</option>
-                <option value="completed">Completed</option>
-              </select>
-            </div>
-          </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium text-gray-300">Notes</label>
-            <textarea
-              value={tripForm.notes}
-              onChange={(e) => setTripForm({ ...tripForm, notes: e.target.value })}
-              className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-              rows={2}
-              placeholder="Optional notes"
-            />
-          </div>
-          <div className="flex gap-2">
-            <button
-              onClick={editingTrip ? updateTrip : createTrip}
-              disabled={!tripForm.name.trim() || !tripForm.start_date || !tripForm.end_date}
-              className="rounded-lg bg-gradient-to-r from-emerald-500 to-emerald-600 px-4 py-2 text-white shadow-md transition-all duration-200 hover:from-emerald-600 hover:to-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {editingTrip ? "Save" : "Add Trip"}
-            </button>
-            <button
-              onClick={resetTripForm}
-              className="rounded-lg bg-gray-700 px-4 py-2 text-white transition-all duration-200 hover:bg-gray-600"
-            >
-              Cancel
-            </button>
-          </div>
+  const handleTripSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editingTrip) {
+      updateTrip();
+    } else {
+      createTrip();
+    }
+  };
+
+  const tripModal = (
+    <BaseFormModal
+      isOpen={isAddingTrip}
+      onClose={resetTripForm}
+      title={editingTrip ? "Edit Trip" : "Add New Trip"}
+      onSubmit={handleTripSubmit}
+      submitLabel={editingTrip ? "Save" : "Add Trip"}
+      submitColor="emerald"
+      submitDisabled={!tripForm.name.trim() || !tripForm.start_date || !tripForm.end_date}
+    >
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="mb-1 block text-sm font-medium text-gray-300">Trip Name*</label>
+          <input
+            type="text"
+            value={tripForm.name}
+            onChange={(e) => setTripForm({ ...tripForm, name: e.target.value })}
+            className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+            placeholder="e.g., Move to Dallas"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-sm font-medium text-gray-300">Destination</label>
+          <input
+            type="text"
+            value={tripForm.destination}
+            onChange={(e) => setTripForm({ ...tripForm, destination: e.target.value })}
+            className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+            placeholder="e.g., Dallas, TX"
+          />
         </div>
       </div>
-    </div>
+      <div className="grid grid-cols-3 gap-4">
+        <div>
+          <label className="mb-1 block text-sm font-medium text-gray-300">Start Date*</label>
+          <input
+            type="date"
+            value={tripForm.start_date}
+            onChange={(e) => setTripForm({ ...tripForm, start_date: e.target.value })}
+            className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-sm font-medium text-gray-300">End Date*</label>
+          <input
+            type="date"
+            value={tripForm.end_date}
+            onChange={(e) => setTripForm({ ...tripForm, end_date: e.target.value })}
+            className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-sm font-medium text-gray-300">Status</label>
+          <select
+            value={tripForm.status}
+            onChange={(e) => setTripForm({ ...tripForm, status: e.target.value as TripStatus })}
+            className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+          >
+            <option value="planning">Planning</option>
+            <option value="upcoming">Upcoming</option>
+            <option value="active">Active</option>
+            <option value="completed">Completed</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label className="mb-1 block text-sm font-medium text-gray-300">Notes</label>
+        <textarea
+          value={tripForm.notes}
+          onChange={(e) => setTripForm({ ...tripForm, notes: e.target.value })}
+          className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+          rows={2}
+          placeholder="Optional notes"
+        />
+      </div>
+    </BaseFormModal>
   );
 
   if (loading) {

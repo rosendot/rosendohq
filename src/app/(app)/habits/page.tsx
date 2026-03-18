@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { Target, Calendar, Check, Plus, Edit2, Trash2, MoreHorizontal } from 'lucide-react';
-import type { Habit, HabitLog, Goal, HabitSchedule } from '@/types/database.types';
+import type { Habit, HabitLog, Goal, HabitSchedule } from '@/types/habits.types';
 import DeleteConfirmationModal from '@/components/DeleteConfirmationModal';
 import AddHabitModal from './AddHabitModal';
 import EditHabitModal from './EditHabitModal';

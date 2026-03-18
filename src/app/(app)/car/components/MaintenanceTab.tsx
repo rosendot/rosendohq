@@ -6,7 +6,7 @@ import type {
     MaintenanceRecord,
     MaintenanceRecordInsert,
     MaintenanceTemplate,
-} from '@/types/database.types';
+} from '@/types/car.types';
 import DeleteConfirmationModal from '@/components/DeleteConfirmationModal';
 
 interface MaintenanceTabProps {

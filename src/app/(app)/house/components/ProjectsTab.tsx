@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, X, Trash2, Edit2, ChevronDown, ChevronRight, CheckCircle } from 'lucide-react';
+import { Plus, Trash2, Edit2, ChevronDown, ChevronRight, CheckCircle } from 'lucide-react';
+import BaseFormModal from '@/components/BaseFormModal';
 import type {
     HomeProject,
     HomeProjectInsert,
@@ -11,7 +12,7 @@ import type {
     HomeProjectTaskStatus,
     HomeArea,
     HomeContractor,
-} from '@/types/database.types';
+} from '@/types/house.types';
 
 interface ProjectsTabProps {
     projects: HomeProject[];
@@ -501,320 +502,268 @@ export default function ProjectsTab({
             )}
 
             {/* Project Modal */}
-            {showProjectModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
-                        <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-xl font-semibold text-white">
-                                {editingProject ? 'Edit Project' : 'New Project'}
-                            </h2>
-                            <button
-                                onClick={() => setShowProjectModal(false)}
-                                className="text-gray-400 hover:text-white"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
+            <BaseFormModal
+                isOpen={showProjectModal}
+                onClose={() => setShowProjectModal(false)}
+                title={editingProject ? 'Edit Project' : 'New Project'}
+                onSubmit={handleProjectSubmit}
+                loading={loading}
+                submitLabel={editingProject ? 'Update' : 'Create'}
+                submitDisabled={!projectFormData.name.trim()}
+            >
+                <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Name *
+                    </label>
+                    <input
+                        type="text"
+                        value={projectFormData.name}
+                        onChange={(e) =>
+                            setProjectFormData({ ...projectFormData, name: e.target.value })
+                        }
+                        required
+                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                        placeholder="Project name"
+                    />
+                </div>
 
-                        <form onSubmit={handleProjectSubmit} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">
-                                    Name *
-                                </label>
-                                <input
-                                    type="text"
-                                    value={projectFormData.name}
-                                    onChange={(e) =>
-                                        setProjectFormData({ ...projectFormData, name: e.target.value })
-                                    }
-                                    required
-                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                    placeholder="Project name"
-                                />
-                            </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Description
+                    </label>
+                    <textarea
+                        value={projectFormData.description || ''}
+                        onChange={(e) =>
+                            setProjectFormData({
+                                ...projectFormData,
+                                description: e.target.value || null,
+                            })
+                        }
+                        rows={2}
+                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                    />
+                </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">
-                                    Description
-                                </label>
-                                <textarea
-                                    value={projectFormData.description || ''}
-                                    onChange={(e) =>
-                                        setProjectFormData({
-                                            ...projectFormData,
-                                            description: e.target.value || null,
-                                        })
-                                    }
-                                    rows={2}
-                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                />
-                            </div>
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">
+                            Status
+                        </label>
+                        <select
+                            value={projectFormData.status || 'planning'}
+                            onChange={(e) =>
+                                setProjectFormData({
+                                    ...projectFormData,
+                                    status: e.target.value as HomeProjectStatus,
+                                })
+                            }
+                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                        >
+                            <option value="planning">Planning</option>
+                            <option value="budgeting">Budgeting</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="on_hold">On Hold</option>
+                            <option value="completed">Completed</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-1">
-                                        Status
-                                    </label>
-                                    <select
-                                        value={projectFormData.status || 'planning'}
-                                        onChange={(e) =>
-                                            setProjectFormData({
-                                                ...projectFormData,
-                                                status: e.target.value as HomeProjectStatus,
-                                            })
-                                        }
-                                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                    >
-                                        <option value="planning">Planning</option>
-                                        <option value="budgeting">Budgeting</option>
-                                        <option value="in_progress">In Progress</option>
-                                        <option value="on_hold">On Hold</option>
-                                        <option value="completed">Completed</option>
-                                        <option value="cancelled">Cancelled</option>
-                                    </select>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-1">
-                                        Priority (1-5)
-                                    </label>
-                                    <select
-                                        value={projectFormData.priority || ''}
-                                        onChange={(e) =>
-                                            setProjectFormData({
-                                                ...projectFormData,
-                                                priority: e.target.value ? parseInt(e.target.value) : null,
-                                            })
-                                        }
-                                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                    >
-                                        <option value="">None</option>
-                                        <option value="1">1 - Low</option>
-                                        <option value="2">2</option>
-                                        <option value="3">3 - Medium</option>
-                                        <option value="4">4</option>
-                                        <option value="5">5 - High</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-1">
-                                        Area
-                                    </label>
-                                    <select
-                                        value={projectFormData.area_id || ''}
-                                        onChange={(e) =>
-                                            setProjectFormData({
-                                                ...projectFormData,
-                                                area_id: e.target.value || null,
-                                            })
-                                        }
-                                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                    >
-                                        <option value="">Select area...</option>
-                                        {areas.map((a) => (
-                                            <option key={a.id} value={a.id}>
-                                                {a.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-1">
-                                        Contractor
-                                    </label>
-                                    <select
-                                        value={projectFormData.contractor_id || ''}
-                                        onChange={(e) =>
-                                            setProjectFormData({
-                                                ...projectFormData,
-                                                contractor_id: e.target.value || null,
-                                            })
-                                        }
-                                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                    >
-                                        <option value="">Select contractor...</option>
-                                        {contractors.map((c) => (
-                                            <option key={c.id} value={c.id}>
-                                                {c.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">
-                                    Budget ($)
-                                </label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    value={
-                                        projectFormData.budget_cents
-                                            ? projectFormData.budget_cents / 100
-                                            : ''
-                                    }
-                                    onChange={(e) =>
-                                        setProjectFormData({
-                                            ...projectFormData,
-                                            budget_cents: e.target.value
-                                                ? Math.round(parseFloat(e.target.value) * 100)
-                                                : null,
-                                        })
-                                    }
-                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                    placeholder="0.00"
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-1">
-                                        Start Date
-                                    </label>
-                                    <input
-                                        type="date"
-                                        value={projectFormData.start_date || ''}
-                                        onChange={(e) =>
-                                            setProjectFormData({
-                                                ...projectFormData,
-                                                start_date: e.target.value || null,
-                                            })
-                                        }
-                                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-1">
-                                        Target End Date
-                                    </label>
-                                    <input
-                                        type="date"
-                                        value={projectFormData.target_end_date || ''}
-                                        onChange={(e) =>
-                                            setProjectFormData({
-                                                ...projectFormData,
-                                                target_end_date: e.target.value || null,
-                                            })
-                                        }
-                                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="flex gap-3 pt-4">
-                                <button
-                                    type="button"
-                                    onClick={() => setShowProjectModal(false)}
-                                    className="flex-1 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors border border-gray-700"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={loading || !projectFormData.name.trim()}
-                                    className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50"
-                                >
-                                    {loading ? 'Saving...' : editingProject ? 'Update' : 'Create'}
-                                </button>
-                            </div>
-                        </form>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">
+                            Priority (1-5)
+                        </label>
+                        <select
+                            value={projectFormData.priority || ''}
+                            onChange={(e) =>
+                                setProjectFormData({
+                                    ...projectFormData,
+                                    priority: e.target.value ? parseInt(e.target.value) : null,
+                                })
+                            }
+                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                        >
+                            <option value="">None</option>
+                            <option value="1">1 - Low</option>
+                            <option value="2">2</option>
+                            <option value="3">3 - Medium</option>
+                            <option value="4">4</option>
+                            <option value="5">5 - High</option>
+                        </select>
                     </div>
                 </div>
-            )}
+
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">
+                            Area
+                        </label>
+                        <select
+                            value={projectFormData.area_id || ''}
+                            onChange={(e) =>
+                                setProjectFormData({
+                                    ...projectFormData,
+                                    area_id: e.target.value || null,
+                                })
+                            }
+                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                        >
+                            <option value="">Select area...</option>
+                            {areas.map((a) => (
+                                <option key={a.id} value={a.id}>
+                                    {a.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">
+                            Contractor
+                        </label>
+                        <select
+                            value={projectFormData.contractor_id || ''}
+                            onChange={(e) =>
+                                setProjectFormData({
+                                    ...projectFormData,
+                                    contractor_id: e.target.value || null,
+                                })
+                            }
+                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                        >
+                            <option value="">Select contractor...</option>
+                            {contractors.map((c) => (
+                                <option key={c.id} value={c.id}>
+                                    {c.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Budget ($)
+                    </label>
+                    <input
+                        type="number"
+                        step="0.01"
+                        value={
+                            projectFormData.budget_cents
+                                ? projectFormData.budget_cents / 100
+                                : ''
+                        }
+                        onChange={(e) =>
+                            setProjectFormData({
+                                ...projectFormData,
+                                budget_cents: e.target.value
+                                    ? Math.round(parseFloat(e.target.value) * 100)
+                                    : null,
+                            })
+                        }
+                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                        placeholder="0.00"
+                    />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">
+                            Start Date
+                        </label>
+                        <input
+                            type="date"
+                            value={projectFormData.start_date || ''}
+                            onChange={(e) =>
+                                setProjectFormData({
+                                    ...projectFormData,
+                                    start_date: e.target.value || null,
+                                })
+                            }
+                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">
+                            Target End Date
+                        </label>
+                        <input
+                            type="date"
+                            value={projectFormData.target_end_date || ''}
+                            onChange={(e) =>
+                                setProjectFormData({
+                                    ...projectFormData,
+                                    target_end_date: e.target.value || null,
+                                })
+                            }
+                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                        />
+                    </div>
+                </div>
+            </BaseFormModal>
 
             {/* Task Modal */}
-            {showTaskModal && selectedProject && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-6 max-w-md w-full">
-                        <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-xl font-semibold text-white">
-                                Add Task to {selectedProject.name}
-                            </h2>
-                            <button
-                                onClick={() => setShowTaskModal(false)}
-                                className="text-gray-400 hover:text-white"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
-
-                        <form onSubmit={handleTaskSubmit} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">
-                                    Task Name *
-                                </label>
-                                <input
-                                    type="text"
-                                    value={taskFormData.name}
-                                    onChange={(e) =>
-                                        setTaskFormData({ ...taskFormData, name: e.target.value })
-                                    }
-                                    required
-                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                    placeholder="Task name"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">
-                                    Description
-                                </label>
-                                <textarea
-                                    value={taskFormData.description || ''}
-                                    onChange={(e) =>
-                                        setTaskFormData({
-                                            ...taskFormData,
-                                            description: e.target.value || null,
-                                        })
-                                    }
-                                    rows={2}
-                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">
-                                    Due Date
-                                </label>
-                                <input
-                                    type="date"
-                                    value={taskFormData.due_date || ''}
-                                    onChange={(e) =>
-                                        setTaskFormData({
-                                            ...taskFormData,
-                                            due_date: e.target.value || null,
-                                        })
-                                    }
-                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                />
-                            </div>
-
-                            <div className="flex gap-3 pt-4">
-                                <button
-                                    type="button"
-                                    onClick={() => setShowTaskModal(false)}
-                                    className="flex-1 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors border border-gray-700"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={loading || !taskFormData.name.trim()}
-                                    className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50"
-                                >
-                                    {loading ? 'Adding...' : 'Add Task'}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
+            <BaseFormModal
+                isOpen={showTaskModal && !!selectedProject}
+                onClose={() => setShowTaskModal(false)}
+                title={`Add Task to ${selectedProject?.name ?? ''}`}
+                onSubmit={handleTaskSubmit}
+                loading={loading}
+                submitLabel="Add Task"
+                loadingLabel="Adding..."
+                submitDisabled={!taskFormData.name.trim()}
+                maxWidth="md"
+            >
+                <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Task Name *
+                    </label>
+                    <input
+                        type="text"
+                        value={taskFormData.name}
+                        onChange={(e) =>
+                            setTaskFormData({ ...taskFormData, name: e.target.value })
+                        }
+                        required
+                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                        placeholder="Task name"
+                    />
                 </div>
-            )}
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Description
+                    </label>
+                    <textarea
+                        value={taskFormData.description || ''}
+                        onChange={(e) =>
+                            setTaskFormData({
+                                ...taskFormData,
+                                description: e.target.value || null,
+                            })
+                        }
+                        rows={2}
+                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                    />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Due Date
+                    </label>
+                    <input
+                        type="date"
+                        value={taskFormData.due_date || ''}
+                        onChange={(e) =>
+                            setTaskFormData({
+                                ...taskFormData,
+                                due_date: e.target.value || null,
+                            })
+                        }
+                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                    />
+                </div>
+            </BaseFormModal>
         </div>
     );
 }

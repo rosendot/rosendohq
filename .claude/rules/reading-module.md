@@ -59,7 +59,7 @@ All under `src/app/api/books/`:
 
 ### Types
 
-Defined in `src/types/database.types.ts`:
+Defined in `src/types/reading.types.ts`:
 
 - **Enums**: `BookStatus` (planned, reading, finished, on_hold, dropped), `BookFormat` (physical, ebook, audiobook)
 - **Interfaces**: `Book`, `ReadingLog`, `Highlight` (JSONB sub-type with text, location, created_at)

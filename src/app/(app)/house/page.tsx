@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, X, ChevronDown } from 'lucide-react';
+import { Plus, ChevronDown } from 'lucide-react';
+import BaseFormModal from '@/components/BaseFormModal';
 import type {
     HomeProperty,
     HomePropertyInsert,
@@ -15,7 +16,7 @@ import type {
     HomeUtilityBill,
     HomeProject,
     HomeDocument,
-} from '@/types/database.types';
+} from '@/types/house.types';
 
 import DashboardTab from './components/DashboardTab';
 import MaintenanceTab from './components/MaintenanceTab';
@@ -386,181 +387,157 @@ export default function HousePage() {
                 )}
 
                 {/* Property Modal */}
-                {showPropertyModal && (
-                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                        <div className="bg-gray-900 rounded-lg border border-gray-800 p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
-                            <div className="flex justify-between items-center mb-4">
-                                <h2 className="text-xl font-semibold text-white">Add Property</h2>
-                                <button
-                                    onClick={() => setShowPropertyModal(false)}
-                                    className="text-gray-400 hover:text-white"
-                                >
-                                    <X className="w-5 h-5" />
-                                </button>
-                            </div>
+                <BaseFormModal
+                    isOpen={showPropertyModal}
+                    onClose={() => setShowPropertyModal(false)}
+                    title="Add Property"
+                    onSubmit={handlePropertySubmit}
+                    loading={propertyLoading}
+                    submitLabel="Create Property"
+                    loadingLabel="Creating..."
+                    submitDisabled={!propertyFormData.name.trim()}
+                >
+                    <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">
+                            Property Name *
+                        </label>
+                        <input
+                            type="text"
+                            value={propertyFormData.name}
+                            onChange={(e) =>
+                                setPropertyFormData({
+                                    ...propertyFormData,
+                                    name: e.target.value,
+                                })
+                            }
+                            required
+                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                            placeholder="e.g., Main House"
+                        />
+                    </div>
 
-                            <form onSubmit={handlePropertySubmit} className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-1">
-                                        Property Name *
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={propertyFormData.name}
-                                        onChange={(e) =>
-                                            setPropertyFormData({
-                                                ...propertyFormData,
-                                                name: e.target.value,
-                                            })
-                                        }
-                                        required
-                                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                        placeholder="e.g., Main House"
-                                    />
-                                </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">
+                            Address Line 1
+                        </label>
+                        <input
+                            type="text"
+                            value={propertyFormData.address1 || ''}
+                            onChange={(e) =>
+                                setPropertyFormData({
+                                    ...propertyFormData,
+                                    address1: e.target.value || null,
+                                })
+                            }
+                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                        />
+                    </div>
 
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-1">
-                                        Address Line 1
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={propertyFormData.address1 || ''}
-                                        onChange={(e) =>
-                                            setPropertyFormData({
-                                                ...propertyFormData,
-                                                address1: e.target.value || null,
-                                            })
-                                        }
-                                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                    />
-                                </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">
+                            Address Line 2
+                        </label>
+                        <input
+                            type="text"
+                            value={propertyFormData.address2 || ''}
+                            onChange={(e) =>
+                                setPropertyFormData({
+                                    ...propertyFormData,
+                                    address2: e.target.value || null,
+                                })
+                            }
+                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                            placeholder="Apt, Suite, etc."
+                        />
+                    </div>
 
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-1">
-                                        Address Line 2
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={propertyFormData.address2 || ''}
-                                        onChange={(e) =>
-                                            setPropertyFormData({
-                                                ...propertyFormData,
-                                                address2: e.target.value || null,
-                                            })
-                                        }
-                                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                        placeholder="Apt, Suite, etc."
-                                    />
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-300 mb-1">
-                                            City
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={propertyFormData.city || ''}
-                                            onChange={(e) =>
-                                                setPropertyFormData({
-                                                    ...propertyFormData,
-                                                    city: e.target.value || null,
-                                                })
-                                            }
-                                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-300 mb-1">
-                                            State
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={propertyFormData.state || ''}
-                                            onChange={(e) =>
-                                                setPropertyFormData({
-                                                    ...propertyFormData,
-                                                    state: e.target.value || null,
-                                                })
-                                            }
-                                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-300 mb-1">
-                                            Postal Code
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={propertyFormData.postal_code || ''}
-                                            onChange={(e) =>
-                                                setPropertyFormData({
-                                                    ...propertyFormData,
-                                                    postal_code: e.target.value || null,
-                                                })
-                                            }
-                                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-300 mb-1">
-                                            Country
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={propertyFormData.country || ''}
-                                            onChange={(e) =>
-                                                setPropertyFormData({
-                                                    ...propertyFormData,
-                                                    country: e.target.value || null,
-                                                })
-                                            }
-                                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-1">
-                                        Notes
-                                    </label>
-                                    <textarea
-                                        value={propertyFormData.notes || ''}
-                                        onChange={(e) =>
-                                            setPropertyFormData({
-                                                ...propertyFormData,
-                                                notes: e.target.value || null,
-                                            })
-                                        }
-                                        rows={2}
-                                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                    />
-                                </div>
-
-                                <div className="flex gap-3 pt-4">
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowPropertyModal(false)}
-                                        className="flex-1 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors border border-gray-700"
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        disabled={propertyLoading || !propertyFormData.name.trim()}
-                                        className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50"
-                                    >
-                                        {propertyLoading ? 'Creating...' : 'Create Property'}
-                                    </button>
-                                </div>
-                            </form>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                                City
+                            </label>
+                            <input
+                                type="text"
+                                value={propertyFormData.city || ''}
+                                onChange={(e) =>
+                                    setPropertyFormData({
+                                        ...propertyFormData,
+                                        city: e.target.value || null,
+                                    })
+                                }
+                                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                                State
+                            </label>
+                            <input
+                                type="text"
+                                value={propertyFormData.state || ''}
+                                onChange={(e) =>
+                                    setPropertyFormData({
+                                        ...propertyFormData,
+                                        state: e.target.value || null,
+                                    })
+                                }
+                                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                            />
                         </div>
                     </div>
-                )}
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                                Postal Code
+                            </label>
+                            <input
+                                type="text"
+                                value={propertyFormData.postal_code || ''}
+                                onChange={(e) =>
+                                    setPropertyFormData({
+                                        ...propertyFormData,
+                                        postal_code: e.target.value || null,
+                                    })
+                                }
+                                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-1">
+                                Country
+                            </label>
+                            <input
+                                type="text"
+                                value={propertyFormData.country || ''}
+                                onChange={(e) =>
+                                    setPropertyFormData({
+                                        ...propertyFormData,
+                                        country: e.target.value || null,
+                                    })
+                                }
+                                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                            />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">
+                            Notes
+                        </label>
+                        <textarea
+                            value={propertyFormData.notes || ''}
+                            onChange={(e) =>
+                                setPropertyFormData({
+                                    ...propertyFormData,
+                                    notes: e.target.value || null,
+                                })
+                            }
+                            rows={2}
+                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                        />
+                    </div>
+                </BaseFormModal>
             </div>
         </div>
     );

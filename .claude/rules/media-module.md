@@ -49,7 +49,7 @@ All under `src/app/api/media/`:
 
 ### Types
 
-Defined in `src/types/database.types.ts`:
+Defined in `src/types/media.types.ts`:
 
 - **Enums**: `MediaType` (anime, show, movie), `MediaStatus` (planned, watching, completed, on_hold, dropped)
 - **Interfaces**: `MediaItem`, `MediaLog`

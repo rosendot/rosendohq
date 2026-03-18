@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Plus, Trash2, BookOpen } from "lucide-react";
-import type { TripEntry } from "@/types/database.types";
+import type { TripEntry } from "@/types/travel.types";
 import { formatDate } from "./shared";
 
 interface JournalTabProps {

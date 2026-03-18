@@ -1,6 +1,6 @@
 "use client";
 
-import type { Trip, ItineraryItem, TripPackingItem, TripExpense, TripEntry } from "@/types/database.types";
+import type { Trip, ItineraryItem, TripPackingItem, TripExpense, TripEntry } from "@/types/travel.types";
 import { TYPE_ICONS, TYPE_COLORS, formatDateTime, formatCents } from "./shared";
 
 interface OverviewTabProps {

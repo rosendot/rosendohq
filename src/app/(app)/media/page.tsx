@@ -3,8 +3,9 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Plus, Film, Tv, Star, Search, Trash2, Edit2, ChevronLeft, ChevronRight } from 'lucide-react';
-import type { MediaItem, MediaType, MediaStatus } from '@/types/database.types';
+import type { MediaItem, MediaType, MediaStatus } from '@/types/media.types';
 import DeleteConfirmationModal from '@/components/DeleteConfirmationModal';
+import BaseFormModal from '@/components/BaseFormModal';
 
 const MEDIA_TYPES: { value: MediaType; label: string; icon: typeof Film }[] = [
     { value: 'movie', label: 'Movies', icon: Film },
@@ -779,15 +780,20 @@ export default function MediaTrackerPage() {
                 )}
             </div>
 
-            {/* Add/Edit Modal - Mobile Optimized */}
-            {showAddModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-0 sm:p-4 z-50 overflow-y-auto">
-                    <div className="bg-gray-900 border-0 sm:border border-gray-800 rounded-none sm:rounded-lg p-4 max-w-md w-full min-h-screen sm:min-h-0 my-0 sm:my-8">
-                        <h2 className="text-xl font-bold mb-4">
-                            {editingItem ? 'Edit Media' : 'Add New Media'}
-                        </h2>
-
-                        <form onSubmit={handleSubmit} className="space-y-3">
+            {/* Add/Edit Modal */}
+            <BaseFormModal
+                isOpen={showAddModal}
+                onClose={() => {
+                    setShowAddModal(false);
+                    setEditingItem(null);
+                    resetForm();
+                }}
+                title={editingItem ? 'Edit Media' : 'Add New Media'}
+                onSubmit={handleSubmit}
+                submitLabel={editingItem ? 'Update' : 'Add Media'}
+                submitColor="blue"
+                maxWidth="md"
+            >
                             <div>
                                 <label className="block text-sm font-medium mb-1">Title *</label>
                                 <input
@@ -968,30 +974,7 @@ export default function MediaTrackerPage() {
                                     />
                                 </div>
                             </div>
-
-                            <div className="flex flex-col-reverse sm:flex-row gap-2 pt-2">
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setShowAddModal(false);
-                                        setEditingItem(null);
-                                        resetForm();
-                                    }}
-                                    className="w-full sm:w-auto px-4 py-2.5 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded-lg font-medium transition-colors text-sm"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="w-full sm:flex-1 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 px-4 py-2.5 rounded-lg font-medium transition-colors text-sm"
-                                >
-                                    {editingItem ? 'Update' : 'Add Media'}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
+            </BaseFormModal>
 
             {/* Delete Confirmation Modal */}
             <DeleteConfirmationModal

@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { Plus, Search, ShoppingCart, CheckCircle2, Circle, Calendar, Trash2, Check, X, Edit2, Loader2, CheckSquare } from 'lucide-react';
-import type { ShoppingList, ShoppingListItem } from '@/types/database.types';
+import type { ShoppingList, ShoppingListItem } from '@/types/shopping.types';
 import DeleteConfirmationModal from '@/components/DeleteConfirmationModal';
 import AddShoppingItemModal from './AddShoppingItemModal';
 import EditShoppingItemModal from './EditShoppingItemModal';

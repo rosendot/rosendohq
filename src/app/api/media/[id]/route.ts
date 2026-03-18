@@ -1,7 +1,7 @@
 // src/app/api/media/[id]/route.ts
 import { NextResponse } from 'next/server';
 import { createClient } from "@/lib/supabase/server";
-import type { MediaItemUpdate } from '@/types/database.types';
+import type { MediaItemUpdate } from '@/types/media.types';
 
 // GET single media item
 export async function GET(

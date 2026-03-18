@@ -1,7 +1,7 @@
 // src/app/api/car/odometer/[id]/route.ts
 import { NextResponse } from 'next/server';
 import { createClient } from "@/lib/supabase/server";
-import type { OdometerLog } from '@/types/database.types';
+import type { OdometerLog } from '@/types/car.types';
 
 export async function GET(
     request: Request,

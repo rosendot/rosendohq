@@ -42,7 +42,7 @@ None.
 
 ### Types
 
-Defined in `src/types/database.types.ts`:
+Defined in `src/types/wishlist.types.ts`:
 
 - **Enums**: `WishlistStatus` (inline union type: wanted, considering, on_hold, purchased, declined)
 - **Interfaces**: `WishlistItem`

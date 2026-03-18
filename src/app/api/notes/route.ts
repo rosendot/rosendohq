@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import type { NoteInsert } from "@/types/database.types";
+import type { NoteInsert } from "@/types/notes.types";
 
 // GET all notes
 export async function GET(request: Request) {

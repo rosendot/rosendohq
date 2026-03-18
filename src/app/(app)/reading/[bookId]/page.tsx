@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Edit2, Trash2, Plus } from 'lucide-react';
-import { Book, BookStatus, BookFormat, ReadingLog, Highlight } from '@/types/database.types';
+import { Book, BookStatus, BookFormat, ReadingLog, Highlight } from '@/types/reading.types';
 import DeleteConfirmationModal from '@/components/DeleteConfirmationModal';
 
 export default function BookDetailPage({ params }: { params: Promise<{ bookId: string }> }) {

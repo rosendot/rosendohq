@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Plus, Package, MapPin, DollarSign, Search, Trash2, Edit2, X } from "lucide-react";
-import type { InventoryItem } from "@/types/database.types";
+import type { InventoryItem } from "@/types/inventory.types";
+import BaseFormModal from "@/components/BaseFormModal";
 import DeleteConfirmationModal from "@/components/DeleteConfirmationModal";
 
 const CATEGORIES = [
@@ -379,131 +380,116 @@ export default function InventoryPage() {
       </div>
 
       {/* Add/Edit Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-md rounded-xl border border-gray-800 bg-gray-900 p-6">
-            <h2 className="mb-5 text-lg font-bold">{editingItem ? "Edit Item" : "Add New Item"}</h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="mb-1 block text-xs font-medium text-gray-400">Name *</label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:ring-1 focus:ring-blue-500 focus:outline-none"
-                  required
-                />
-              </div>
+      <BaseFormModal
+        isOpen={showAddModal}
+        onClose={() => {
+          setShowAddModal(false);
+          setEditingItem(null);
+          resetForm();
+        }}
+        title={editingItem ? "Edit Item" : "Add New Item"}
+        onSubmit={handleSubmit}
+        submitLabel={editingItem ? "Update Item" : "Add Item"}
+        submitColor="blue"
+        maxWidth="md"
+      >
+        <div>
+          <label className="mb-1 block text-xs font-medium text-gray-400">Name *</label>
+          <input
+            type="text"
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:ring-1 focus:ring-blue-500 focus:outline-none"
+            required
+          />
+        </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-gray-400">Category</label>
-                  <select
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:ring-1 focus:ring-blue-500 focus:outline-none"
-                  >
-                    {CATEGORIES.map((cat) => (
-                      <option key={cat} value={cat}>
-                        {cat}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-gray-400">Location</label>
-                  <select
-                    value={formData.location}
-                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                    className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:ring-1 focus:ring-blue-500 focus:outline-none"
-                  >
-                    {LOCATIONS.map((loc) => (
-                      <option key={loc} value={loc}>
-                        {loc}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-gray-400">Quantity</label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={formData.quantity}
-                    onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) || 1 })}
-                    className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:ring-1 focus:ring-blue-500 focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-gray-400">Unit</label>
-                  <input
-                    type="text"
-                    value={formData.unit}
-                    onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-                    placeholder="pcs, kg..."
-                    className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-600 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-gray-400">Price ($)</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={formData.purchasePrice}
-                    onChange={(e) => setFormData({ ...formData, purchasePrice: e.target.value })}
-                    placeholder="0.00"
-                    className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-600 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="mb-1 block text-xs font-medium text-gray-400">Acquired Date</label>
-                <input
-                  type="date"
-                  value={formData.acquired_at}
-                  onChange={(e) => setFormData({ ...formData, acquired_at: e.target.value })}
-                  className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:ring-1 focus:ring-blue-500 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="mb-1 block text-xs font-medium text-gray-400">Notes</label>
-                <textarea
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  className="h-20 w-full resize-none rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-600 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-                  placeholder="Optional notes..."
-                />
-              </div>
-
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowAddModal(false);
-                    setEditingItem(null);
-                    resetForm();
-                  }}
-                  className="flex-1 rounded-lg bg-gray-800 px-4 py-2 text-sm transition-colors hover:bg-gray-700"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium transition-colors hover:bg-blue-700"
-                >
-                  {editingItem ? "Update" : "Add"} Item
-                </button>
-              </div>
-            </form>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="mb-1 block text-xs font-medium text-gray-400">Category</label>
+            <select
+              value={formData.category}
+              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+              className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:ring-1 focus:ring-blue-500 focus:outline-none"
+            >
+              {CATEGORIES.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-gray-400">Location</label>
+            <select
+              value={formData.location}
+              onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+              className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:ring-1 focus:ring-blue-500 focus:outline-none"
+            >
+              {LOCATIONS.map((loc) => (
+                <option key={loc} value={loc}>
+                  {loc}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
-      )}
+
+        <div className="grid grid-cols-3 gap-4">
+          <div>
+            <label className="mb-1 block text-xs font-medium text-gray-400">Quantity</label>
+            <input
+              type="number"
+              min="1"
+              value={formData.quantity}
+              onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) || 1 })}
+              className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:ring-1 focus:ring-blue-500 focus:outline-none"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-gray-400">Unit</label>
+            <input
+              type="text"
+              value={formData.unit}
+              onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
+              placeholder="pcs, kg..."
+              className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-600 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-gray-400">Price ($)</label>
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              value={formData.purchasePrice}
+              onChange={(e) => setFormData({ ...formData, purchasePrice: e.target.value })}
+              placeholder="0.00"
+              className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-600 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="mb-1 block text-xs font-medium text-gray-400">Acquired Date</label>
+          <input
+            type="date"
+            value={formData.acquired_at}
+            onChange={(e) => setFormData({ ...formData, acquired_at: e.target.value })}
+            className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:ring-1 focus:ring-blue-500 focus:outline-none"
+          />
+        </div>
+
+        <div>
+          <label className="mb-1 block text-xs font-medium text-gray-400">Notes</label>
+          <textarea
+            value={formData.notes}
+            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+            className="h-20 w-full resize-none rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-600 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+            placeholder="Optional notes..."
+          />
+        </div>
+      </BaseFormModal>
 
       <DeleteConfirmationModal
         isOpen={!!deleteTarget}

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Plus, X, Trash2, Edit2, Circle, CheckCircle2, Archive } from 'lucide-react';
-import type { TireSet, TireSetInsert, TireStatus } from '@/types/database.types';
+import type { TireSet, TireSetInsert, TireStatus } from '@/types/car.types';
 import DeleteConfirmationModal from '@/components/DeleteConfirmationModal';
 
 interface TiresTabProps {

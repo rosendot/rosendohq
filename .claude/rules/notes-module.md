@@ -50,7 +50,7 @@ All under `src/app/api/notes/`:
 
 ### Types
 
-Defined in `src/types/database.types.ts`:
+Defined in `src/types/notes.types.ts`:
 
 - **Type**: `NoteCategory` — Union type: reference, idea, guide, journal, finance, health, work, personal, archive, other
 - **Interface**: `Note` — id, owner_id, title, content_md, created_at, updated_at, tags (string[]), category (NoteCategory), is_pinned (boolean)

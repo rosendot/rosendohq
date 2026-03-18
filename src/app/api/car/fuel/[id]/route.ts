@@ -1,7 +1,7 @@
 // src/app/api/car/fuel/[id]/route.ts
 import { NextResponse } from 'next/server';
 import { createClient } from "@/lib/supabase/server";
-import type { FuelLog } from '@/types/database.types';
+import type { FuelLog } from '@/types/car.types';
 
 export async function GET(
     request: Request,

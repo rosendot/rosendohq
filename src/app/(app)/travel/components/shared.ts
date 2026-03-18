@@ -7,7 +7,7 @@ import {
   ListTodo,
   MoreHorizontal,
 } from "lucide-react";
-import type { ItineraryType, TripStatus } from "@/types/database.types";
+import type { ItineraryType, TripStatus } from "@/types/travel.types";
 
 export const STATUS_COLORS: Record<TripStatus, string> = {
   planning: "text-blue-400 bg-blue-500/10 border-blue-500/20",

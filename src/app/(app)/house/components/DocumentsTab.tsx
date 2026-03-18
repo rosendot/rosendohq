@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Plus, X, Trash2, Edit2, FileText, ExternalLink, AlertCircle } from 'lucide-react';
-import type { HomeDocument, HomeDocumentInsert, HomeDocumentType } from '@/types/database.types';
+import type { HomeDocument, HomeDocumentInsert, HomeDocumentType } from '@/types/house.types';
 
 interface DocumentsTabProps {
     documents: HomeDocument[];

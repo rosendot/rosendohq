@@ -46,7 +46,7 @@ None.
 
 ### Types
 
-Defined in `src/types/database.types.ts`:
+Defined in `src/types/inventory.types.ts`:
 
 - **Interface**: `InventoryItem` — id, owner_id, name, quantity, unit, location, category, purchase_price_cents, acquired_at, notes, created_at, updated_at
 - **Insert/Update types**: `InventoryItemInsert` (omits id, owner_id, created_at, updated_at), `InventoryItemUpdate` (Partial, omits id, owner_id, created_at)

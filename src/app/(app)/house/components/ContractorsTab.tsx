@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, X, Trash2, Edit2, Phone, Mail, Star } from 'lucide-react';
-import type { HomeContractor, HomeContractorInsert } from '@/types/database.types';
+import { Plus, Trash2, Edit2, Phone, Mail, Star } from 'lucide-react';
+import BaseFormModal from '@/components/BaseFormModal';
+import type { HomeContractor, HomeContractorInsert } from '@/types/house.types';
 
 interface ContractorsTabProps {
     contractors: HomeContractor[];
@@ -226,212 +227,185 @@ export default function ContractorsTab({ contractors, onRefresh }: ContractorsTa
             )}
 
             {/* Modal */}
-            {showModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
-                        <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-xl font-semibold text-white">
-                                {editingContractor ? 'Edit Contractor' : 'Add Contractor'}
-                            </h2>
-                            <button
-                                onClick={() => setShowModal(false)}
-                                className="text-gray-400 hover:text-white"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
+            <BaseFormModal
+                isOpen={showModal}
+                onClose={() => setShowModal(false)}
+                title={editingContractor ? 'Edit Contractor' : 'Add Contractor'}
+                onSubmit={handleSubmit}
+                loading={loading}
+                submitLabel={editingContractor ? 'Update' : 'Create'}
+                submitDisabled={!formData.name.trim()}
+            >
+                <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Name *
+                    </label>
+                    <input
+                        type="text"
+                        value={formData.name}
+                        onChange={(e) =>
+                            setFormData({ ...formData, name: e.target.value })
+                        }
+                        required
+                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                        placeholder="Contact name"
+                    />
+                </div>
 
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">
-                                    Name *
-                                </label>
-                                <input
-                                    type="text"
-                                    value={formData.name}
-                                    onChange={(e) =>
-                                        setFormData({ ...formData, name: e.target.value })
-                                    }
-                                    required
-                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                    placeholder="Contact name"
-                                />
-                            </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Company
+                    </label>
+                    <input
+                        type="text"
+                        value={formData.company || ''}
+                        onChange={(e) =>
+                            setFormData({
+                                ...formData,
+                                company: e.target.value || null,
+                            })
+                        }
+                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                    />
+                </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">
-                                    Company
-                                </label>
-                                <input
-                                    type="text"
-                                    value={formData.company || ''}
-                                    onChange={(e) =>
-                                        setFormData({
-                                            ...formData,
-                                            company: e.target.value || null,
-                                        })
-                                    }
-                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                />
-                            </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Specialty
+                    </label>
+                    <select
+                        value={formData.specialty || ''}
+                        onChange={(e) =>
+                            setFormData({
+                                ...formData,
+                                specialty: e.target.value || null,
+                            })
+                        }
+                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                    >
+                        <option value="">Select specialty...</option>
+                        {specialties.map((s) => (
+                            <option key={s} value={s}>
+                                {s}
+                            </option>
+                        ))}
+                    </select>
+                </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">
-                                    Specialty
-                                </label>
-                                <select
-                                    value={formData.specialty || ''}
-                                    onChange={(e) =>
-                                        setFormData({
-                                            ...formData,
-                                            specialty: e.target.value || null,
-                                        })
-                                    }
-                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                >
-                                    <option value="">Select specialty...</option>
-                                    {specialties.map((s) => (
-                                        <option key={s} value={s}>
-                                            {s}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">
+                            Phone
+                        </label>
+                        <input
+                            type="tel"
+                            value={formData.phone || ''}
+                            onChange={(e) =>
+                                setFormData({
+                                    ...formData,
+                                    phone: e.target.value || null,
+                                })
+                            }
+                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                        />
+                    </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-1">
-                                        Phone
-                                    </label>
-                                    <input
-                                        type="tel"
-                                        value={formData.phone || ''}
-                                        onChange={(e) =>
-                                            setFormData({
-                                                ...formData,
-                                                phone: e.target.value || null,
-                                            })
-                                        }
-                                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-1">
-                                        Email
-                                    </label>
-                                    <input
-                                        type="email"
-                                        value={formData.email || ''}
-                                        onChange={(e) =>
-                                            setFormData({
-                                                ...formData,
-                                                email: e.target.value || null,
-                                            })
-                                        }
-                                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                    />
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">
-                                    Website
-                                </label>
-                                <input
-                                    type="url"
-                                    value={formData.website || ''}
-                                    onChange={(e) =>
-                                        setFormData({
-                                            ...formData,
-                                            website: e.target.value || null,
-                                        })
-                                    }
-                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                    placeholder="https://"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">
-                                    Address
-                                </label>
-                                <input
-                                    type="text"
-                                    value={formData.address || ''}
-                                    onChange={(e) =>
-                                        setFormData({
-                                            ...formData,
-                                            address: e.target.value || null,
-                                        })
-                                    }
-                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">
-                                    Rating
-                                </label>
-                                <div className="flex items-center gap-2">
-                                    {[1, 2, 3, 4, 5].map((star) => (
-                                        <button
-                                            key={star}
-                                            type="button"
-                                            onClick={() =>
-                                                setFormData({
-                                                    ...formData,
-                                                    rating: formData.rating === star ? null : star,
-                                                })
-                                            }
-                                            className="p-1"
-                                        >
-                                            <Star
-                                                className={`w-6 h-6 ${
-                                                    formData.rating && star <= formData.rating
-                                                        ? 'text-yellow-400 fill-yellow-400'
-                                                        : 'text-gray-600'
-                                                }`}
-                                            />
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">
-                                    Notes
-                                </label>
-                                <textarea
-                                    value={formData.notes || ''}
-                                    onChange={(e) =>
-                                        setFormData({ ...formData, notes: e.target.value || null })
-                                    }
-                                    rows={2}
-                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                />
-                            </div>
-
-                            <div className="flex gap-3 pt-4">
-                                <button
-                                    type="button"
-                                    onClick={() => setShowModal(false)}
-                                    className="flex-1 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors border border-gray-700"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={loading || !formData.name.trim()}
-                                    className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50"
-                                >
-                                    {loading ? 'Saving...' : editingContractor ? 'Update' : 'Create'}
-                                </button>
-                            </div>
-                        </form>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">
+                            Email
+                        </label>
+                        <input
+                            type="email"
+                            value={formData.email || ''}
+                            onChange={(e) =>
+                                setFormData({
+                                    ...formData,
+                                    email: e.target.value || null,
+                                })
+                            }
+                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                        />
                     </div>
                 </div>
-            )}
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Website
+                    </label>
+                    <input
+                        type="url"
+                        value={formData.website || ''}
+                        onChange={(e) =>
+                            setFormData({
+                                ...formData,
+                                website: e.target.value || null,
+                            })
+                        }
+                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                        placeholder="https://"
+                    />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Address
+                    </label>
+                    <input
+                        type="text"
+                        value={formData.address || ''}
+                        onChange={(e) =>
+                            setFormData({
+                                ...formData,
+                                address: e.target.value || null,
+                            })
+                        }
+                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                    />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Rating
+                    </label>
+                    <div className="flex items-center gap-2">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                            <button
+                                key={star}
+                                type="button"
+                                onClick={() =>
+                                    setFormData({
+                                        ...formData,
+                                        rating: formData.rating === star ? null : star,
+                                    })
+                                }
+                                className="p-1"
+                            >
+                                <Star
+                                    className={`w-6 h-6 ${
+                                        formData.rating && star <= formData.rating
+                                            ? 'text-yellow-400 fill-yellow-400'
+                                            : 'text-gray-600'
+                                    }`}
+                                />
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Notes
+                    </label>
+                    <textarea
+                        value={formData.notes || ''}
+                        onChange={(e) =>
+                            setFormData({ ...formData, notes: e.target.value || null })
+                        }
+                        rows={2}
+                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                    />
+                </div>
+            </BaseFormModal>
         </div>
     );
 }

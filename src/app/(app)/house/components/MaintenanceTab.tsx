@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, X, Trash2, Edit2, RotateCcw } from 'lucide-react';
+import { Plus, Trash2, Edit2, RotateCcw } from 'lucide-react';
+import BaseFormModal from '@/components/BaseFormModal';
 import type {
     HomeMaintenanceRecord,
     HomeMaintenanceRecordInsert,
@@ -10,7 +11,7 @@ import type {
     HomeMaintenanceTemplateInsert,
     HomeArea,
     HomeMaintenanceStatus,
-} from '@/types/database.types';
+} from '@/types/house.types';
 
 interface MaintenanceTabProps {
     records: HomeMaintenanceRecord[];
@@ -548,262 +549,208 @@ export default function MaintenanceTab({
             )}
 
             {/* Task Modal */}
-            {showModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
-                        <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-xl font-semibold text-white">
-                                {editingRecord ? 'Edit Task' : 'Add Task'}
-                            </h2>
-                            <button
-                                onClick={() => setShowModal(false)}
-                                className="text-gray-400 hover:text-white"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
+            <BaseFormModal
+                isOpen={showModal}
+                onClose={() => setShowModal(false)}
+                title={editingRecord ? 'Edit Task' : 'Add Task'}
+                onSubmit={handleSubmit}
+                loading={loading}
+                submitLabel={editingRecord ? 'Update' : 'Create'}
+                submitDisabled={!formData.item.trim()}
+            >
+                <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Task Name *
+                    </label>
+                    <input
+                        type="text"
+                        value={formData.item}
+                        onChange={(e) => setFormData({ ...formData, item: e.target.value })}
+                        required
+                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                        placeholder="e.g., Clean bathroom, Take out trash"
+                    />
+                </div>
 
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">
-                                    Task Name *
-                                </label>
-                                <input
-                                    type="text"
-                                    value={formData.item}
-                                    onChange={(e) => setFormData({ ...formData, item: e.target.value })}
-                                    required
-                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                    placeholder="e.g., Clean bathroom, Take out trash"
-                                />
-                            </div>
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">
+                            Room
+                        </label>
+                        <select
+                            value={formData.area_id || ''}
+                            onChange={(e) =>
+                                setFormData({ ...formData, area_id: e.target.value || null })
+                            }
+                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                        >
+                            <option value="">Select room...</option>
+                            {areas.map((a) => (
+                                <option key={a.id} value={a.id}>
+                                    {a.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-1">
-                                        Room
-                                    </label>
-                                    <select
-                                        value={formData.area_id || ''}
-                                        onChange={(e) =>
-                                            setFormData({ ...formData, area_id: e.target.value || null })
-                                        }
-                                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                    >
-                                        <option value="">Select room...</option>
-                                        {areas.map((a) => (
-                                            <option key={a.id} value={a.id}>
-                                                {a.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-1">
-                                        Due Date
-                                    </label>
-                                    <input
-                                        type="date"
-                                        value={formData.service_date || ''}
-                                        onChange={(e) =>
-                                            setFormData({ ...formData, service_date: e.target.value || '' })
-                                        }
-                                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                    />
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">
-                                    Status
-                                </label>
-                                <select
-                                    value={formData.status || 'pending'}
-                                    onChange={(e) =>
-                                        setFormData({
-                                            ...formData,
-                                            status: e.target.value as HomeMaintenanceStatus,
-                                        })
-                                    }
-                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                >
-                                    <option value="pending">Pending</option>
-                                    <option value="scheduled">Scheduled</option>
-                                    <option value="in_progress">In Progress</option>
-                                    <option value="completed">Completed</option>
-                                    <option value="skipped">Skipped</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">
-                                    Notes
-                                </label>
-                                <textarea
-                                    value={formData.notes || ''}
-                                    onChange={(e) => setFormData({ ...formData, notes: e.target.value || null })}
-                                    rows={2}
-                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                    placeholder="Any additional details..."
-                                />
-                            </div>
-
-                            <div className="flex gap-3 pt-4">
-                                <button
-                                    type="button"
-                                    onClick={() => setShowModal(false)}
-                                    className="flex-1 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors border border-gray-700"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={loading || !formData.item.trim()}
-                                    className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50"
-                                >
-                                    {loading ? 'Saving...' : editingRecord ? 'Update' : 'Create'}
-                                </button>
-                            </div>
-                        </form>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">
+                            Due Date
+                        </label>
+                        <input
+                            type="date"
+                            value={formData.service_date || ''}
+                            onChange={(e) =>
+                                setFormData({ ...formData, service_date: e.target.value || '' })
+                            }
+                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                        />
                     </div>
                 </div>
-            )}
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Status
+                    </label>
+                    <select
+                        value={formData.status || 'pending'}
+                        onChange={(e) =>
+                            setFormData({
+                                ...formData,
+                                status: e.target.value as HomeMaintenanceStatus,
+                            })
+                        }
+                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                    >
+                        <option value="pending">Pending</option>
+                        <option value="scheduled">Scheduled</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="completed">Completed</option>
+                        <option value="skipped">Skipped</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Notes
+                    </label>
+                    <textarea
+                        value={formData.notes || ''}
+                        onChange={(e) => setFormData({ ...formData, notes: e.target.value || null })}
+                        rows={2}
+                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                        placeholder="Any additional details..."
+                    />
+                </div>
+            </BaseFormModal>
 
             {/* Template Modal */}
-            {showTemplateModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
-                        <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-xl font-semibold text-white">
-                                {editingTemplate ? 'Edit Recurring Chore' : 'Add Recurring Chore'}
-                            </h2>
-                            <button
-                                onClick={() => setShowTemplateModal(false)}
-                                className="text-gray-400 hover:text-white"
+            <BaseFormModal
+                isOpen={showTemplateModal}
+                onClose={() => setShowTemplateModal(false)}
+                title={editingTemplate ? 'Edit Recurring Chore' : 'Add Recurring Chore'}
+                onSubmit={handleTemplateSubmit}
+                loading={loading}
+                submitLabel={editingTemplate ? 'Update' : 'Create'}
+                submitDisabled={!templateFormData.name.trim()}
+            >
+                <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Chore Name *
+                    </label>
+                    <input
+                        type="text"
+                        value={templateFormData.name}
+                        onChange={(e) => setTemplateFormData({ ...templateFormData, name: e.target.value })}
+                        required
+                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                        placeholder="e.g., Clean toilet, Vacuum living room"
+                    />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Category
+                    </label>
+                    <select
+                        value={templateFormData.category || ''}
+                        onChange={(e) =>
+                            setTemplateFormData({ ...templateFormData, category: e.target.value || null })
+                        }
+                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                    >
+                        <option value="">Select category...</option>
+                        {choreCategories.map((cat) => (
+                            <option key={cat} value={cat}>
+                                {cat}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Frequency
+                    </label>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-xs text-gray-500 mb-1">Days</label>
+                            <select
+                                value={templateFormData.interval_days || ''}
+                                onChange={(e) =>
+                                    setTemplateFormData({
+                                        ...templateFormData,
+                                        interval_days: e.target.value ? parseInt(e.target.value) : null,
+                                        interval_months: e.target.value ? null : templateFormData.interval_months,
+                                    })
+                                }
+                                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
                             >
-                                <X className="w-5 h-5" />
-                            </button>
+                                <option value="">Select...</option>
+                                <option value="1">Daily</option>
+                                <option value="2">Every 2 days</option>
+                                <option value="3">Every 3 days</option>
+                                <option value="7">Weekly</option>
+                                <option value="14">Every 2 weeks</option>
+                            </select>
                         </div>
-
-                        <form onSubmit={handleTemplateSubmit} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">
-                                    Chore Name *
-                                </label>
-                                <input
-                                    type="text"
-                                    value={templateFormData.name}
-                                    onChange={(e) => setTemplateFormData({ ...templateFormData, name: e.target.value })}
-                                    required
-                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                    placeholder="e.g., Clean toilet, Vacuum living room"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">
-                                    Category
-                                </label>
-                                <select
-                                    value={templateFormData.category || ''}
-                                    onChange={(e) =>
-                                        setTemplateFormData({ ...templateFormData, category: e.target.value || null })
-                                    }
-                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                >
-                                    <option value="">Select category...</option>
-                                    {choreCategories.map((cat) => (
-                                        <option key={cat} value={cat}>
-                                            {cat}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-2">
-                                    Frequency
-                                </label>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-xs text-gray-500 mb-1">Days</label>
-                                        <select
-                                            value={templateFormData.interval_days || ''}
-                                            onChange={(e) =>
-                                                setTemplateFormData({
-                                                    ...templateFormData,
-                                                    interval_days: e.target.value ? parseInt(e.target.value) : null,
-                                                    interval_months: e.target.value ? null : templateFormData.interval_months,
-                                                })
-                                            }
-                                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                        >
-                                            <option value="">Select...</option>
-                                            <option value="1">Daily</option>
-                                            <option value="2">Every 2 days</option>
-                                            <option value="3">Every 3 days</option>
-                                            <option value="7">Weekly</option>
-                                            <option value="14">Every 2 weeks</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs text-gray-500 mb-1">Months</label>
-                                        <select
-                                            value={templateFormData.interval_months || ''}
-                                            onChange={(e) =>
-                                                setTemplateFormData({
-                                                    ...templateFormData,
-                                                    interval_months: e.target.value ? parseInt(e.target.value) : null,
-                                                    interval_days: e.target.value ? null : templateFormData.interval_days,
-                                                })
-                                            }
-                                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                        >
-                                            <option value="">Select...</option>
-                                            <option value="1">Monthly</option>
-                                            <option value="2">Every 2 months</option>
-                                            <option value="3">Quarterly</option>
-                                            <option value="6">Every 6 months</option>
-                                            <option value="12">Yearly</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">
-                                    Notes
-                                </label>
-                                <textarea
-                                    value={templateFormData.notes || ''}
-                                    onChange={(e) => setTemplateFormData({ ...templateFormData, notes: e.target.value || null })}
-                                    rows={2}
-                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                    placeholder="Any additional details..."
-                                />
-                            </div>
-
-                            <div className="flex gap-3 pt-4">
-                                <button
-                                    type="button"
-                                    onClick={() => setShowTemplateModal(false)}
-                                    className="flex-1 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors border border-gray-700"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={loading || !templateFormData.name.trim()}
-                                    className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50"
-                                >
-                                    {loading ? 'Saving...' : editingTemplate ? 'Update' : 'Create'}
-                                </button>
-                            </div>
-                        </form>
+                        <div>
+                            <label className="block text-xs text-gray-500 mb-1">Months</label>
+                            <select
+                                value={templateFormData.interval_months || ''}
+                                onChange={(e) =>
+                                    setTemplateFormData({
+                                        ...templateFormData,
+                                        interval_months: e.target.value ? parseInt(e.target.value) : null,
+                                        interval_days: e.target.value ? null : templateFormData.interval_days,
+                                    })
+                                }
+                                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                            >
+                                <option value="">Select...</option>
+                                <option value="1">Monthly</option>
+                                <option value="2">Every 2 months</option>
+                                <option value="3">Quarterly</option>
+                                <option value="6">Every 6 months</option>
+                                <option value="12">Yearly</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
-            )}
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Notes
+                    </label>
+                    <textarea
+                        value={templateFormData.notes || ''}
+                        onChange={(e) => setTemplateFormData({ ...templateFormData, notes: e.target.value || null })}
+                        rows={2}
+                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                        placeholder="Any additional details..."
+                    />
+                </div>
+            </BaseFormModal>
         </div>
     );
 }

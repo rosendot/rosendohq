@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Plus, Trash2, FileText } from "lucide-react";
-import type { TripDocument } from "@/types/database.types";
+import type { TripDocument } from "@/types/travel.types";
 
 interface DocumentsTabProps {
   tripId: string;

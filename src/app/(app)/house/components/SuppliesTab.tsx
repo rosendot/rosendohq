@@ -1,14 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, X, Trash2, Edit2, AlertCircle } from 'lucide-react';
+import { Plus, Trash2, Edit2, AlertCircle } from 'lucide-react';
+import BaseFormModal from '@/components/BaseFormModal';
 import type {
     HomeSupplyItem,
     HomeSupplyItemInsert,
     HomeSupplyStockInsert,
     HomeSupplyStockWithItem,
     HomeArea,
-} from '@/types/database.types';
+} from '@/types/house.types';
 
 interface SuppliesTabProps {
     stock: HomeSupplyStockWithItem[];
@@ -283,221 +284,172 @@ export default function SuppliesTab({
             )}
 
             {/* Stock Modal */}
-            {showStockModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-6 max-w-md w-full">
-                        <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-xl font-semibold text-white">
-                                {editingStock ? 'Edit Stock' : 'Add Stock'}
-                            </h2>
-                            <button
-                                onClick={() => setShowStockModal(false)}
-                                className="text-gray-400 hover:text-white"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
+            <BaseFormModal
+                isOpen={showStockModal}
+                onClose={() => setShowStockModal(false)}
+                title={editingStock ? 'Edit Stock' : 'Add Stock'}
+                onSubmit={handleStockSubmit}
+                loading={loading}
+                submitLabel={editingStock ? 'Update' : 'Add'}
+                submitDisabled={!stockFormData.supply_item_id}
+                maxWidth="md"
+            >
+                <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Item *
+                    </label>
+                    <select
+                        value={stockFormData.supply_item_id}
+                        onChange={(e) =>
+                            setStockFormData({ ...stockFormData, supply_item_id: e.target.value })
+                        }
+                        required
+                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                    >
+                        <option value="">Select item...</option>
+                        {items.map((item) => (
+                            <option key={item.id} value={item.id}>
+                                {item.name} {item.category ? `(${item.category})` : ''}
+                            </option>
+                        ))}
+                    </select>
+                </div>
 
-                        <form onSubmit={handleStockSubmit} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">
-                                    Item *
-                                </label>
-                                <select
-                                    value={stockFormData.supply_item_id}
-                                    onChange={(e) =>
-                                        setStockFormData({ ...stockFormData, supply_item_id: e.target.value })
-                                    }
-                                    required
-                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                >
-                                    <option value="">Select item...</option>
-                                    {items.map((item) => (
-                                        <option key={item.id} value={item.id}>
-                                            {item.name} {item.category ? `(${item.category})` : ''}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Area (optional)
+                    </label>
+                    <select
+                        value={stockFormData.area_id || ''}
+                        onChange={(e) =>
+                            setStockFormData({
+                                ...stockFormData,
+                                area_id: e.target.value || null,
+                            })
+                        }
+                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                    >
+                        <option value="">Select area...</option>
+                        {areas.map((area) => (
+                            <option key={area.id} value={area.id}>
+                                {area.name}
+                            </option>
+                        ))}
+                    </select>
+                </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">
-                                    Area (optional)
-                                </label>
-                                <select
-                                    value={stockFormData.area_id || ''}
-                                    onChange={(e) =>
-                                        setStockFormData({
-                                            ...stockFormData,
-                                            area_id: e.target.value || null,
-                                        })
-                                    }
-                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                >
-                                    <option value="">Select area...</option>
-                                    {areas.map((area) => (
-                                        <option key={area.id} value={area.id}>
-                                            {area.name}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">
+                            Quantity
+                        </label>
+                        <input
+                            type="number"
+                            min="0"
+                            value={stockFormData.quantity}
+                            onChange={(e) =>
+                                setStockFormData({
+                                    ...stockFormData,
+                                    quantity: parseInt(e.target.value) || 0,
+                                })
+                            }
+                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                        />
+                    </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-1">
-                                        Quantity
-                                    </label>
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        value={stockFormData.quantity}
-                                        onChange={(e) =>
-                                            setStockFormData({
-                                                ...stockFormData,
-                                                quantity: parseInt(e.target.value) || 0,
-                                            })
-                                        }
-                                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-1">
-                                        Minimum Quantity
-                                    </label>
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        value={stockFormData.min_quantity || 0}
-                                        onChange={(e) =>
-                                            setStockFormData({
-                                                ...stockFormData,
-                                                min_quantity: parseInt(e.target.value) || 0,
-                                            })
-                                        }
-                                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="flex gap-3 pt-4">
-                                <button
-                                    type="button"
-                                    onClick={() => setShowStockModal(false)}
-                                    className="flex-1 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors border border-gray-700"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={loading || !stockFormData.supply_item_id}
-                                    className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50"
-                                >
-                                    {loading ? 'Saving...' : editingStock ? 'Update' : 'Add'}
-                                </button>
-                            </div>
-                        </form>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">
+                            Minimum Quantity
+                        </label>
+                        <input
+                            type="number"
+                            min="0"
+                            value={stockFormData.min_quantity || 0}
+                            onChange={(e) =>
+                                setStockFormData({
+                                    ...stockFormData,
+                                    min_quantity: parseInt(e.target.value) || 0,
+                                })
+                            }
+                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                        />
                     </div>
                 </div>
-            )}
+            </BaseFormModal>
 
             {/* Item Modal */}
-            {showItemModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-6 max-w-md w-full">
-                        <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-xl font-semibold text-white">New Supply Item</h2>
-                            <button
-                                onClick={() => setShowItemModal(false)}
-                                className="text-gray-400 hover:text-white"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
+            <BaseFormModal
+                isOpen={showItemModal}
+                onClose={() => setShowItemModal(false)}
+                title="New Supply Item"
+                onSubmit={handleItemSubmit}
+                loading={loading}
+                submitLabel="Create"
+                loadingLabel="Creating..."
+                submitDisabled={!itemFormData.name.trim()}
+                maxWidth="md"
+            >
+                <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Name *
+                    </label>
+                    <input
+                        type="text"
+                        value={itemFormData.name}
+                        onChange={(e) =>
+                            setItemFormData({ ...itemFormData, name: e.target.value })
+                        }
+                        required
+                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                        placeholder="Item name"
+                    />
+                </div>
 
-                        <form onSubmit={handleItemSubmit} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">
-                                    Name *
-                                </label>
-                                <input
-                                    type="text"
-                                    value={itemFormData.name}
-                                    onChange={(e) =>
-                                        setItemFormData({ ...itemFormData, name: e.target.value })
-                                    }
-                                    required
-                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                    placeholder="Item name"
-                                />
-                            </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Category
+                    </label>
+                    <select
+                        value={itemFormData.category || ''}
+                        onChange={(e) =>
+                            setItemFormData({
+                                ...itemFormData,
+                                category: e.target.value || null,
+                            })
+                        }
+                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                    >
+                        <option value="">Select category...</option>
+                        <option value="cleaning">Cleaning</option>
+                        <option value="kitchen">Kitchen</option>
+                        <option value="bathroom">Bathroom</option>
+                        <option value="laundry">Laundry</option>
+                        <option value="tools">Tools</option>
+                        <option value="outdoor">Outdoor</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">
-                                    Category
-                                </label>
-                                <select
-                                    value={itemFormData.category || ''}
-                                    onChange={(e) =>
-                                        setItemFormData({
-                                            ...itemFormData,
-                                            category: e.target.value || null,
-                                        })
-                                    }
-                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                >
-                                    <option value="">Select category...</option>
-                                    <option value="cleaning">Cleaning</option>
-                                    <option value="kitchen">Kitchen</option>
-                                    <option value="bathroom">Bathroom</option>
-                                    <option value="laundry">Laundry</option>
-                                    <option value="tools">Tools</option>
-                                    <option value="outdoor">Outdoor</option>
-                                    <option value="other">Other</option>
-                                </select>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-1">
-                                        Unit
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={itemFormData.unit || ''}
-                                        onChange={(e) =>
-                                            setItemFormData({
-                                                ...itemFormData,
-                                                unit: e.target.value || null,
-                                            })
-                                        }
-                                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                        placeholder="e.g., rolls, bottles"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="flex gap-3 pt-4">
-                                <button
-                                    type="button"
-                                    onClick={() => setShowItemModal(false)}
-                                    className="flex-1 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors border border-gray-700"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={loading || !itemFormData.name.trim()}
-                                    className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50"
-                                >
-                                    {loading ? 'Creating...' : 'Create'}
-                                </button>
-                            </div>
-                        </form>
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">
+                            Unit
+                        </label>
+                        <input
+                            type="text"
+                            value={itemFormData.unit || ''}
+                            onChange={(e) =>
+                                setItemFormData({
+                                    ...itemFormData,
+                                    unit: e.target.value || null,
+                                })
+                            }
+                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                            placeholder="e.g., rolls, bottles"
+                        />
                     </div>
                 </div>
-            )}
+            </BaseFormModal>
         </div>
     );
 }

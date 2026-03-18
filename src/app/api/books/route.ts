@@ -1,7 +1,7 @@
 // src/app/api/books/route.ts
 import { NextResponse } from 'next/server';
 import { createClient } from "@/lib/supabase/server";
-import type { BookInsert } from '@/types/database.types';
+import type { BookInsert } from '@/types/reading.types';
 
 // GET all books
 export async function GET(request: Request) {

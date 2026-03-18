@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { BookOpen, X } from 'lucide-react';
-import { Book, BookStatus, BookFormat } from '@/types/database.types';
+import { BookOpen } from 'lucide-react';
+import { Book, BookStatus, BookFormat } from '@/types/reading.types';
+import BaseFormModal from '@/components/BaseFormModal';
 
 type SortOption = 'date_desc' | 'date_asc' | 'title_asc' | 'title_desc' | 'author_asc' | 'rating_desc' | 'rating_asc' | 'progress_desc' | 'progress_asc';
 
@@ -205,15 +206,14 @@ export default function ReadingTracker() {
             </div>
 
             {/* Add Book Modal */}
-            {showAddModal && (
-                <AddBookModal
-                    onClose={() => setShowAddModal(false)}
-                    onSuccess={() => {
-                        setShowAddModal(false);
-                        fetchBooks();
-                    }}
-                />
-            )}
+            <AddBookModal
+                isOpen={showAddModal}
+                onClose={() => setShowAddModal(false)}
+                onSuccess={() => {
+                    setShowAddModal(false);
+                    fetchBooks();
+                }}
+            />
         </div>
     );
 }
@@ -360,9 +360,11 @@ function BookCard({ book }: { book: Book }) {
 
 // Simple Add Book Modal
 function AddBookModal({
+    isOpen,
     onClose,
     onSuccess,
 }: {
+    isOpen: boolean;
     onClose: () => void;
     onSuccess: () => void;
 }) {
@@ -402,104 +404,84 @@ function AddBookModal({
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-            <div className="bg-gray-900 rounded-lg w-full max-w-md">
-                <div className="flex items-center justify-between p-4 border-b border-gray-800">
-                    <h2 className="text-xl font-bold text-white">Add New Book</h2>
-                    <button
-                        onClick={onClose}
-                        className="text-gray-400 hover:text-white transition-colors"
+        <BaseFormModal
+            isOpen={isOpen}
+            onClose={onClose}
+            title="Add New Book"
+            onSubmit={handleSubmit}
+            loading={saving}
+            submitLabel="Add Book"
+            loadingLabel="Creating..."
+            submitDisabled={!formData.title.trim()}
+            submitColor="blue"
+            maxWidth="md"
+        >
+            <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                    Title *
+                </label>
+                <input
+                    type="text"
+                    required
+                    autoFocus
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Book title"
+                />
+            </div>
+
+            <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                    Author
+                </label>
+                <input
+                    type="text"
+                    value={formData.author}
+                    onChange={(e) => setFormData({ ...formData, author: e.target.value })}
+                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Author name"
+                />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+                <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Status
+                    </label>
+                    <select
+                        value={formData.status}
+                        onChange={(e) => setFormData({ ...formData, status: e.target.value as BookStatus })}
+                        className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
-                        <X className="w-5 h-5" />
-                    </button>
+                        <option value="planned">Planned</option>
+                        <option value="reading">Reading</option>
+                        <option value="finished">Finished</option>
+                        <option value="on_hold">On Hold</option>
+                        <option value="dropped">Dropped</option>
+                    </select>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-4 space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-1">
-                            Title *
-                        </label>
-                        <input
-                            type="text"
-                            required
-                            autoFocus
-                            value={formData.title}
-                            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="Book title"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-1">
-                            Author
-                        </label>
-                        <input
-                            type="text"
-                            value={formData.author}
-                            onChange={(e) => setFormData({ ...formData, author: e.target.value })}
-                            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="Author name"
-                        />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-1">
-                                Status
-                            </label>
-                            <select
-                                value={formData.status}
-                                onChange={(e) => setFormData({ ...formData, status: e.target.value as BookStatus })}
-                                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            >
-                                <option value="planned">Planned</option>
-                                <option value="reading">Reading</option>
-                                <option value="finished">Finished</option>
-                                <option value="on_hold">On Hold</option>
-                                <option value="dropped">Dropped</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-1">
-                                Format
-                            </label>
-                            <select
-                                value={formData.format}
-                                onChange={(e) => setFormData({ ...formData, format: e.target.value as BookFormat | '' })}
-                                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            >
-                                <option value="">Select format</option>
-                                <option value="physical">Physical</option>
-                                <option value="ebook">eBook</option>
-                                <option value="audiobook">Audiobook</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <p className="text-xs text-gray-500">
-                        You can add more details like pages, rating, notes, and highlights after creating the book.
-                    </p>
-
-                    <div className="flex gap-3 pt-2">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="flex-1 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={saving || !formData.title.trim()}
-                            className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {saving ? 'Creating...' : 'Add Book'}
-                        </button>
-                    </div>
-                </form>
+                <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Format
+                    </label>
+                    <select
+                        value={formData.format}
+                        onChange={(e) => setFormData({ ...formData, format: e.target.value as BookFormat | '' })}
+                        className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                        <option value="">Select format</option>
+                        <option value="physical">Physical</option>
+                        <option value="ebook">eBook</option>
+                        <option value="audiobook">Audiobook</option>
+                    </select>
+                </div>
             </div>
-        </div>
+
+            <p className="text-xs text-gray-500">
+                You can add more details like pages, rating, notes, and highlights after creating the book.
+            </p>
+        </BaseFormModal>
     );
 }

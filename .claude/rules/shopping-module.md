@@ -48,7 +48,7 @@ None.
 
 ### Types
 
-Defined in `src/types/database.types.ts`:
+Defined in `src/types/shopping.types.ts`:
 
 - **Interfaces**: `ShoppingList`, `ShoppingListItem`
 - **Insert/Update types**: `ShoppingListInsert`, `ShoppingListUpdate`, `ShoppingListItemInsert`, `ShoppingListItemUpdate`

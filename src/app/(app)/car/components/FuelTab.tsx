@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Plus, X, Trash2, Edit2, Fuel, TrendingUp, Calendar, MapPin, DollarSign } from 'lucide-react';
-import type { FuelLog, FuelLogInsert, FuelType } from '@/types/database.types';
+import type { FuelLog, FuelLogInsert, FuelType } from '@/types/car.types';
 import DeleteConfirmationModal from '@/components/DeleteConfirmationModal';
 
 interface FuelTabProps {

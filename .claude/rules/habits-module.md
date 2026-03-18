@@ -45,7 +45,7 @@ All under `src/app/api/habits/`:
 
 ### Types
 
-Defined in `src/types/database.types.ts`:
+Defined in `src/types/habits.types.ts`:
 
 - **Enums**: `GoalStatus` (active, completed, abandoned, on_hold), `GoalProgressSource` (habit, manual)
 - **Interfaces**: `Habit`, `HabitLog`, `Goal`, `HabitSchedule`

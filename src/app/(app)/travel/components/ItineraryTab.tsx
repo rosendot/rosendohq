@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Plus, Trash2, Clock } from "lucide-react";
-import type { ItineraryItem, ItineraryType } from "@/types/database.types";
+import type { ItineraryItem, ItineraryType } from "@/types/travel.types";
 import { TYPE_ICONS, TYPE_COLORS, formatDateTime } from "./shared";
 
 interface ItineraryTabProps {

@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, X, Trash2, Edit2, AlertCircle } from 'lucide-react';
-import type { HomeAppliance, HomeApplianceInsert, HomeArea } from '@/types/database.types';
+import { Plus, Trash2, Edit2, AlertCircle } from 'lucide-react';
+import BaseFormModal from '@/components/BaseFormModal';
+import type { HomeAppliance, HomeApplianceInsert, HomeArea } from '@/types/house.types';
 
 interface AppliancesTabProps {
     appliances: HomeAppliance[];
@@ -257,210 +258,183 @@ export default function AppliancesTab({
             )}
 
             {/* Modal */}
-            {showModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
-                        <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-xl font-semibold text-white">
-                                {editingAppliance ? 'Edit Appliance' : 'Add Appliance'}
-                            </h2>
-                            <button
-                                onClick={() => setShowModal(false)}
-                                className="text-gray-400 hover:text-white"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
+            <BaseFormModal
+                isOpen={showModal}
+                onClose={() => setShowModal(false)}
+                title={editingAppliance ? 'Edit Appliance' : 'Add Appliance'}
+                onSubmit={handleSubmit}
+                loading={loading}
+                submitLabel={editingAppliance ? 'Update' : 'Create'}
+                submitDisabled={!formData.name.trim()}
+            >
+                <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Name *
+                    </label>
+                    <input
+                        type="text"
+                        value={formData.name}
+                        onChange={(e) =>
+                            setFormData({ ...formData, name: e.target.value })
+                        }
+                        required
+                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                        placeholder="e.g., Refrigerator"
+                    />
+                </div>
 
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">
-                                    Name *
-                                </label>
-                                <input
-                                    type="text"
-                                    value={formData.name}
-                                    onChange={(e) =>
-                                        setFormData({ ...formData, name: e.target.value })
-                                    }
-                                    required
-                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                    placeholder="e.g., Refrigerator"
-                                />
-                            </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Area
+                    </label>
+                    <select
+                        value={formData.area_id || ''}
+                        onChange={(e) =>
+                            setFormData({
+                                ...formData,
+                                area_id: e.target.value || null,
+                            })
+                        }
+                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                    >
+                        <option value="">Select area...</option>
+                        {areas.map((area) => (
+                            <option key={area.id} value={area.id}>
+                                {area.name}
+                            </option>
+                        ))}
+                    </select>
+                </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">
-                                    Area
-                                </label>
-                                <select
-                                    value={formData.area_id || ''}
-                                    onChange={(e) =>
-                                        setFormData({
-                                            ...formData,
-                                            area_id: e.target.value || null,
-                                        })
-                                    }
-                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                >
-                                    <option value="">Select area...</option>
-                                    {areas.map((area) => (
-                                        <option key={area.id} value={area.id}>
-                                            {area.name}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">
+                            Manufacturer
+                        </label>
+                        <input
+                            type="text"
+                            value={formData.manufacturer || ''}
+                            onChange={(e) =>
+                                setFormData({
+                                    ...formData,
+                                    manufacturer: e.target.value || null,
+                                })
+                            }
+                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                        />
+                    </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-1">
-                                        Manufacturer
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={formData.manufacturer || ''}
-                                        onChange={(e) =>
-                                            setFormData({
-                                                ...formData,
-                                                manufacturer: e.target.value || null,
-                                            })
-                                        }
-                                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-1">
-                                        Model
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={formData.model || ''}
-                                        onChange={(e) =>
-                                            setFormData({
-                                                ...formData,
-                                                model: e.target.value || null,
-                                            })
-                                        }
-                                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                    />
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">
-                                    Serial Number
-                                </label>
-                                <input
-                                    type="text"
-                                    value={formData.serial_number || ''}
-                                    onChange={(e) =>
-                                        setFormData({
-                                            ...formData,
-                                            serial_number: e.target.value || null,
-                                        })
-                                    }
-                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-1">
-                                        Purchase Date
-                                    </label>
-                                    <input
-                                        type="date"
-                                        value={formData.purchase_date || ''}
-                                        onChange={(e) =>
-                                            setFormData({
-                                                ...formData,
-                                                purchase_date: e.target.value || null,
-                                            })
-                                        }
-                                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-1">
-                                        Price ($)
-                                    </label>
-                                    <input
-                                        type="number"
-                                        step="0.01"
-                                        value={
-                                            formData.purchase_price_cents
-                                                ? formData.purchase_price_cents / 100
-                                                : ''
-                                        }
-                                        onChange={(e) =>
-                                            setFormData({
-                                                ...formData,
-                                                purchase_price_cents: e.target.value
-                                                    ? Math.round(parseFloat(e.target.value) * 100)
-                                                    : null,
-                                            })
-                                        }
-                                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                        placeholder="0.00"
-                                    />
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">
-                                    Warranty (months)
-                                </label>
-                                <input
-                                    type="number"
-                                    value={formData.warranty_months || ''}
-                                    onChange={(e) =>
-                                        setFormData({
-                                            ...formData,
-                                            warranty_months: e.target.value ? parseInt(e.target.value) : null,
-                                        })
-                                    }
-                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                    placeholder="e.g., 12"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">
-                                    Notes
-                                </label>
-                                <textarea
-                                    value={formData.notes || ''}
-                                    onChange={(e) =>
-                                        setFormData({ ...formData, notes: e.target.value || null })
-                                    }
-                                    rows={2}
-                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                />
-                            </div>
-
-                            <div className="flex gap-3 pt-4">
-                                <button
-                                    type="button"
-                                    onClick={() => setShowModal(false)}
-                                    className="flex-1 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors border border-gray-700"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={loading || !formData.name.trim()}
-                                    className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50"
-                                >
-                                    {loading ? 'Saving...' : editingAppliance ? 'Update' : 'Create'}
-                                </button>
-                            </div>
-                        </form>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">
+                            Model
+                        </label>
+                        <input
+                            type="text"
+                            value={formData.model || ''}
+                            onChange={(e) =>
+                                setFormData({
+                                    ...formData,
+                                    model: e.target.value || null,
+                                })
+                            }
+                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                        />
                     </div>
                 </div>
-            )}
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Serial Number
+                    </label>
+                    <input
+                        type="text"
+                        value={formData.serial_number || ''}
+                        onChange={(e) =>
+                            setFormData({
+                                ...formData,
+                                serial_number: e.target.value || null,
+                            })
+                        }
+                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                    />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">
+                            Purchase Date
+                        </label>
+                        <input
+                            type="date"
+                            value={formData.purchase_date || ''}
+                            onChange={(e) =>
+                                setFormData({
+                                    ...formData,
+                                    purchase_date: e.target.value || null,
+                                })
+                            }
+                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">
+                            Price ($)
+                        </label>
+                        <input
+                            type="number"
+                            step="0.01"
+                            value={
+                                formData.purchase_price_cents
+                                    ? formData.purchase_price_cents / 100
+                                    : ''
+                            }
+                            onChange={(e) =>
+                                setFormData({
+                                    ...formData,
+                                    purchase_price_cents: e.target.value
+                                        ? Math.round(parseFloat(e.target.value) * 100)
+                                        : null,
+                                })
+                            }
+                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                            placeholder="0.00"
+                        />
+                    </div>
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Warranty (months)
+                    </label>
+                    <input
+                        type="number"
+                        value={formData.warranty_months || ''}
+                        onChange={(e) =>
+                            setFormData({
+                                ...formData,
+                                warranty_months: e.target.value ? parseInt(e.target.value) : null,
+                            })
+                        }
+                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                        placeholder="e.g., 12"
+                    />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Notes
+                    </label>
+                    <textarea
+                        value={formData.notes || ''}
+                        onChange={(e) =>
+                            setFormData({ ...formData, notes: e.target.value || null })
+                        }
+                        rows={2}
+                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                    />
+                </div>
+            </BaseFormModal>
         </div>
     );
 }

@@ -77,7 +77,7 @@ All under `src/app/api/house/`:
 
 ### Types
 
-Defined in `src/types/database.types.ts`:
+Defined in `src/types/house.types.ts`:
 
 - **Enums**: `HomeMaintenanceStatus` (pending, scheduled, in_progress, completed, skipped, cancelled), `HomeProjectStatus` (planning, budgeting, in_progress, on_hold, completed, cancelled), `HomeProjectTaskStatus` (pending, in_progress, completed, skipped, blocked), `HomeUtilityType` (electricity, gas, water, sewer, trash, internet, phone, cable, hoa, security, other), `HomeDocumentType` (warranty, manual, receipt, contract, insurance, inspection, permit, hoa, deed, mortgage, tax, photo, other)
 - **Interfaces**: `HomeProperty`, `HomeArea`, `HomeAppliance`, `HomeMaintenanceTemplate`, `HomeMaintenanceRecord`, `HomeSupplyItem`, `HomeSupplyStock`, `HomeSupplyPurchase`, `HomeSupplyUsage`, `HomeContractor`, `HomeUtilityBill`, `HomeProject`, `HomeProjectTask`, `HomeDocument`

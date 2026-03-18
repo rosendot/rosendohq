@@ -63,7 +63,7 @@ All under `src/app/api/travel/`:
 
 ### Types
 
-Defined in `src/types/database.types.ts`:
+Defined in `src/types/travel.types.ts`:
 
 - **Enums**: `TripStatus` (planning, upcoming, active, completed), `ItineraryType` (flight, accommodation, activity, transport, dining, todo, other)
 - **Interfaces**: `Trip`, `ItineraryItem`, `TripEntry`, `TripPackingItem`, `TripExpense`, `TripDocument`

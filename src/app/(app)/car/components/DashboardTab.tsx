@@ -1,7 +1,7 @@
 'use client';
 
 import { AlertCircle, Gauge, DollarSign, Wrench, Calendar, Shield, FileText, Fuel } from 'lucide-react';
-import type { Vehicle, MaintenanceRecord, FuelLog, TireSet, OdometerLog } from '@/types/database.types';
+import type { Vehicle, MaintenanceRecord, FuelLog, TireSet, OdometerLog } from '@/types/car.types';
 
 interface DashboardTabProps {
     vehicle: Vehicle;

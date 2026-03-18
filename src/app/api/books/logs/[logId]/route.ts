@@ -1,7 +1,7 @@
 // src/app/api/books/logs/[logId]/route.ts
 import { NextResponse } from 'next/server';
 import { createClient } from "@/lib/supabase/server";
-import type { ReadingLogUpdate } from '@/types/database.types';
+import type { ReadingLogUpdate } from '@/types/reading.types';
 
 // GET single reading log
 export async function GET(

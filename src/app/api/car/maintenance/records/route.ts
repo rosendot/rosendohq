@@ -1,7 +1,7 @@
 // src/app/api/car/maintenance/records/route.ts
 import { NextResponse } from 'next/server';
 import { createClient } from "@/lib/supabase/server";
-import type { MaintenanceRecordInsert } from '@/types/database.types';
+import type { MaintenanceRecordInsert } from '@/types/car.types';
 
 export async function GET(request: Request) {
     const supabase = await createClient();

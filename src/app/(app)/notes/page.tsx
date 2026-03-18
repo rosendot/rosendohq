@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import type { Note, NoteCategory } from "@/types/database.types";
+import type { Note, NoteCategory } from "@/types/notes.types";
 import DeleteConfirmationModal from "@/components/DeleteConfirmationModal";
 
 const CATEGORIES: { value: NoteCategory; label: string; icon: typeof FileText; color: string }[] = [

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Plus, Trash2, Package, CheckSquare, Square } from "lucide-react";
-import type { TripPackingItem } from "@/types/database.types";
+import type { TripPackingItem } from "@/types/travel.types";
 
 interface ChecklistTabProps {
   tripId: string;

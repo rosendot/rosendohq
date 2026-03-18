@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Car, Plus, X, Trash2, Edit, LayoutDashboard, Wrench, Fuel, Circle, AlertTriangle } from 'lucide-react';
-import type { Vehicle, MaintenanceRecord, OdometerLog, FuelLog, TireSet, MaintenanceTemplate, VehicleInsert } from '@/types/database.types';
+import type { Vehicle, MaintenanceRecord, OdometerLog, FuelLog, TireSet, MaintenanceTemplate, VehicleInsert } from '@/types/car.types';
 import DeleteConfirmationModal from '@/components/DeleteConfirmationModal';
 
 // Import tab components

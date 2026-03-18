@@ -47,7 +47,7 @@ All under `src/app/api/car/`:
 
 ### Types
 
-Defined in `src/types/database.types.ts`:
+Defined in `src/types/car.types.ts`:
 
 - **Enums**: `VehicleStatus`, `FuelType`, `MaintenanceRecordType`, `TireStatus`
 - **Interfaces**: `Vehicle`, `OdometerLog`, `FuelLog`, `MaintenanceTemplate`, `MaintenanceRecord`, `TireSet`

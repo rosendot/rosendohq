@@ -6,7 +6,7 @@ import { Plus, Search, Heart, ExternalLink, Tag, DollarSign, Calendar, Store, Sh
 import AddWishlistItemModal from './AddWishlistItemModal';
 import EditWishlistItemModal from './EditWishlistItemModal';
 import DeleteConfirmationModal from '@/components/DeleteConfirmationModal';
-import type { WishlistItem } from '@/types/database.types';
+import type { WishlistItem } from '@/types/wishlist.types';
 
 type WishlistStatus = WishlistItem['status'];
 type SortOption = 'date_desc' | 'date_asc' | 'price_desc' | 'price_asc' | 'priority_desc' | 'priority_asc' | 'title_asc';
@@ -163,9 +163,9 @@ export default function WishlistPage() {
                 case 'price_asc':
                     return (a.price_cents || 0) - (b.price_cents || 0);
                 case 'priority_desc':
-                    return (b.priority || 0) - (a.priority || 0);
-                case 'priority_asc':
                     return (a.priority || 0) - (b.priority || 0);
+                case 'priority_asc':
+                    return (b.priority || 0) - (a.priority || 0);
                 case 'title_asc':
                     return a.title.localeCompare(b.title);
                 default:

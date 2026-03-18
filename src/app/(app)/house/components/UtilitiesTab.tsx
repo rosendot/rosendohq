@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, X, Trash2, Edit2, CheckCircle } from 'lucide-react';
-import type { HomeUtilityBill, HomeUtilityBillInsert, HomeUtilityType } from '@/types/database.types';
+import { Plus, Trash2, Edit2, CheckCircle } from 'lucide-react';
+import BaseFormModal from '@/components/BaseFormModal';
+import type { HomeUtilityBill, HomeUtilityBillInsert, HomeUtilityType } from '@/types/house.types';
 
 interface UtilitiesTabProps {
     bills: HomeUtilityBill[];

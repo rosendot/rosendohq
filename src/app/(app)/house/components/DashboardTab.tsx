@@ -7,7 +7,7 @@ import type {
     HomeSupplyStockWithItem,
     HomeProject,
     HomeUtilityBill,
-} from '@/types/database.types';
+} from '@/types/house.types';
 
 interface DashboardTabProps {
     areas: HomeArea[];
