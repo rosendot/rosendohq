@@ -14,7 +14,7 @@ The Notes module is a personal knowledge vault for capturing ideas, reference do
 
 ### Page Layout
 
-1. **Header** — "Vault" title + "New Note" button (emerald gradient)
+1. **Header** — "Vault" title + "Upload .md" button (secondary, gray) + "New Note" button (emerald gradient)
 2. **Category Pills** — Horizontal pill buttons with icons and counts: All, Reference, Ideas, Guides, Journal, Finance, Health, Work, Personal, Archive, Other
 3. **Search & Tag Filters** — Text search across title/content/tags, tag filter pills with multi-select and clear
 4. **Editor/Viewer Panel** (shown when active):
@@ -66,6 +66,7 @@ Defined in `src/types/database.types.ts`:
 - Pin toggle works inline on cards (hover-reveal) and in the note viewer via button
 - Markdown rendering uses `ReactMarkdown` + `remarkGfm` with extensive `prose-invert` Tailwind typography classes for dark theme styling
 - `.md` export via client-side Blob download — prepends `# {title}` to content
+- `.md` upload via hidden file input (accepts `.md`, `.markdown`, `.txt`) — extracts title from first `# heading` line (falls back to filename), uses remaining content as body, defaults to "reference" category, opens the note in viewer after creation
 - Content displayed in edit mode as monospace textarea; in view mode as styled markdown prose
 - All filtering (search, category, tags) is client-side after initial fetch from API
 - `note_search` view exists but is not currently used by the frontend

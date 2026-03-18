@@ -19,6 +19,7 @@ import {
   X,
   Download,
   ArrowLeft,
+  Upload,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -241,6 +242,49 @@ export default function NotesPage() {
     URL.revokeObjectURL(url);
   };
 
+  const handleUploadMd = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const text = await file.text();
+    const fileName = file.name.replace(/\.md$/i, "");
+
+    // Strip leading "# Title" line if present, use it as the title
+    let title = fileName;
+    let content = text;
+    const headingMatch = text.match(/^#\s+(.+)\n/);
+    if (headingMatch) {
+      title = headingMatch[1].trim();
+      content = text.slice(headingMatch[0].length).trim();
+    }
+
+    try {
+      const res = await fetch("/api/notes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title,
+          content_md: content || null,
+          tags: [],
+          category: "reference" as NoteCategory,
+          is_pinned: false,
+        }),
+      });
+
+      if (!res.ok) throw new Error("Failed to upload note");
+      const note = await res.json();
+      setNotes([note, ...notes]);
+      setSelectedNote(note);
+      setIsCreating(false);
+      setEditingNote(null);
+    } catch (error) {
+      console.error("Error uploading note:", error);
+    }
+
+    // Reset input so the same file can be uploaded again
+    e.target.value = "";
+  };
+
   const toggleTag = (tag: string) => {
     setSelectedTags((prev) =>
       prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
@@ -342,18 +386,30 @@ export default function NotesPage() {
               <h1 className="text-2xl font-bold text-white">Vault</h1>
               <p className="text-sm text-gray-500">Your personal knowledge base</p>
             </div>
-            <button
-              onClick={() => {
-                setIsCreating(true);
-                setSelectedNote(null);
-                setEditingNote(null);
-                resetForm();
-              }}
-              className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-emerald-500 to-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-md transition-all duration-200 hover:from-emerald-600 hover:to-emerald-700"
-            >
-              <Plus className="h-4 w-4" />
-              New Note
-            </button>
+            <div className="flex gap-2">
+              <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-sm font-medium text-gray-300 transition-colors hover:border-gray-600 hover:bg-gray-700 hover:text-white">
+                <Upload className="h-4 w-4" />
+                Upload .md
+                <input
+                  type="file"
+                  accept=".md,.markdown,.txt"
+                  onChange={handleUploadMd}
+                  className="hidden"
+                />
+              </label>
+              <button
+                onClick={() => {
+                  setIsCreating(true);
+                  setSelectedNote(null);
+                  setEditingNote(null);
+                  resetForm();
+                }}
+                className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-emerald-500 to-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-md transition-all duration-200 hover:from-emerald-600 hover:to-emerald-700"
+              >
+                <Plus className="h-4 w-4" />
+                New Note
+              </button>
+            </div>
         </div>
 
         {/* Category Pills */}
