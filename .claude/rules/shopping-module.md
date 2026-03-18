@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Shopping Lists module manages multiple shopping lists with items that support category grouping, priority rating, bulk operations, and a long-press selection mode for mobile. Items are split into active and completed sections with category-based or flat sorting options.
+The Shopping Lists module manages multiple shopping lists with items that support category grouping, priority rating, bulk operations, and a long-press selection mode for mobile. Items are viewed via a "To Buy" / "Bought" toggle with category-based or flat sorting options.
 
 ## Architecture
 
@@ -20,8 +20,8 @@ The Shopping Lists module manages multiple shopping lists with items that suppor
 2. **List Selector** — Horizontal pill tabs for switching between lists, with edit/delete per list
 3. **Search & Filters** — Text search (name + notes), category dropdown (dynamic from items), sort dropdown (7 options)
 4. **Selection Mode Bar** — Appears when items are selected: count, select all, bulk complete/uncomplete, bulk delete, clear selection
-5. **Active Items Section** — When sort is "category": items grouped by category with weighted category sorting (avg priority × 0.6 + item count × 0.4). Otherwise: flat sorted list. Each item shows checkbox, name, quantity/unit, priority dots, category badge, aisle, needed_by, edit/delete actions
-6. **Completed Items Section** — Collapsible section showing done items with strikethrough styling
+5. **View Mode Toggle** — Segmented "To Buy" (blue) / "Bought" (green) toggle with item counts, switches which items are displayed
+6. **Items Section** — When sort is "category": items grouped by category (alphabetical, "Uncategorized" last), items sorted by priority then name within each category. Otherwise: flat sorted list. Each item shows checkbox, name, quantity/unit, priority dots, category badge, aisle, needed_by, edit/delete actions
 
 ### API Routes
 
@@ -58,7 +58,8 @@ Defined in `src/types/database.types.ts`:
 - Multi-list support — horizontal pill selector in header, items fetched per-list
 - All lists and their items are fetched in parallel on mount via `Promise.all`
 - Items split into active (`is_done === false`) and completed (`is_done === true`) sections
-- Category grouping uses a weighted sort: categories with higher-priority items and more items appear first (`avgPriority * 0.6 + (20 - itemCount) * 0.4`)
+- View mode toggle switches between "To Buy" (active) and "Bought" (completed) items — both views share the same layout and category grouping
+- Category grouping sorts categories alphabetically ("Uncategorized" last)
 - Within each category, items are sorted by priority then name
 - 7 sort options: category (default), priority asc/desc, name asc/desc, date asc/desc
 - Long-press (500ms) enters selection mode on mobile; selection mode enables bulk operations

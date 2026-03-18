@@ -12,8 +12,9 @@ Create a git commit for the current changes.
    - Focus on the "why" not the "what"
    - Keep it to 1-2 sentences
    - Do NOT commit files that contain secrets (.env, credentials, tokens)
-5. Stage the relevant files by name (avoid `git add .` or `git add -A`).
-6. Commit using a HEREDOC for the message:
+5. Run `npm run build` to verify the project compiles. If it fails, fix the errors before committing.
+6. Stage the relevant files by name (avoid `git add .` or `git add -A`).
+7. Commit using a HEREDOC for the message:
 
 ```
 git commit -m "$(cat <<'EOF'
@@ -22,7 +23,7 @@ EOF
 )"
 ```
 
-7. Run `git status` to verify the commit succeeded.
+8. Run `git status` to verify the commit succeeded.
 
 ## Rules
 

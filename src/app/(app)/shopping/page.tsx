@@ -17,6 +17,7 @@ export default function ShoppingPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
     const [sortBy, setSortBy] = useState<SortOption>('category');
+    const [viewMode, setViewMode] = useState<'to_buy' | 'bought'>('to_buy');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [showAddModal, setShowAddModal] = useState(false);
@@ -567,48 +568,39 @@ export default function ShoppingPage() {
 
     // For non-category sorting, we'll use a flat sorted list
     const sortedActiveItems = sortBy !== 'category' ? sortItems(activeItems) : activeItems;
+    const sortedCompletedItems = sortBy !== 'category' ? sortItems(completedItems) : completedItems;
 
-    // Group active items by category (only used when sortBy === 'category')
-    const groupedActiveItems = activeItems.reduce((acc, item) => {
-        const category = item.category || 'Uncategorized';
-        if (!acc[category]) {
-            acc[category] = [];
-        }
-        acc[category].push(item);
-        return acc;
-    }, {} as Record<string, ShoppingListItem[]>);
-
-    // Sort categories by a weighted score: (avgPriority * 0.6) + (itemCount * 0.4)
-    // Lower priority numbers are more important (1 = highest priority)
-    // We want categories with high priority items AND more items to come first
-    const sortedCategories = Object.entries(groupedActiveItems).sort(([, itemsA], [, itemsB]) => {
-        // Calculate average priority (lower is better, so we invert it)
-        const avgPriorityA = itemsA.reduce((sum, item) => sum + (item.priority || 3), 0) / itemsA.length;
-        const avgPriorityB = itemsB.reduce((sum, item) => sum + (item.priority || 3), 0) / itemsB.length;
-
-        // Normalize item counts (cap at 20 items for scoring)
-        const itemCountA = Math.min(itemsA.length, 20);
-        const itemCountB = Math.min(itemsB.length, 20);
-
-        // Calculate weighted score (lower priority number = better, more items = better)
-        // Priority weight: 0.6, Item count weight: 0.4
-        const scoreA = (avgPriorityA * 0.6) + ((20 - itemCountA) * 0.4);
-        const scoreB = (avgPriorityB * 0.6) + ((20 - itemCountB) * 0.4);
-
-        return scoreA - scoreB;
-    });
-
-    // Within each category, sort items by priority (then by name)
-    sortedCategories.forEach(([, catItems]) => {
-        catItems.sort((a, b) => {
-            const priorityA = a.priority || 3;
-            const priorityB = b.priority || 3;
-            if (priorityA !== priorityB) {
-                return priorityA - priorityB;
+    // Group items by category and sort categories by weighted score
+    const groupByCategory = (itemList: ShoppingListItem[]) => {
+        const grouped = itemList.reduce((acc, item) => {
+            const category = item.category || 'Uncategorized';
+            if (!acc[category]) {
+                acc[category] = [];
             }
-            return a.item_name.localeCompare(b.item_name);
+            acc[category].push(item);
+            return acc;
+        }, {} as Record<string, ShoppingListItem[]>);
+
+        const sorted = Object.entries(grouped).sort(([catA], [catB]) => {
+            if (catA === 'Uncategorized') return 1;
+            if (catB === 'Uncategorized') return -1;
+            return catA.localeCompare(catB);
         });
-    });
+
+        sorted.forEach(([, catItems]) => {
+            catItems.sort((a, b) => {
+                const priorityA = a.priority || 3;
+                const priorityB = b.priority || 3;
+                if (priorityA !== priorityB) return priorityA - priorityB;
+                return a.item_name.localeCompare(b.item_name);
+            });
+        });
+
+        return sorted;
+    };
+
+    const sortedCategories = groupByCategory(activeItems);
+    const sortedCompletedCategories = groupByCategory(completedItems);
 
     // Determine if selected items are from active or completed section
     const selectedActiveCount = Array.from(selectedItems).filter(id =>
@@ -796,6 +788,30 @@ export default function ShoppingPage() {
                                     <option value="date_asc">Oldest First</option>
                                 </select>
                             </div>
+
+                            {/* View Mode Toggle */}
+                            <div className="flex rounded-lg border border-gray-700 bg-gray-800 p-0.5">
+                                <button
+                                    onClick={() => { setViewMode('to_buy'); clearSelection(); }}
+                                    className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${viewMode === 'to_buy' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-gray-200'}`}
+                                >
+                                    <Circle className="h-3.5 w-3.5" />
+                                    To Buy
+                                    <span className={`rounded-full px-1.5 py-0.5 text-xs ${viewMode === 'to_buy' ? 'bg-white/20 text-white' : 'bg-gray-700 text-gray-400'}`}>
+                                        {activeItems.length}
+                                    </span>
+                                </button>
+                                <button
+                                    onClick={() => { setViewMode('bought'); clearSelection(); }}
+                                    className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${viewMode === 'bought' ? 'bg-green-600 text-white' : 'text-gray-400 hover:text-gray-200'}`}
+                                >
+                                    <CheckCircle2 className="h-3.5 w-3.5" />
+                                    Bought
+                                    <span className={`rounded-full px-1.5 py-0.5 text-xs ${viewMode === 'bought' ? 'bg-white/20 text-white' : 'bg-gray-700 text-gray-400'}`}>
+                                        {completedItems.length}
+                                    </span>
+                                </button>
+                            </div>
                         </div>
 
                         {/* Bulk Actions Toolbar */}
@@ -843,21 +859,20 @@ export default function ShoppingPage() {
                         )}
 
                         {/* Items Container with Scroll */}
-                        <div className="max-h-[calc(100vh-300px)] overflow-y-auto pr-2 space-y-4">
-                            {/* Active Items */}
-                            {activeItems.length > 0 && (
-                                <div className="mb-4">
-                                    <div className="flex items-center justify-between mb-3">
-                                        <h3 className="text-base font-semibold text-white">To Buy ({activeItems.length})</h3>
-                                        {isSelectionMode && activeItems.length > 0 && (
+                        <div className="max-h-[calc(100vh-340px)] overflow-y-auto pr-2 space-y-4">
+                            {/* Active Items (To Buy view) */}
+                            {viewMode === 'to_buy' && activeItems.length > 0 && (
+                                <div>
+                                    {isSelectionMode && activeItems.length > 0 && (
+                                        <div className="flex justify-end mb-3">
                                             <button
                                                 onClick={toggleSelectAllActive}
                                                 className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
                                             >
                                                 {activeItems.every(item => selectedItems.has(item.id)) ? 'Unselect All' : 'Select All'}
                                             </button>
-                                        )}
-                                    </div>
+                                        </div>
+                                    )}
 
                                     {/* Category-grouped view */}
                                     {sortBy === 'category' ? (
@@ -1136,148 +1151,308 @@ export default function ShoppingPage() {
                                 </div>
                             )}
 
-                            {/* Completed Items */}
-                            {completedItems.length > 0 && (
+                            {/* Completed Items (Bought view) */}
+                            {viewMode === 'bought' && completedItems.length > 0 && (
                                 <div>
-                                    <div className="flex items-center justify-between mb-3">
-                                        <h3 className="text-base font-semibold text-white">Completed ({completedItems.length})</h3>
-                                        {isSelectionMode && completedItems.length > 0 && (
+                                    {isSelectionMode && completedItems.length > 0 && (
+                                        <div className="flex justify-end mb-3">
                                             <button
                                                 onClick={toggleSelectAllCompleted}
                                                 className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
                                             >
                                                 {completedItems.every(item => selectedItems.has(item.id)) ? 'Unselect All' : 'Select All'}
                                             </button>
-                                        )}
-                                    </div>
-                                    <div className="space-y-2">
-                                        {completedItems.map((item) => (
-                                            <div
-                                                key={item.id}
-                                                className={`bg-gray-900 rounded-lg border p-3 transition-all ${selectedItems.has(item.id)
-                                                        ? 'border-blue-500 bg-blue-500/10 opacity-100'
-                                                        : 'border-gray-800 opacity-60 hover:opacity-100'
-                                                    }`}
-                                                onTouchStart={() => handleLongPressStart(item.id)}
-                                                onTouchEnd={handleLongPressEnd}
-                                                onMouseDown={() => handleLongPressStart(item.id)}
-                                                onMouseUp={handleLongPressEnd}
-                                                onMouseLeave={handleLongPressEnd}
-                                                onClick={() => handleItemTap(item.id)}
-                                            >
-                                                <div className="flex items-start gap-3">
-                                                    {isSelectionMode && (
-                                                        <div className="mt-0.5 flex-shrink-0 w-5 h-5 flex items-center justify-center">
-                                                            {selectedItems.has(item.id) ? (
-                                                                <CheckCircle2 className="w-5 h-5 text-blue-400" />
-                                                            ) : (
-                                                                <Circle className="w-5 h-5 text-gray-600" />
-                                                            )}
-                                                        </div>
-                                                    )}
-                                                    {!isSelectionMode && (
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                toggleItemDone(item.id, item.is_done);
-                                                            }}
-                                                            className="mt-0.5 flex-shrink-0"
-                                                        >
-                                                            <CheckCircle2 className="w-5 h-5 text-green-400 hover:text-gray-400 transition-colors" />
-                                                        </button>
-                                                    )}
-                                                    <div className="flex-1">
-                                                        <div className="flex items-start justify-between gap-3">
-                                                            <div className="flex-1">
-                                                                <h4 className="text-gray-400 font-medium line-through text-sm">{item.item_name}</h4>
-                                                                {/* Quick Priority Rating for completed items */}
-                                                                {!isSelectionMode && (
-                                                                    <div className="flex items-center gap-1.5 mt-1.5">
-                                                                        <span className="text-xs text-gray-600 font-medium">Priority:</span>
-                                                                        <div className="flex items-center gap-0.5">
-                                                                            {[1, 2, 3, 4, 5].map((priorityLevel) => {
-                                                                                const isActive = priorityLevel === (item.priority || 3);
-                                                                                const buttonColor = priorityLevel === 1 ? 'hover:bg-red-500/20 hover:text-red-400' :
-                                                                                    priorityLevel === 2 ? 'hover:bg-orange-500/20 hover:text-orange-400' :
-                                                                                        priorityLevel === 3 ? 'hover:bg-yellow-500/20 hover:text-yellow-400' :
-                                                                                            priorityLevel === 4 ? 'hover:bg-lime-500/20 hover:text-lime-400' :
-                                                                                                'hover:bg-green-500/20 hover:text-green-400';
-                                                                                const activeColor = priorityLevel === 1 ? 'bg-red-500/20 text-red-400' :
-                                                                                    priorityLevel === 2 ? 'bg-orange-500/20 text-orange-400' :
-                                                                                        priorityLevel === 3 ? 'bg-yellow-500/20 text-yellow-400' :
-                                                                                            priorityLevel === 4 ? 'bg-lime-500/20 text-lime-400' :
-                                                                                                'bg-green-500/20 text-green-400';
+                                        </div>
+                                    )}
+                                    {/* Category-grouped view */}
+                                    {sortBy === 'category' ? (
+                                    <div className="space-y-4">
+                                        {sortedCompletedCategories.map(([category, categoryItems]) => (
+                                            <div key={category}>
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                                        {category}
+                                                    </h4>
+                                                    <div className="h-px flex-1 bg-gray-800"></div>
+                                                    <span className="text-xs text-gray-500">
+                                                        {categoryItems.length} item{categoryItems.length !== 1 ? 's' : ''}
+                                                    </span>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    {categoryItems.map((item) => {
+                                                        const priority = item.priority || 3;
+                                                        const priorityBorder = priority === 1 ? 'border-red-500/50' :
+                                                            priority === 2 ? 'border-orange-500/40' :
+                                                                priority === 3 ? 'border-yellow-500/30' :
+                                                                    priority === 4 ? 'border-lime-500/40' :
+                                                                        'border-green-500/50';
 
-                                                                                return (
-                                                                                    <button
-                                                                                        key={priorityLevel}
-                                                                                        type="button"
-                                                                                        onClick={(e) => {
-                                                                                            e.stopPropagation();
-                                                                                            handleQuickPriority(item.id, priorityLevel, item.priority);
-                                                                                        }}
-                                                                                        className={`w-6 h-6 rounded-md text-xs font-bold transition-all ${isActive
-                                                                                                ? activeColor
-                                                                                                : `text-gray-700 ${buttonColor}`
-                                                                                            }`}
-                                                                                        title={`Priority ${priorityLevel}${isActive ? ' (current)' : ''}`}
-                                                                                    >
-                                                                                        {priorityLevel}
-                                                                                    </button>
-                                                                                );
-                                                                            })}
+                                                        return (
+                                                            <div
+                                                                key={item.id}
+                                                                className={`bg-gray-900 rounded-lg border p-3 transition-all ${selectedItems.has(item.id) ? 'border-blue-500 bg-blue-500/10' : priorityBorder}`}
+                                                                onTouchStart={() => handleLongPressStart(item.id)}
+                                                                onTouchEnd={handleLongPressEnd}
+                                                                onMouseDown={() => handleLongPressStart(item.id)}
+                                                                onMouseUp={handleLongPressEnd}
+                                                                onMouseLeave={handleLongPressEnd}
+                                                                onClick={() => handleItemTap(item.id)}
+                                                            >
+                                                                <div className="flex items-start gap-3">
+                                                                    {isSelectionMode && (
+                                                                        <div className="mt-0.5 flex-shrink-0 w-5 h-5 flex items-center justify-center">
+                                                                            {selectedItems.has(item.id) ? (
+                                                                                <CheckCircle2 className="w-5 h-5 text-blue-400" />
+                                                                            ) : (
+                                                                                <Circle className="w-5 h-5 text-gray-600" />
+                                                                            )}
+                                                                        </div>
+                                                                    )}
+                                                                    {!isSelectionMode && (
+                                                                        <button
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                toggleItemDone(item.id, item.is_done);
+                                                                            }}
+                                                                            className="mt-0.5 flex-shrink-0"
+                                                                        >
+                                                                            <CheckCircle2 className="w-5 h-5 text-green-400 hover:text-gray-400 transition-colors" />
+                                                                        </button>
+                                                                    )}
+                                                                    <div className="flex-1 min-w-0">
+                                                                        <div className="flex items-start justify-between gap-3">
+                                                                            <div className="flex-1">
+                                                                                <div className="flex items-baseline gap-2">
+                                                                                    <h4 className="text-white font-medium text-sm">{item.item_name}</h4>
+                                                                                    {item.quantity && (
+                                                                                        <span className="text-base font-semibold text-blue-400">
+                                                                                            ×{item.quantity}{item.unit ? ` ${item.unit}` : ''}
+                                                                                        </span>
+                                                                                    )}
+                                                                                </div>
+                                                                                {!isSelectionMode && (
+                                                                                    <div className="flex items-center gap-1.5 mt-1.5">
+                                                                                        <span className="text-xs text-gray-500 font-medium">Priority:</span>
+                                                                                        <div className="flex items-center gap-0.5">
+                                                                                            {[1, 2, 3, 4, 5].map((priorityLevel) => {
+                                                                                                const isActive = priorityLevel === (item.priority || 3);
+                                                                                                const buttonColor = priorityLevel === 1 ? 'hover:bg-red-500/20 hover:text-red-400' :
+                                                                                                    priorityLevel === 2 ? 'hover:bg-orange-500/20 hover:text-orange-400' :
+                                                                                                        priorityLevel === 3 ? 'hover:bg-yellow-500/20 hover:text-yellow-400' :
+                                                                                                            priorityLevel === 4 ? 'hover:bg-lime-500/20 hover:text-lime-400' :
+                                                                                                                'hover:bg-green-500/20 hover:text-green-400';
+                                                                                                const activeColor = priorityLevel === 1 ? 'bg-red-500/30 text-red-300' :
+                                                                                                    priorityLevel === 2 ? 'bg-orange-500/30 text-orange-300' :
+                                                                                                        priorityLevel === 3 ? 'bg-yellow-500/30 text-yellow-300' :
+                                                                                                            priorityLevel === 4 ? 'bg-lime-500/30 text-lime-300' :
+                                                                                                                'bg-green-500/30 text-green-300';
+
+                                                                                                return (
+                                                                                                    <button
+                                                                                                        key={priorityLevel}
+                                                                                                        type="button"
+                                                                                                        onClick={(e) => {
+                                                                                                            e.stopPropagation();
+                                                                                                            handleQuickPriority(item.id, priorityLevel, item.priority);
+                                                                                                        }}
+                                                                                                        className={`w-6 h-6 rounded-md text-xs font-bold transition-all ${isActive
+                                                                                                                ? activeColor
+                                                                                                                : `text-gray-600 ${buttonColor}`
+                                                                                                            }`}
+                                                                                                        title={`Priority ${priorityLevel}${isActive ? ' (current)' : ''}`}
+                                                                                                    >
+                                                                                                        {priorityLevel}
+                                                                                                    </button>
+                                                                                                );
+                                                                                            })}
+                                                                                        </div>
+                                                                                    </div>
+                                                                                )}
+                                                                                <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1 text-xs">
+                                                                                    {item.aisle && (
+                                                                                        <div className="flex items-center gap-1 text-purple-400">
+                                                                                            <span className="opacity-60">📍</span>
+                                                                                            <span>{item.aisle}</span>
+                                                                                        </div>
+                                                                                    )}
+                                                                                    {item.store_preference && (
+                                                                                        <div className="flex items-center gap-1 text-green-400">
+                                                                                            <span className="opacity-60">🏪</span>
+                                                                                            <span>{item.store_preference}</span>
+                                                                                        </div>
+                                                                                    )}
+                                                                                    {item.last_purchased_at && (
+                                                                                        <div className="flex items-center gap-1 text-gray-400">
+                                                                                            <Calendar className="w-3 h-3 opacity-60" />
+                                                                                            <span>Purchased {new Date(item.last_purchased_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                                                                                        </div>
+                                                                                    )}
+                                                                                </div>
+                                                                                {item.notes && (
+                                                                                    <p className="text-gray-400 text-xs mt-1.5 italic">{item.notes}</p>
+                                                                                )}
+                                                                            </div>
+                                                                            <div className="flex items-start gap-1">
+                                                                                {!isSelectionMode && (
+                                                                                    <>
+                                                                                        <button
+                                                                                            onClick={(e) => {
+                                                                                                e.stopPropagation();
+                                                                                                handleEditItem(item);
+                                                                                            }}
+                                                                                            className="p-1.5 text-gray-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
+                                                                                            title="Edit item"
+                                                                                        >
+                                                                                            <Edit2 className="w-3.5 h-3.5" />
+                                                                                        </button>
+                                                                                        <button
+                                                                                            onClick={(e) => {
+                                                                                                e.stopPropagation();
+                                                                                                showDeleteConfirmation(item.id, item.item_name);
+                                                                                            }}
+                                                                                            className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                                                                                            title="Delete item"
+                                                                                        >
+                                                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                                                        </button>
+                                                                                    </>
+                                                                                )}
+                                                                            </div>
                                                                         </div>
                                                                     </div>
-                                                                )}
-                                                                {item.last_purchased_at && (
-                                                                    <p className="text-xs text-gray-500 mt-0.5">
-                                                                        Purchased {new Date(item.last_purchased_at).toLocaleDateString()}
-                                                                    </p>
-                                                                )}
-                                                            </div>
-                                                            {!isSelectionMode && (
-                                                                <div className="flex items-center gap-1">
-                                                                    <button
-                                                                        onClick={(e) => {
-                                                                            e.stopPropagation();
-                                                                            handleEditItem(item);
-                                                                        }}
-                                                                        className="p-1.5 text-gray-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
-                                                                        title="Edit item"
-                                                                    >
-                                                                        <Edit2 className="w-3.5 h-3.5" />
-                                                                    </button>
-                                                                    <button
-                                                                        onClick={(e) => {
-                                                                            e.stopPropagation();
-                                                                            showDeleteConfirmation(item.id, item.item_name);
-                                                                        }}
-                                                                        className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-                                                                        title="Delete item"
-                                                                    >
-                                                                        <Trash2 className="w-3.5 h-3.5" />
-                                                                    </button>
                                                                 </div>
-                                                            )}
-                                                        </div>
-                                                    </div>
+                                                            </div>
+                                                        );
+                                                    })}
                                                 </div>
                                             </div>
                                         ))}
                                     </div>
+                                    ) : (
+                                    /* Flat sorted view */
+                                    <div className="space-y-2">
+                                        {sortedCompletedItems.map((item) => {
+                                            const priority = item.priority || 3;
+                                            const priorityBorder = priority === 1 ? 'border-red-500/50' :
+                                                priority === 2 ? 'border-orange-500/40' :
+                                                    priority === 3 ? 'border-yellow-500/30' :
+                                                        priority === 4 ? 'border-lime-500/40' :
+                                                            'border-green-500/50';
+
+                                            return (
+                                                <div
+                                                    key={item.id}
+                                                    className={`bg-gray-900 rounded-lg border p-3 transition-all ${selectedItems.has(item.id) ? 'border-blue-500 bg-blue-500/10' : priorityBorder}`}
+                                                    onTouchStart={() => handleLongPressStart(item.id)}
+                                                    onTouchEnd={handleLongPressEnd}
+                                                    onMouseDown={() => handleLongPressStart(item.id)}
+                                                    onMouseUp={handleLongPressEnd}
+                                                    onMouseLeave={handleLongPressEnd}
+                                                    onClick={() => handleItemTap(item.id)}
+                                                >
+                                                    <div className="flex items-start gap-3">
+                                                        {isSelectionMode ? (
+                                                            <div className="mt-0.5 flex-shrink-0 w-5 h-5 flex items-center justify-center">
+                                                                {selectedItems.has(item.id) ? (
+                                                                    <CheckCircle2 className="w-5 h-5 text-blue-400" />
+                                                                ) : (
+                                                                    <Circle className="w-5 h-5 text-gray-600" />
+                                                                )}
+                                                            </div>
+                                                        ) : (
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    toggleItemDone(item.id, item.is_done);
+                                                                }}
+                                                                className="mt-0.5 flex-shrink-0"
+                                                            >
+                                                                <CheckCircle2 className="w-5 h-5 text-green-400 hover:text-gray-400 transition-colors" />
+                                                            </button>
+                                                        )}
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="flex items-start justify-between gap-3">
+                                                                <div className="flex-1">
+                                                                    <div className="flex items-baseline gap-2">
+                                                                        <h4 className="text-white font-medium text-sm">{item.item_name}</h4>
+                                                                        {item.quantity && (
+                                                                            <span className="text-base font-semibold text-blue-400">
+                                                                                ×{item.quantity}{item.unit ? ` ${item.unit}` : ''}
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                    {item.category && (
+                                                                        <span className="text-xs text-gray-500">{item.category}</span>
+                                                                    )}
+                                                                    <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1 text-xs">
+                                                                        {item.aisle && (
+                                                                            <span className="text-purple-400">📍 {item.aisle}</span>
+                                                                        )}
+                                                                        {item.store_preference && (
+                                                                            <span className="text-green-400">🏪 {item.store_preference}</span>
+                                                                        )}
+                                                                        {item.last_purchased_at && (
+                                                                            <span className="text-gray-400 flex items-center gap-1">
+                                                                                <Calendar className="w-3 h-3" />
+                                                                                Purchased {new Date(item.last_purchased_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                    {item.notes && (
+                                                                        <p className="text-gray-400 text-xs mt-1 italic">{item.notes}</p>
+                                                                    )}
+                                                                </div>
+                                                                {!isSelectionMode && (
+                                                                    <div className="flex items-start gap-1">
+                                                                        <button
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                handleEditItem(item);
+                                                                            }}
+                                                                            className="p-1.5 text-gray-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
+                                                                            title="Edit item"
+                                                                        >
+                                                                            <Edit2 className="w-3.5 h-3.5" />
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                showDeleteConfirmation(item.id, item.item_name);
+                                                                            }}
+                                                                            className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                                                                            title="Delete item"
+                                                                        >
+                                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                                        </button>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                    )}
                                 </div>
                             )}
                         </div>
 
                         {/* Empty State */}
-                        {filteredItems.length === 0 && (
+                        {((viewMode === 'to_buy' && activeItems.length === 0) || (viewMode === 'bought' && completedItems.length === 0)) && (
                             <div className="bg-gray-900 rounded-lg border border-gray-800 p-8 text-center">
                                 <ShoppingCart className="w-12 h-12 text-gray-700 mx-auto mb-3" />
-                                <h3 className="text-lg font-semibold text-white mb-1">No Items Found</h3>
+                                <h3 className="text-lg font-semibold text-white mb-1">
+                                    {searchQuery || selectedCategory !== 'all'
+                                        ? 'No Items Found'
+                                        : viewMode === 'to_buy' ? 'Nothing to Buy' : 'No Purchased Items'}
+                                </h3>
                                 <p className="text-gray-400 text-sm">
                                     {searchQuery || selectedCategory !== 'all'
                                         ? 'Try adjusting your filters'
-                                        : 'Start adding items to your shopping list'}
+                                        : viewMode === 'to_buy'
+                                            ? 'Start adding items to your shopping list'
+                                            : 'Items you mark as done will appear here'}
                                 </p>
                             </div>
                         )}
