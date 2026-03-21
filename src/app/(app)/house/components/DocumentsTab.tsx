@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, X, Trash2, Edit2, FileText, ExternalLink, AlertCircle } from 'lucide-react';
-import type { HomeDocument, HomeDocumentInsert, HomeDocumentType } from '@/types/house.types';
+import { Plus, Trash2, Edit2, FileText, ExternalLink, AlertCircle } from 'lucide-react';
+import DocumentModal from '../modals/DocumentModal';
+import type { HomeDocument, HomeDocumentType } from '@/types/house.types';
 
 interface DocumentsTabProps {
     documents: HomeDocument[];
@@ -13,90 +14,7 @@ interface DocumentsTabProps {
 export default function DocumentsTab({ documents, propertyId, onRefresh }: DocumentsTabProps) {
     const [showModal, setShowModal] = useState(false);
     const [editingDocument, setEditingDocument] = useState<HomeDocument | null>(null);
-    const [loading, setLoading] = useState(false);
     const [filter, setFilter] = useState<HomeDocumentType | 'all'>('all');
-
-    const [formData, setFormData] = useState<HomeDocumentInsert>({
-        property_id: propertyId,
-        appliance_id: null,
-        project_id: null,
-        document_type: 'other',
-        name: '',
-        description: null,
-        file_url: null,
-        file_id: null,
-        expiration_date: null,
-        issue_date: null,
-        notes: null,
-    });
-
-    const resetForm = () => {
-        setFormData({
-            property_id: propertyId,
-            appliance_id: null,
-            project_id: null,
-            document_type: 'other',
-            name: '',
-            description: null,
-            file_url: null,
-            file_id: null,
-            expiration_date: null,
-            issue_date: null,
-            notes: null,
-        });
-        setEditingDocument(null);
-    };
-
-    const openModal = (doc?: HomeDocument) => {
-        if (doc) {
-            setEditingDocument(doc);
-            setFormData({
-                property_id: doc.property_id,
-                appliance_id: doc.appliance_id,
-                project_id: doc.project_id,
-                document_type: doc.document_type,
-                name: doc.name,
-                description: doc.description,
-                file_url: doc.file_url,
-                file_id: doc.file_id,
-                expiration_date: doc.expiration_date,
-                issue_date: doc.issue_date,
-                notes: doc.notes,
-            });
-        } else {
-            resetForm();
-        }
-        setShowModal(true);
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!formData.name.trim()) return;
-        setLoading(true);
-
-        try {
-            const url = editingDocument
-                ? `/api/house/documents/${editingDocument.id}`
-                : '/api/house/documents';
-            const method = editingDocument ? 'PATCH' : 'POST';
-
-            const response = await fetch(url, {
-                method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData),
-            });
-
-            if (!response.ok) throw new Error('Failed to save document');
-
-            setShowModal(false);
-            resetForm();
-            onRefresh();
-        } catch (error) {
-            console.error('Error saving document:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const handleDelete = async (id: string) => {
         if (!confirm('Are you sure you want to delete this document?')) return;
@@ -183,7 +101,7 @@ export default function DocumentsTab({ documents, propertyId, onRefresh }: Docum
                         ))}
                     </select>
                     <button
-                        onClick={() => openModal()}
+                        onClick={() => { setEditingDocument(null); setShowModal(true); }}
                         className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2"
                     >
                         <Plus className="w-4 h-4" />
@@ -245,7 +163,7 @@ export default function DocumentsTab({ documents, propertyId, onRefresh }: Docum
                                             </a>
                                         )}
                                         <button
-                                            onClick={() => openModal(doc)}
+                                            onClick={() => { setEditingDocument(doc); setShowModal(true); }}
                                             className="p-1 text-gray-400 hover:text-white transition-colors"
                                         >
                                             <Edit2 className="w-4 h-4" />
@@ -296,165 +214,13 @@ export default function DocumentsTab({ documents, propertyId, onRefresh }: Docum
             )}
 
             {/* Modal */}
-            {showModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
-                        <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-xl font-semibold text-white">
-                                {editingDocument ? 'Edit Document' : 'Add Document'}
-                            </h2>
-                            <button
-                                onClick={() => setShowModal(false)}
-                                className="text-gray-400 hover:text-white"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
-
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">
-                                    Name *
-                                </label>
-                                <input
-                                    type="text"
-                                    value={formData.name}
-                                    onChange={(e) =>
-                                        setFormData({ ...formData, name: e.target.value })
-                                    }
-                                    required
-                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                    placeholder="Document name"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">
-                                    Type *
-                                </label>
-                                <select
-                                    value={formData.document_type}
-                                    onChange={(e) =>
-                                        setFormData({
-                                            ...formData,
-                                            document_type: e.target.value as HomeDocumentType,
-                                        })
-                                    }
-                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                >
-                                    {documentTypes.map((type) => (
-                                        <option key={type} value={type}>
-                                            {type.charAt(0).toUpperCase() + type.slice(1)}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">
-                                    Description
-                                </label>
-                                <textarea
-                                    value={formData.description || ''}
-                                    onChange={(e) =>
-                                        setFormData({
-                                            ...formData,
-                                            description: e.target.value || null,
-                                        })
-                                    }
-                                    rows={2}
-                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">
-                                    File URL
-                                </label>
-                                <input
-                                    type="url"
-                                    value={formData.file_url || ''}
-                                    onChange={(e) =>
-                                        setFormData({
-                                            ...formData,
-                                            file_url: e.target.value || null,
-                                        })
-                                    }
-                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                    placeholder="https://..."
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-1">
-                                        Issue Date
-                                    </label>
-                                    <input
-                                        type="date"
-                                        value={formData.issue_date || ''}
-                                        onChange={(e) =>
-                                            setFormData({
-                                                ...formData,
-                                                issue_date: e.target.value || null,
-                                            })
-                                        }
-                                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-1">
-                                        Expiration Date
-                                    </label>
-                                    <input
-                                        type="date"
-                                        value={formData.expiration_date || ''}
-                                        onChange={(e) =>
-                                            setFormData({
-                                                ...formData,
-                                                expiration_date: e.target.value || null,
-                                            })
-                                        }
-                                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                    />
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">
-                                    Notes
-                                </label>
-                                <textarea
-                                    value={formData.notes || ''}
-                                    onChange={(e) =>
-                                        setFormData({ ...formData, notes: e.target.value || null })
-                                    }
-                                    rows={2}
-                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                />
-                            </div>
-
-                            <div className="flex gap-3 pt-4">
-                                <button
-                                    type="button"
-                                    onClick={() => setShowModal(false)}
-                                    className="flex-1 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors border border-gray-700"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={loading || !formData.name.trim()}
-                                    className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50"
-                                >
-                                    {loading ? 'Saving...' : editingDocument ? 'Update' : 'Create'}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
+            <DocumentModal
+                isOpen={showModal}
+                onClose={() => setShowModal(false)}
+                editingDocument={editingDocument}
+                propertyId={propertyId}
+                onSuccess={onRefresh}
+            />
         </div>
     );
 }

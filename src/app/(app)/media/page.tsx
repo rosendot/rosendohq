@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Plus, Film, Tv, Star, Search, Trash2, Edit2, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { MediaItem, MediaType, MediaStatus } from '@/types/media.types';
 import DeleteConfirmationModal from '@/components/DeleteConfirmationModal';
-import BaseFormModal from '@/components/BaseFormModal';
+import MediaItemModal from './modals/MediaItemModal';
 
 const MEDIA_TYPES: { value: MediaType; label: string; icon: typeof Film }[] = [
     { value: 'movie', label: 'Movies', icon: Film },
@@ -401,22 +401,6 @@ export default function MediaTrackerPage() {
         itemTitle: string;
     }>({ show: false, itemId: null, itemTitle: '' });
 
-    const [formData, setFormData] = useState({
-        title: '',
-        type: 'movie' as MediaType,
-        status: 'planned' as MediaStatus,
-        platform: '',
-        current_episode: 0,
-        total_episodes: 0,
-        current_season: 0,
-        total_seasons: 0,
-        episodes_in_season: 0,
-        rating: 0,
-        notes: '',
-        started_at: '',
-        completed_at: ''
-    });
-
     useEffect(() => {
         fetchItems();
     }, []);
@@ -433,73 +417,6 @@ export default function MediaTrackerPage() {
             console.error('Error fetching media:', error);
         } finally {
             setLoading(false);
-        }
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        try {
-            if (editingItem) {
-                const response = await fetch(`/api/media/${editingItem.id}`, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        ...formData,
-                        rating: formData.rating || null,
-                        platform: formData.platform || null,
-                        notes: formData.notes || null,
-                        total_episodes: formData.total_episodes || null,
-                        current_episode: formData.current_episode || 0,
-                        current_season: formData.current_season || null,
-                        total_seasons: formData.total_seasons || null,
-                        episodes_in_season: formData.episodes_in_season || null,
-                        started_at: formData.started_at || null,
-                        completed_at: formData.completed_at || null,
-                    }),
-                });
-
-                if (!response.ok) throw new Error('Failed to update');
-
-                const updatedItem = await response.json();
-
-                // Update locally instead of refetching
-                setItems(prevItems =>
-                    prevItems.map(item => item.id === updatedItem.id ? updatedItem : item)
-                );
-            } else {
-                const response = await fetch('/api/media', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        ...formData,
-                        rating: formData.rating || null,
-                        platform: formData.platform || null,
-                        notes: formData.notes || null,
-                        total_episodes: formData.total_episodes || null,
-                        current_episode: formData.current_episode || 0,
-                        current_season: formData.current_season || null,
-                        total_seasons: formData.total_seasons || null,
-                        episodes_in_season: formData.episodes_in_season || null,
-                        started_at: formData.started_at || null,
-                        completed_at: formData.completed_at || null,
-                    }),
-                });
-
-                if (!response.ok) throw new Error('Failed to create');
-
-                const newItem = await response.json();
-
-                // Add locally instead of refetching
-                setItems(prevItems => [newItem, ...prevItems]);
-            }
-
-            setShowAddModal(false);
-            setEditingItem(null);
-            resetForm();
-        } catch (error) {
-            console.error('Error saving media:', error);
-            alert('Failed to save media item');
         }
     };
 
@@ -594,44 +511,6 @@ export default function MediaTrackerPage() {
         }
     };
 
-    const handleEdit = (item: MediaItem) => {
-        setEditingItem(item);
-        setFormData({
-            title: item.title,
-            type: item.type,
-            status: item.status,
-            platform: item.platform || '',
-            current_episode: item.current_episode || 0,
-            total_episodes: item.total_episodes || 0,
-            current_season: item.current_season || 0,
-            total_seasons: item.total_seasons || 0,
-            episodes_in_season: item.episodes_in_season || 0,
-            rating: item.rating || 0,
-            notes: item.notes || '',
-            started_at: item.started_at || '',
-            completed_at: item.completed_at || ''
-        });
-        setShowAddModal(true);
-    };
-
-    const resetForm = () => {
-        setFormData({
-            title: '',
-            type: 'movie',
-            status: 'planned',
-            platform: '',
-            current_episode: 0,
-            total_episodes: 0,
-            current_season: 0,
-            total_seasons: 0,
-            episodes_in_season: 0,
-            rating: 0,
-            notes: '',
-            started_at: '',
-            completed_at: ''
-        });
-    };
-
     // Filter and group items
     const filteredItems = items.filter(item => {
         const matchesSearch = !searchQuery ||
@@ -677,7 +556,6 @@ export default function MediaTrackerPage() {
                         <button
                             onClick={() => {
                                 setEditingItem(null);
-                                resetForm();
                                 setShowAddModal(true);
                             }}
                             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center gap-1.5 text-sm"
@@ -732,7 +610,7 @@ export default function MediaTrackerPage() {
                 <MediaCarousel
                     title={`Continue Watching (${watchingItems.length})`}
                     items={watchingItems}
-                    onEdit={handleEdit}
+                    onEdit={(item) => { setEditingItem(item); setShowAddModal(true); }}
                     onDelete={showDeleteConfirmation}
                     onQuickRate={handleQuickRate}
                     onQuickIncrement={handleQuickIncrement}
@@ -742,7 +620,7 @@ export default function MediaTrackerPage() {
                 <MediaCarousel
                     title={`Plan to Watch (${plannedItems.length})`}
                     items={plannedItems}
-                    onEdit={handleEdit}
+                    onEdit={(item) => { setEditingItem(item); setShowAddModal(true); }}
                     onDelete={showDeleteConfirmation}
                     onQuickRate={handleQuickRate}
                     emptyMessage="Your plan to watch list is empty. Add some media to get started!"
@@ -751,7 +629,7 @@ export default function MediaTrackerPage() {
                 <MediaCarousel
                     title={`Completed (${completedItems.length})`}
                     items={completedItems}
-                    onEdit={handleEdit}
+                    onEdit={(item) => { setEditingItem(item); setShowAddModal(true); }}
                     onDelete={showDeleteConfirmation}
                     onQuickRate={handleQuickRate}
                     emptyMessage="No completed media yet. Finish watching something!"
@@ -761,7 +639,7 @@ export default function MediaTrackerPage() {
                     <MediaCarousel
                         title={`On Hold (${onHoldItems.length})`}
                         items={onHoldItems}
-                        onEdit={handleEdit}
+                        onEdit={(item) => { setEditingItem(item); setShowAddModal(true); }}
                         onDelete={showDeleteConfirmation}
                         onQuickRate={handleQuickRate}
                         emptyMessage=""
@@ -772,7 +650,7 @@ export default function MediaTrackerPage() {
                     <MediaCarousel
                         title={`Dropped (${droppedItems.length})`}
                         items={droppedItems}
-                        onEdit={handleEdit}
+                        onEdit={(item) => { setEditingItem(item); setShowAddModal(true); }}
                         onDelete={showDeleteConfirmation}
                         onQuickRate={handleQuickRate}
                         emptyMessage=""
@@ -781,200 +659,23 @@ export default function MediaTrackerPage() {
             </div>
 
             {/* Add/Edit Modal */}
-            <BaseFormModal
+            <MediaItemModal
                 isOpen={showAddModal}
                 onClose={() => {
                     setShowAddModal(false);
                     setEditingItem(null);
-                    resetForm();
                 }}
-                title={editingItem ? 'Edit Media' : 'Add New Media'}
-                onSubmit={handleSubmit}
-                submitLabel={editingItem ? 'Update' : 'Add Media'}
-                submitColor="blue"
-                maxWidth="md"
-            >
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Title *</label>
-                                <input
-                                    type="text"
-                                    value={formData.title}
-                                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                                    required
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-2">
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Type *</label>
-                                    <select
-                                        value={formData.type}
-                                        onChange={(e) => setFormData({ ...formData, type: e.target.value as MediaType })}
-                                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                                    >
-                                        {MEDIA_TYPES.map(({ value, label }) => (
-                                            <option key={value} value={value}>{label}</option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Status *</label>
-                                    <select
-                                        value={formData.status}
-                                        onChange={(e) => setFormData({ ...formData, status: e.target.value as MediaStatus })}
-                                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                                    >
-                                        {STATUSES.map(({ value, label }) => (
-                                            <option key={value} value={value}>{label}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Platform</label>
-                                <input
-                                    type="text"
-                                    value={formData.platform}
-                                    onChange={(e) => setFormData({ ...formData, platform: e.target.value })}
-                                    placeholder="Netflix, Crunchyroll, etc."
-                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                                />
-                            </div>
-
-                            {/* Season tracking (for shows/anime) */}
-                            {(formData.type === 'show' || formData.type === 'anime') && (
-                                <div className="grid grid-cols-2 gap-2">
-                                    <div>
-                                        <label className="block text-sm font-medium mb-1">Current Season</label>
-                                        <input
-                                            type="number"
-                                            value={formData.current_season}
-                                            onChange={(e) => setFormData({ ...formData, current_season: parseInt(e.target.value) || 0 })}
-                                            min="0"
-                                            placeholder="e.g., 2"
-                                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium mb-1">Total Seasons</label>
-                                        <input
-                                            type="number"
-                                            value={formData.total_seasons}
-                                            onChange={(e) => setFormData({ ...formData, total_seasons: parseInt(e.target.value) || 0 })}
-                                            min="0"
-                                            placeholder="e.g., 4"
-                                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                                        />
-                                    </div>
-                                </div>
-                            )}
-
-                            <div className="grid grid-cols-2 gap-2">
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">
-                                        {(formData.type === 'show' || formData.type === 'anime') ? 'Current Episode (in Season)' : 'Current Episode'}
-                                    </label>
-                                    <input
-                                        type="number"
-                                        value={formData.current_episode}
-                                        onChange={(e) => setFormData({ ...formData, current_episode: parseInt(e.target.value) || 0 })}
-                                        min="0"
-                                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">
-                                        {(formData.type === 'show' || formData.type === 'anime') ? 'Episodes in Season' : 'Total Episodes'}
-                                    </label>
-                                    <input
-                                        type="number"
-                                        value={(formData.type === 'show' || formData.type === 'anime') ? formData.episodes_in_season : formData.total_episodes}
-                                        onChange={(e) => {
-                                            const value = parseInt(e.target.value) || 0;
-                                            if (formData.type === 'show' || formData.type === 'anime') {
-                                                setFormData({ ...formData, episodes_in_season: value });
-                                            } else {
-                                                setFormData({ ...formData, total_episodes: value });
-                                            }
-                                        }}
-                                        min="0"
-                                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Overall total episodes for shows/anime */}
-                            {(formData.type === 'show' || formData.type === 'anime') && (
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Total Episodes (Overall)</label>
-                                    <input
-                                        type="number"
-                                        value={formData.total_episodes}
-                                        onChange={(e) => setFormData({ ...formData, total_episodes: parseInt(e.target.value) || 0 })}
-                                        min="0"
-                                        placeholder="Total across all seasons (optional)"
-                                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                                    />
-                                </div>
-                            )}
-
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Rating</label>
-                                <div className="flex gap-2 justify-center sm:justify-start">
-                                    {[1, 2, 3, 4, 5].map((rating) => (
-                                        <button
-                                            key={rating}
-                                            type="button"
-                                            onClick={() => setFormData({ ...formData, rating })}
-                                            className="p-2 hover:bg-gray-800 rounded-lg transition-colors active:bg-gray-700"
-                                        >
-                                            <Star
-                                                className={`w-6 h-6 ${rating <= formData.rating ? 'fill-yellow-500 text-yellow-500' : 'text-gray-600'}`}
-                                            />
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Notes</label>
-                                <textarea
-                                    value={formData.notes}
-                                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                                    rows={3}
-                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none"
-                                    placeholder="Your thoughts, reminders, etc."
-                                />
-                            </div>
-
-                            {/* Date fields */}
-                            <div className="grid grid-cols-2 gap-2">
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Started Date</label>
-                                    <input
-                                        type="date"
-                                        value={formData.started_at}
-                                        onChange={(e) => setFormData({ ...formData, started_at: e.target.value })}
-                                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Completed Date</label>
-                                    <input
-                                        type="date"
-                                        value={formData.completed_at}
-                                        onChange={(e) => setFormData({ ...formData, completed_at: e.target.value })}
-                                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                                    />
-                                </div>
-                            </div>
-            </BaseFormModal>
+                editingItem={editingItem}
+                onSuccess={(item, isNew) => {
+                    if (isNew) {
+                        setItems((prev) => [item, ...prev]);
+                    } else {
+                        setItems((prev) => prev.map((i) => (i.id === item.id ? item : i)));
+                    }
+                    setShowAddModal(false);
+                    setEditingItem(null);
+                }}
+            />
 
             {/* Delete Confirmation Modal */}
             <DeleteConfirmationModal

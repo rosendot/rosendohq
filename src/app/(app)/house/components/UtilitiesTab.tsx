@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { Plus, Trash2, Edit2, CheckCircle } from 'lucide-react';
-import BaseFormModal from '@/components/BaseFormModal';
-import type { HomeUtilityBill, HomeUtilityBillInsert, HomeUtilityType } from '@/types/house.types';
+import UtilityBillModal from '../modals/UtilityBillModal';
+import type { HomeUtilityBill, HomeUtilityType } from '@/types/house.types';
 
 interface UtilitiesTabProps {
     bills: HomeUtilityBill[];
@@ -14,98 +14,7 @@ interface UtilitiesTabProps {
 export default function UtilitiesTab({ bills, propertyId, onRefresh }: UtilitiesTabProps) {
     const [showModal, setShowModal] = useState(false);
     const [editingBill, setEditingBill] = useState<HomeUtilityBill | null>(null);
-    const [loading, setLoading] = useState(false);
     const [filter, setFilter] = useState<'all' | 'unpaid' | 'paid'>('all');
-
-    const [formData, setFormData] = useState<HomeUtilityBillInsert>({
-        property_id: propertyId || '',
-        utility_type: 'electricity',
-        provider: null,
-        account_number: null,
-        bill_date: new Date().toISOString().split('T')[0],
-        period_start: null,
-        period_end: null,
-        due_date: null,
-        amount_cents: 0,
-        usage_quantity: null,
-        usage_unit: null,
-        is_paid: false,
-        paid_date: null,
-        notes: null,
-    });
-
-    const resetForm = () => {
-        setFormData({
-            property_id: propertyId || '',
-            utility_type: 'electricity',
-            provider: null,
-            account_number: null,
-            bill_date: new Date().toISOString().split('T')[0],
-            period_start: null,
-            period_end: null,
-            due_date: null,
-            amount_cents: 0,
-            usage_quantity: null,
-            usage_unit: null,
-            is_paid: false,
-            paid_date: null,
-            notes: null,
-        });
-        setEditingBill(null);
-    };
-
-    const openModal = (bill?: HomeUtilityBill) => {
-        if (bill) {
-            setEditingBill(bill);
-            setFormData({
-                property_id: bill.property_id,
-                utility_type: bill.utility_type,
-                provider: bill.provider,
-                account_number: bill.account_number,
-                bill_date: bill.bill_date,
-                period_start: bill.period_start,
-                period_end: bill.period_end,
-                due_date: bill.due_date,
-                amount_cents: bill.amount_cents || 0,
-                usage_quantity: bill.usage_quantity,
-                usage_unit: bill.usage_unit,
-                is_paid: bill.is_paid,
-                paid_date: bill.paid_date,
-                notes: bill.notes,
-            });
-        } else {
-            resetForm();
-        }
-        setShowModal(true);
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoading(true);
-
-        try {
-            const url = editingBill
-                ? `/api/house/utilities/${editingBill.id}`
-                : '/api/house/utilities';
-            const method = editingBill ? 'PATCH' : 'POST';
-
-            const response = await fetch(url, {
-                method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData),
-            });
-
-            if (!response.ok) throw new Error('Failed to save bill');
-
-            setShowModal(false);
-            resetForm();
-            onRefresh();
-        } catch (error) {
-            console.error('Error saving bill:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const handleDelete = async (id: string) => {
         if (!confirm('Are you sure you want to delete this bill?')) return;
@@ -163,20 +72,6 @@ export default function UtilitiesTab({ bills, propertyId, onRefresh }: Utilities
         return colors[type] || 'text-gray-400';
     };
 
-    const utilityTypes: HomeUtilityType[] = [
-        'electricity',
-        'gas',
-        'water',
-        'sewer',
-        'trash',
-        'internet',
-        'phone',
-        'cable',
-        'hoa',
-        'security',
-        'other',
-    ];
-
     const filteredBills = bills.filter((bill) => {
         if (filter === 'paid') return bill.is_paid;
         if (filter === 'unpaid') return !bill.is_paid;
@@ -207,7 +102,7 @@ export default function UtilitiesTab({ bills, propertyId, onRefresh }: Utilities
                         <option value="paid">Paid</option>
                     </select>
                     <button
-                        onClick={() => openModal()}
+                        onClick={() => { setEditingBill(null); setShowModal(true); }}
                         className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2"
                     >
                         <Plus className="w-4 h-4" />
@@ -313,7 +208,7 @@ export default function UtilitiesTab({ bills, propertyId, onRefresh }: Utilities
                                                 </button>
                                             )}
                                             <button
-                                                onClick={() => openModal(bill)}
+                                                onClick={() => { setEditingBill(bill); setShowModal(true); }}
                                                 className="p-1 text-gray-400 hover:text-white transition-colors"
                                             >
                                                 <Edit2 className="w-4 h-4" />
@@ -334,233 +229,13 @@ export default function UtilitiesTab({ bills, propertyId, onRefresh }: Utilities
             )}
 
             {/* Modal */}
-            {showModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
-                        <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-xl font-semibold text-white">
-                                {editingBill ? 'Edit Bill' : 'Add Bill'}
-                            </h2>
-                            <button
-                                onClick={() => setShowModal(false)}
-                                className="text-gray-400 hover:text-white"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
-
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-1">
-                                        Utility Type *
-                                    </label>
-                                    <select
-                                        value={formData.utility_type}
-                                        onChange={(e) =>
-                                            setFormData({
-                                                ...formData,
-                                                utility_type: e.target.value as HomeUtilityType,
-                                            })
-                                        }
-                                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                    >
-                                        {utilityTypes.map((type) => (
-                                            <option key={type} value={type}>
-                                                {type.charAt(0).toUpperCase() + type.slice(1)}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-1">
-                                        Provider
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={formData.provider || ''}
-                                        onChange={(e) =>
-                                            setFormData({
-                                                ...formData,
-                                                provider: e.target.value || null,
-                                            })
-                                        }
-                                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                        placeholder="e.g., ConEd"
-                                    />
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">
-                                    Amount ($) *
-                                </label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    value={formData.amount_cents ? formData.amount_cents / 100 : ''}
-                                    onChange={(e) =>
-                                        setFormData({
-                                            ...formData,
-                                            amount_cents: e.target.value
-                                                ? Math.round(parseFloat(e.target.value) * 100)
-                                                : 0,
-                                        })
-                                    }
-                                    required
-                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                    placeholder="0.00"
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-1">
-                                        Period Start
-                                    </label>
-                                    <input
-                                        type="date"
-                                        value={formData.period_start || ''}
-                                        onChange={(e) =>
-                                            setFormData({
-                                                ...formData,
-                                                period_start: e.target.value || null,
-                                            })
-                                        }
-                                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-1">
-                                        Period End
-                                    </label>
-                                    <input
-                                        type="date"
-                                        value={formData.period_end || ''}
-                                        onChange={(e) =>
-                                            setFormData({
-                                                ...formData,
-                                                period_end: e.target.value || null,
-                                            })
-                                        }
-                                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                    />
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">
-                                    Due Date
-                                </label>
-                                <input
-                                    type="date"
-                                    value={formData.due_date || ''}
-                                    onChange={(e) =>
-                                        setFormData({
-                                            ...formData,
-                                            due_date: e.target.value || null,
-                                        })
-                                    }
-                                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-1">
-                                        Usage Amount
-                                    </label>
-                                    <input
-                                        type="number"
-                                        step="0.01"
-                                        value={formData.usage_quantity || ''}
-                                        onChange={(e) =>
-                                            setFormData({
-                                                ...formData,
-                                                usage_quantity: e.target.value
-                                                    ? parseFloat(e.target.value)
-                                                    : null,
-                                            })
-                                        }
-                                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-1">
-                                        Usage Unit
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={formData.usage_unit || ''}
-                                        onChange={(e) =>
-                                            setFormData({
-                                                ...formData,
-                                                usage_unit: e.target.value || null,
-                                            })
-                                        }
-                                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                        placeholder="e.g., kWh, gallons"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="flex items-center gap-4">
-                                <div className="flex items-center gap-2">
-                                    <input
-                                        type="checkbox"
-                                        id="is_paid"
-                                        checked={formData.is_paid}
-                                        onChange={(e) =>
-                                            setFormData({ ...formData, is_paid: e.target.checked })
-                                        }
-                                        className="w-4 h-4 rounded border-gray-700 bg-gray-800 text-blue-600 focus:ring-blue-500"
-                                    />
-                                    <label htmlFor="is_paid" className="text-sm text-gray-300">
-                                        Paid
-                                    </label>
-                                </div>
-
-                                {formData.is_paid && (
-                                    <div className="flex-1">
-                                        <input
-                                            type="date"
-                                            value={formData.paid_date || ''}
-                                            onChange={(e) =>
-                                                setFormData({
-                                                    ...formData,
-                                                    paid_date: e.target.value || null,
-                                                })
-                                            }
-                                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                                            placeholder="Paid date"
-                                        />
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className="flex gap-3 pt-4">
-                                <button
-                                    type="button"
-                                    onClick={() => setShowModal(false)}
-                                    className="flex-1 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors border border-gray-700"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={loading}
-                                    className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50"
-                                >
-                                    {loading ? 'Saving...' : editingBill ? 'Update' : 'Create'}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
+            <UtilityBillModal
+                isOpen={showModal}
+                onClose={() => setShowModal(false)}
+                editingBill={editingBill}
+                propertyId={propertyId}
+                onSuccess={onRefresh}
+            />
         </div>
     );
 }

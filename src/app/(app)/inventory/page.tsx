@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Plus, Package, MapPin, DollarSign, Search, Trash2, Edit2, X } from "lucide-react";
 import type { InventoryItem } from "@/types/inventory.types";
-import BaseFormModal from "@/components/BaseFormModal";
+import InventoryItemModal from "./modals/InventoryItemModal";
 import DeleteConfirmationModal from "@/components/DeleteConfirmationModal";
 
 const CATEGORIES = [
@@ -39,17 +39,6 @@ export default function InventoryPage() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedLocation, setSelectedLocation] = useState("all");
 
-  const [formData, setFormData] = useState({
-    name: "",
-    category: CATEGORIES[0],
-    location: LOCATIONS[0],
-    quantity: 1,
-    unit: "",
-    acquired_at: new Date().toISOString().split("T")[0],
-    purchasePrice: "",
-    notes: "",
-  });
-
   const fetchItems = useCallback(async () => {
     try {
       const res = await fetch("/api/inventory");
@@ -66,81 +55,6 @@ export default function InventoryPage() {
   useEffect(() => {
     fetchItems();
   }, [fetchItems]);
-
-  const resetForm = () => {
-    setFormData({
-      name: "",
-      category: CATEGORIES[0],
-      location: LOCATIONS[0],
-      quantity: 1,
-      unit: "",
-      acquired_at: new Date().toISOString().split("T")[0],
-      purchasePrice: "",
-      notes: "",
-    });
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.name.trim()) return;
-
-    const priceCents = formData.purchasePrice
-      ? Math.round(parseFloat(formData.purchasePrice) * 100)
-      : null;
-
-    const payload = {
-      name: formData.name.trim(),
-      category: formData.category,
-      location: formData.location,
-      quantity: formData.quantity,
-      unit: formData.unit.trim() || null,
-      acquired_at: formData.acquired_at || null,
-      purchase_price_cents: priceCents,
-      notes: formData.notes.trim() || null,
-    };
-
-    try {
-      if (editingItem) {
-        const res = await fetch(`/api/inventory/${editingItem.id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-        if (!res.ok) throw new Error("Failed to update");
-        const updated = await res.json();
-        setItems(items.map((i) => (i.id === editingItem.id ? updated : i)));
-      } else {
-        const res = await fetch("/api/inventory", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-        if (!res.ok) throw new Error("Failed to create");
-        const created = await res.json();
-        setItems([created, ...items]);
-      }
-      setShowAddModal(false);
-      setEditingItem(null);
-      resetForm();
-    } catch (error) {
-      console.error("Error saving item:", error);
-    }
-  };
-
-  const handleEdit = (item: InventoryItem) => {
-    setEditingItem(item);
-    setFormData({
-      name: item.name,
-      category: item.category || CATEGORIES[0],
-      location: item.location || LOCATIONS[0],
-      quantity: item.quantity,
-      unit: item.unit || "",
-      acquired_at: item.acquired_at || new Date().toISOString().split("T")[0],
-      purchasePrice: item.purchase_price_cents ? (item.purchase_price_cents / 100).toString() : "",
-      notes: item.notes || "",
-    });
-    setShowAddModal(true);
-  };
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
@@ -209,7 +123,6 @@ export default function InventoryPage() {
           <button
             onClick={() => {
               setEditingItem(null);
-              resetForm();
               setShowAddModal(true);
             }}
             className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium transition-colors hover:bg-blue-700"
@@ -319,7 +232,10 @@ export default function InventoryPage() {
                 </div>
                 <div className="flex gap-1">
                   <button
-                    onClick={() => handleEdit(item)}
+                    onClick={() => {
+                      setEditingItem(item);
+                      setShowAddModal(true);
+                    }}
                     className="rounded p-1.5 text-gray-500 transition-colors hover:bg-gray-800 hover:text-blue-400"
                   >
                     <Edit2 className="h-3.5 w-3.5" />
@@ -380,116 +296,23 @@ export default function InventoryPage() {
       </div>
 
       {/* Add/Edit Modal */}
-      <BaseFormModal
+      <InventoryItemModal
         isOpen={showAddModal}
         onClose={() => {
           setShowAddModal(false);
           setEditingItem(null);
-          resetForm();
         }}
-        title={editingItem ? "Edit Item" : "Add New Item"}
-        onSubmit={handleSubmit}
-        submitLabel={editingItem ? "Update Item" : "Add Item"}
-        submitColor="blue"
-        maxWidth="md"
-      >
-        <div>
-          <label className="mb-1 block text-xs font-medium text-gray-400">Name *</label>
-          <input
-            type="text"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:ring-1 focus:ring-blue-500 focus:outline-none"
-            required
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="mb-1 block text-xs font-medium text-gray-400">Category</label>
-            <select
-              value={formData.category}
-              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-              className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:ring-1 focus:ring-blue-500 focus:outline-none"
-            >
-              {CATEGORIES.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="mb-1 block text-xs font-medium text-gray-400">Location</label>
-            <select
-              value={formData.location}
-              onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-              className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:ring-1 focus:ring-blue-500 focus:outline-none"
-            >
-              {LOCATIONS.map((loc) => (
-                <option key={loc} value={loc}>
-                  {loc}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-3 gap-4">
-          <div>
-            <label className="mb-1 block text-xs font-medium text-gray-400">Quantity</label>
-            <input
-              type="number"
-              min="1"
-              value={formData.quantity}
-              onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) || 1 })}
-              className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:ring-1 focus:ring-blue-500 focus:outline-none"
-            />
-          </div>
-          <div>
-            <label className="mb-1 block text-xs font-medium text-gray-400">Unit</label>
-            <input
-              type="text"
-              value={formData.unit}
-              onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-              placeholder="pcs, kg..."
-              className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-600 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-            />
-          </div>
-          <div>
-            <label className="mb-1 block text-xs font-medium text-gray-400">Price ($)</label>
-            <input
-              type="number"
-              step="0.01"
-              min="0"
-              value={formData.purchasePrice}
-              onChange={(e) => setFormData({ ...formData, purchasePrice: e.target.value })}
-              placeholder="0.00"
-              className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-600 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-            />
-          </div>
-        </div>
-
-        <div>
-          <label className="mb-1 block text-xs font-medium text-gray-400">Acquired Date</label>
-          <input
-            type="date"
-            value={formData.acquired_at}
-            onChange={(e) => setFormData({ ...formData, acquired_at: e.target.value })}
-            className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:ring-1 focus:ring-blue-500 focus:outline-none"
-          />
-        </div>
-
-        <div>
-          <label className="mb-1 block text-xs font-medium text-gray-400">Notes</label>
-          <textarea
-            value={formData.notes}
-            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-            className="h-20 w-full resize-none rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-600 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-            placeholder="Optional notes..."
-          />
-        </div>
-      </BaseFormModal>
+        editingItem={editingItem}
+        onSuccess={(item, isNew) => {
+          if (isNew) {
+            setItems((prev) => [item, ...prev]);
+          } else {
+            setItems((prev) => prev.map((i) => (i.id === editingItem!.id ? item : i)));
+          }
+          setShowAddModal(false);
+          setEditingItem(null);
+        }}
+      />
 
       <DeleteConfirmationModal
         isOpen={!!deleteTarget}

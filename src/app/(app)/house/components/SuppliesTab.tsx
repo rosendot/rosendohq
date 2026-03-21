@@ -2,11 +2,10 @@
 
 import { useState } from 'react';
 import { Plus, Trash2, Edit2, AlertCircle } from 'lucide-react';
-import BaseFormModal from '@/components/BaseFormModal';
+import SupplyStockModal from '../modals/SupplyStockModal';
+import SupplyItemModal from '../modals/SupplyItemModal';
 import type {
     HomeSupplyItem,
-    HomeSupplyItemInsert,
-    HomeSupplyStockInsert,
     HomeSupplyStockWithItem,
     HomeArea,
 } from '@/types/house.types';
@@ -29,111 +28,6 @@ export default function SuppliesTab({
     const [showStockModal, setShowStockModal] = useState(false);
     const [showItemModal, setShowItemModal] = useState(false);
     const [editingStock, setEditingStock] = useState<HomeSupplyStockWithItem | null>(null);
-    const [loading, setLoading] = useState(false);
-
-    const [stockFormData, setStockFormData] = useState<HomeSupplyStockInsert>({
-        property_id: propertyId || '',
-        supply_item_id: '',
-        area_id: null,
-        quantity: 0,
-        min_quantity: 0,
-    });
-
-    const [itemFormData, setItemFormData] = useState<HomeSupplyItemInsert>({
-        name: '',
-        category: null,
-        unit: null,
-        notes: null,
-    });
-
-    const resetStockForm = () => {
-        setStockFormData({
-            property_id: propertyId || '',
-            supply_item_id: '',
-            area_id: null,
-            quantity: 0,
-            min_quantity: 0,
-        });
-        setEditingStock(null);
-    };
-
-    const resetItemForm = () => {
-        setItemFormData({
-            name: '',
-            category: null,
-            unit: null,
-            notes: null,
-        });
-    };
-
-    const openStockModal = (stockItem?: HomeSupplyStockWithItem) => {
-        if (stockItem) {
-            setEditingStock(stockItem);
-            setStockFormData({
-                property_id: stockItem.property_id,
-                supply_item_id: stockItem.supply_item_id,
-                area_id: stockItem.area_id,
-                quantity: stockItem.quantity,
-                min_quantity: stockItem.min_quantity,
-            });
-        } else {
-            resetStockForm();
-        }
-        setShowStockModal(true);
-    };
-
-    const handleStockSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!stockFormData.supply_item_id) return;
-        setLoading(true);
-
-        try {
-            const url = editingStock
-                ? `/api/house/supplies/stock/${editingStock.id}`
-                : '/api/house/supplies/stock';
-            const method = editingStock ? 'PATCH' : 'POST';
-
-            const response = await fetch(url, {
-                method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(stockFormData),
-            });
-
-            if (!response.ok) throw new Error('Failed to save stock');
-
-            setShowStockModal(false);
-            resetStockForm();
-            onRefresh();
-        } catch (error) {
-            console.error('Error saving stock:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleItemSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!itemFormData.name.trim()) return;
-        setLoading(true);
-
-        try {
-            const response = await fetch('/api/house/supplies/items', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(itemFormData),
-            });
-
-            if (!response.ok) throw new Error('Failed to create item');
-
-            setShowItemModal(false);
-            resetItemForm();
-            onRefresh();
-        } catch (error) {
-            console.error('Error creating item:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const handleDeleteStock = async (id: string) => {
         if (!confirm('Are you sure you want to delete this stock entry?')) return;
@@ -182,7 +76,7 @@ export default function SuppliesTab({
                         New Item
                     </button>
                     <button
-                        onClick={() => openStockModal()}
+                        onClick={() => { setEditingStock(null); setShowStockModal(true); }}
                         className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2"
                     >
                         <Plus className="w-4 h-4" />
@@ -226,7 +120,7 @@ export default function SuppliesTab({
                                     </div>
                                     <div className="flex items-center gap-1">
                                         <button
-                                            onClick={() => openStockModal(stockItem)}
+                                            onClick={() => { setEditingStock(stockItem); setShowStockModal(true); }}
                                             className="p-1 text-gray-400 hover:text-white transition-colors"
                                         >
                                             <Edit2 className="w-4 h-4" />
@@ -283,173 +177,21 @@ export default function SuppliesTab({
                 </div>
             )}
 
-            {/* Stock Modal */}
-            <BaseFormModal
+            <SupplyStockModal
                 isOpen={showStockModal}
                 onClose={() => setShowStockModal(false)}
-                title={editingStock ? 'Edit Stock' : 'Add Stock'}
-                onSubmit={handleStockSubmit}
-                loading={loading}
-                submitLabel={editingStock ? 'Update' : 'Add'}
-                submitDisabled={!stockFormData.supply_item_id}
-                maxWidth="md"
-            >
-                <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-1">
-                        Item *
-                    </label>
-                    <select
-                        value={stockFormData.supply_item_id}
-                        onChange={(e) =>
-                            setStockFormData({ ...stockFormData, supply_item_id: e.target.value })
-                        }
-                        required
-                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                    >
-                        <option value="">Select item...</option>
-                        {items.map((item) => (
-                            <option key={item.id} value={item.id}>
-                                {item.name} {item.category ? `(${item.category})` : ''}
-                            </option>
-                        ))}
-                    </select>
-                </div>
+                editingStock={editingStock}
+                items={items}
+                areas={areas}
+                propertyId={propertyId}
+                onSuccess={onRefresh}
+            />
 
-                <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-1">
-                        Area (optional)
-                    </label>
-                    <select
-                        value={stockFormData.area_id || ''}
-                        onChange={(e) =>
-                            setStockFormData({
-                                ...stockFormData,
-                                area_id: e.target.value || null,
-                            })
-                        }
-                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                    >
-                        <option value="">Select area...</option>
-                        {areas.map((area) => (
-                            <option key={area.id} value={area.id}>
-                                {area.name}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-1">
-                            Quantity
-                        </label>
-                        <input
-                            type="number"
-                            min="0"
-                            value={stockFormData.quantity}
-                            onChange={(e) =>
-                                setStockFormData({
-                                    ...stockFormData,
-                                    quantity: parseInt(e.target.value) || 0,
-                                })
-                            }
-                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-1">
-                            Minimum Quantity
-                        </label>
-                        <input
-                            type="number"
-                            min="0"
-                            value={stockFormData.min_quantity || 0}
-                            onChange={(e) =>
-                                setStockFormData({
-                                    ...stockFormData,
-                                    min_quantity: parseInt(e.target.value) || 0,
-                                })
-                            }
-                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                        />
-                    </div>
-                </div>
-            </BaseFormModal>
-
-            {/* Item Modal */}
-            <BaseFormModal
+            <SupplyItemModal
                 isOpen={showItemModal}
                 onClose={() => setShowItemModal(false)}
-                title="New Supply Item"
-                onSubmit={handleItemSubmit}
-                loading={loading}
-                submitLabel="Create"
-                loadingLabel="Creating..."
-                submitDisabled={!itemFormData.name.trim()}
-                maxWidth="md"
-            >
-                <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-1">
-                        Name *
-                    </label>
-                    <input
-                        type="text"
-                        value={itemFormData.name}
-                        onChange={(e) =>
-                            setItemFormData({ ...itemFormData, name: e.target.value })
-                        }
-                        required
-                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                        placeholder="Item name"
-                    />
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-1">
-                        Category
-                    </label>
-                    <select
-                        value={itemFormData.category || ''}
-                        onChange={(e) =>
-                            setItemFormData({
-                                ...itemFormData,
-                                category: e.target.value || null,
-                            })
-                        }
-                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                    >
-                        <option value="">Select category...</option>
-                        <option value="cleaning">Cleaning</option>
-                        <option value="kitchen">Kitchen</option>
-                        <option value="bathroom">Bathroom</option>
-                        <option value="laundry">Laundry</option>
-                        <option value="tools">Tools</option>
-                        <option value="outdoor">Outdoor</option>
-                        <option value="other">Other</option>
-                    </select>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-1">
-                            Unit
-                        </label>
-                        <input
-                            type="text"
-                            value={itemFormData.unit || ''}
-                            onChange={(e) =>
-                                setItemFormData({
-                                    ...itemFormData,
-                                    unit: e.target.value || null,
-                                })
-                            }
-                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                            placeholder="e.g., rolls, bottles"
-                        />
-                    </div>
-                </div>
-            </BaseFormModal>
+                onSuccess={onRefresh}
+            />
         </div>
     );
 }

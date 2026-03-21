@@ -16,10 +16,9 @@ import {
   Clock,
 } from "lucide-react";
 import DeleteConfirmationModal from "@/components/DeleteConfirmationModal";
-import BaseFormModal from "@/components/BaseFormModal";
+import TripModal from "./modals/TripModal";
 import type {
   Trip,
-  TripStatus,
   ItineraryItem,
   TripEntry,
   TripPackingItem,
@@ -67,21 +66,6 @@ export default function TravelPage() {
     name: string;
   } | null>(null);
 
-  const [tripForm, setTripForm] = useState({
-    name: "",
-    destination: "",
-    start_date: "",
-    end_date: "",
-    status: "planning" as TripStatus,
-    notes: "",
-  });
-
-  const resetTripForm = () => {
-    setTripForm({ name: "", destination: "", start_date: "", end_date: "", status: "planning", notes: "" });
-    setIsAddingTrip(false);
-    setEditingTrip(null);
-  };
-
   // Fetch trips
   const fetchTrips = useCallback(async () => {
     try {
@@ -125,62 +109,6 @@ export default function TravelPage() {
     setEntries([]);
   };
 
-  // Trip CRUD
-  const createTrip = async () => {
-    if (!tripForm.name.trim() || !tripForm.start_date || !tripForm.end_date) return;
-    const res = await fetch("/api/travel/trips", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: tripForm.name.trim(),
-        destination: tripForm.destination.trim() || null,
-        start_date: tripForm.start_date,
-        end_date: tripForm.end_date,
-        status: tripForm.status,
-        notes: tripForm.notes.trim() || null,
-      }),
-    });
-    if (res.ok) {
-      setTrips([await res.json(), ...trips]);
-      resetTripForm();
-    }
-  };
-
-  const updateTrip = async () => {
-    if (!editingTrip) return;
-    const res = await fetch(`/api/travel/trips/${editingTrip.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: tripForm.name.trim(),
-        destination: tripForm.destination.trim() || null,
-        start_date: tripForm.start_date,
-        end_date: tripForm.end_date,
-        status: tripForm.status,
-        notes: tripForm.notes.trim() || null,
-      }),
-    });
-    if (res.ok) {
-      const data = await res.json();
-      setTrips(trips.map((t) => (t.id === data.id ? data : t)));
-      if (selectedTrip?.id === data.id) setSelectedTrip(data);
-      resetTripForm();
-    }
-  };
-
-  const startEditTrip = (trip: Trip) => {
-    setEditingTrip(trip);
-    setTripForm({
-      name: trip.name,
-      destination: trip.destination || "",
-      start_date: trip.start_date,
-      end_date: trip.end_date,
-      status: trip.status,
-      notes: trip.notes || "",
-    });
-    setIsAddingTrip(true);
-  };
-
   // Generic delete handler (used by all tabs via onDelete prop)
   const requestDelete = (type: string, id: string, name: string) => {
     setDeleteTarget({ type, id, name });
@@ -211,94 +139,6 @@ export default function TravelPage() {
     }
     setDeleteTarget(null);
   };
-
-  // Trip Modal
-  const handleTripSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (editingTrip) {
-      updateTrip();
-    } else {
-      createTrip();
-    }
-  };
-
-  const tripModal = (
-    <BaseFormModal
-      isOpen={isAddingTrip}
-      onClose={resetTripForm}
-      title={editingTrip ? "Edit Trip" : "Add New Trip"}
-      onSubmit={handleTripSubmit}
-      submitLabel={editingTrip ? "Save" : "Add Trip"}
-      submitColor="emerald"
-      submitDisabled={!tripForm.name.trim() || !tripForm.start_date || !tripForm.end_date}
-    >
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="mb-1 block text-sm font-medium text-gray-300">Trip Name*</label>
-          <input
-            type="text"
-            value={tripForm.name}
-            onChange={(e) => setTripForm({ ...tripForm, name: e.target.value })}
-            className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-            placeholder="e.g., Move to Dallas"
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium text-gray-300">Destination</label>
-          <input
-            type="text"
-            value={tripForm.destination}
-            onChange={(e) => setTripForm({ ...tripForm, destination: e.target.value })}
-            className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-            placeholder="e.g., Dallas, TX"
-          />
-        </div>
-      </div>
-      <div className="grid grid-cols-3 gap-4">
-        <div>
-          <label className="mb-1 block text-sm font-medium text-gray-300">Start Date*</label>
-          <input
-            type="date"
-            value={tripForm.start_date}
-            onChange={(e) => setTripForm({ ...tripForm, start_date: e.target.value })}
-            className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium text-gray-300">End Date*</label>
-          <input
-            type="date"
-            value={tripForm.end_date}
-            onChange={(e) => setTripForm({ ...tripForm, end_date: e.target.value })}
-            className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium text-gray-300">Status</label>
-          <select
-            value={tripForm.status}
-            onChange={(e) => setTripForm({ ...tripForm, status: e.target.value as TripStatus })}
-            className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-          >
-            <option value="planning">Planning</option>
-            <option value="upcoming">Upcoming</option>
-            <option value="active">Active</option>
-            <option value="completed">Completed</option>
-          </select>
-        </div>
-      </div>
-      <div>
-        <label className="mb-1 block text-sm font-medium text-gray-300">Notes</label>
-        <textarea
-          value={tripForm.notes}
-          onChange={(e) => setTripForm({ ...tripForm, notes: e.target.value })}
-          className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-          rows={2}
-          placeholder="Optional notes"
-        />
-      </div>
-    </BaseFormModal>
-  );
 
   if (loading) {
     return (
@@ -340,7 +180,7 @@ export default function TravelPage() {
                 </p>
               </div>
               <button
-                onClick={() => startEditTrip(selectedTrip)}
+                onClick={() => { setEditingTrip(selectedTrip); setIsAddingTrip(true); }}
                 className="rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-800 hover:text-white"
               >
                 <Edit3 className="h-4 w-4" />
@@ -427,7 +267,21 @@ export default function TravelPage() {
           )}
         </div>
 
-        {tripModal}
+        <TripModal
+          isOpen={isAddingTrip}
+          onClose={() => { setIsAddingTrip(false); setEditingTrip(null); }}
+          editingTrip={editingTrip}
+          onSuccess={(trip, isNew) => {
+            if (isNew) {
+              setTrips(prev => [trip, ...prev]);
+            } else {
+              setTrips(prev => prev.map(t => t.id === trip.id ? trip : t));
+              if (selectedTrip?.id === trip.id) setSelectedTrip(trip);
+            }
+            setIsAddingTrip(false);
+            setEditingTrip(null);
+          }}
+        />
         <DeleteConfirmationModal
           isOpen={!!deleteTarget}
           onClose={() => setDeleteTarget(null)}
@@ -480,7 +334,7 @@ export default function TravelPage() {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      startEditTrip(trip);
+                      setEditingTrip(trip); setIsAddingTrip(true);
                     }}
                     className="text-gray-500 transition-colors hover:text-white"
                   >
@@ -523,7 +377,20 @@ export default function TravelPage() {
         )}
       </div>
 
-      {tripModal}
+      <TripModal
+        isOpen={isAddingTrip}
+        onClose={() => { setIsAddingTrip(false); setEditingTrip(null); }}
+        editingTrip={editingTrip}
+        onSuccess={(trip, isNew) => {
+          if (isNew) {
+            setTrips(prev => [trip, ...prev]);
+          } else {
+            setTrips(prev => prev.map(t => t.id === trip.id ? trip : t));
+          }
+          setIsAddingTrip(false);
+          setEditingTrip(null);
+        }}
+      />
       <DeleteConfirmationModal
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}

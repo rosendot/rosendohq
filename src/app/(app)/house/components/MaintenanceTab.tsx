@@ -2,13 +2,13 @@
 
 import { useState } from 'react';
 import { Plus, Trash2, Edit2, RotateCcw } from 'lucide-react';
-import BaseFormModal from '@/components/BaseFormModal';
+import MaintenanceRecordModal from '../modals/MaintenanceRecordModal';
+import MaintenanceTemplateModal from '../modals/MaintenanceTemplateModal';
 import type {
     HomeMaintenanceRecord,
     HomeMaintenanceRecordInsert,
     HomeMaintenanceRecordUpdate,
     HomeMaintenanceTemplate,
-    HomeMaintenanceTemplateInsert,
     HomeArea,
     HomeMaintenanceStatus,
 } from '@/types/house.types';
@@ -32,187 +32,18 @@ export default function MaintenanceTab({
     const [showTemplateModal, setShowTemplateModal] = useState(false);
     const [editingRecord, setEditingRecord] = useState<HomeMaintenanceRecord | null>(null);
     const [editingTemplate, setEditingTemplate] = useState<HomeMaintenanceTemplate | null>(null);
-    const [loading, setLoading] = useState(false);
     const [activeTab, setActiveTab] = useState<'tasks' | 'templates'>('tasks');
-
-    const [formData, setFormData] = useState<HomeMaintenanceRecordInsert>({
-        property_id: propertyId || '',
-        template_id: null,
-        area_id: null,
-        appliance_id: null,
-        contractor_id: null,
-        project_id: null,
-        item: '',
-        service_date: new Date().toISOString().split('T')[0],
-        cost_cents: null,
-        vendor: null,
-        status: 'pending',
-        is_diy: true,
-        notes: null,
-    });
-
-    const [templateFormData, setTemplateFormData] = useState<HomeMaintenanceTemplateInsert>({
-        property_id: propertyId,
-        name: '',
-        interval_months: null,
-        interval_days: null,
-        priority: null,
-        estimated_cost_cents: null,
-        category: null,
-        notes: null,
-    });
-
-    const resetForm = () => {
-        setFormData({
-            property_id: propertyId || '',
-            template_id: null,
-            area_id: null,
-            appliance_id: null,
-            contractor_id: null,
-            project_id: null,
-            item: '',
-            service_date: new Date().toISOString().split('T')[0],
-            cost_cents: null,
-            vendor: null,
-            status: 'pending',
-            is_diy: true,
-            notes: null,
-        });
-        setEditingRecord(null);
-    };
-
-    const resetTemplateForm = () => {
-        setTemplateFormData({
-            property_id: propertyId,
-            name: '',
-            interval_months: null,
-            interval_days: null,
-            priority: null,
-            estimated_cost_cents: null,
-            category: null,
-            notes: null,
-        });
-        setEditingTemplate(null);
-    };
-
-    const openModal = (record?: HomeMaintenanceRecord) => {
-        if (record) {
-            setEditingRecord(record);
-            setFormData({
-                property_id: record.property_id,
-                template_id: record.template_id,
-                area_id: record.area_id,
-                appliance_id: record.appliance_id,
-                contractor_id: record.contractor_id,
-                project_id: record.project_id,
-                item: record.item,
-                service_date: record.service_date,
-                cost_cents: record.cost_cents,
-                vendor: record.vendor,
-                status: record.status,
-                is_diy: record.is_diy,
-                notes: record.notes,
-            });
-        } else {
-            resetForm();
-        }
-        setShowModal(true);
-    };
-
-    const openTemplateModal = (template?: HomeMaintenanceTemplate) => {
-        if (template) {
-            setEditingTemplate(template);
-            setTemplateFormData({
-                property_id: template.property_id,
-                name: template.name,
-                interval_months: template.interval_months,
-                interval_days: template.interval_days,
-                priority: template.priority,
-                estimated_cost_cents: template.estimated_cost_cents,
-                category: template.category,
-                notes: template.notes,
-            });
-        } else {
-            resetTemplateForm();
-        }
-        setShowTemplateModal(true);
-    };
+    const [initialRecordData, setInitialRecordData] = useState<Partial<HomeMaintenanceRecordInsert> | undefined>();
 
     const createTaskFromTemplate = (template: HomeMaintenanceTemplate) => {
-        setFormData({
-            property_id: propertyId || '',
+        setInitialRecordData({
             template_id: template.id,
-            area_id: null,
-            appliance_id: null,
-            contractor_id: null,
-            project_id: null,
             item: template.name,
-            service_date: new Date().toISOString().split('T')[0],
             cost_cents: template.estimated_cost_cents,
-            vendor: null,
-            status: 'pending',
-            is_diy: true,
             notes: template.notes,
         });
+        setEditingRecord(null);
         setShowModal(true);
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!formData.item.trim()) return;
-        setLoading(true);
-
-        try {
-            const url = editingRecord
-                ? `/api/house/maintenance/records/${editingRecord.id}`
-                : '/api/house/maintenance/records';
-            const method = editingRecord ? 'PATCH' : 'POST';
-
-            const response = await fetch(url, {
-                method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData),
-            });
-
-            if (!response.ok) throw new Error('Failed to save record');
-
-            setShowModal(false);
-            resetForm();
-            onRefresh();
-        } catch (error) {
-            console.error('Error saving maintenance record:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleTemplateSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!templateFormData.name.trim()) return;
-        setLoading(true);
-
-        try {
-            const url = editingTemplate
-                ? `/api/house/maintenance/templates/${editingTemplate.id}`
-                : '/api/house/maintenance/templates';
-            const method = editingTemplate ? 'PATCH' : 'POST';
-
-            const response = await fetch(url, {
-                method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(templateFormData),
-            });
-
-            if (!response.ok) throw new Error('Failed to save template');
-
-            setShowTemplateModal(false);
-            resetTemplateForm();
-            onRefresh();
-        } catch (error) {
-            console.error('Error saving template:', error);
-        } finally {
-            setLoading(false);
-        }
     };
 
     const handleDelete = async (id: string) => {
@@ -308,19 +139,6 @@ export default function MaintenanceTab({
         return 'One-time';
     };
 
-    const choreCategories = [
-        'Cleaning',
-        'Laundry',
-        'Kitchen',
-        'Bathroom',
-        'Bedroom',
-        'Living Room',
-        'Outdoor',
-        'Maintenance',
-        'Organization',
-        'Other',
-    ];
-
     return (
         <div>
             {/* Header with tabs */}
@@ -351,7 +169,16 @@ export default function MaintenanceTab({
                     </div>
                 </div>
                 <button
-                    onClick={() => activeTab === 'tasks' ? openModal() : openTemplateModal()}
+                    onClick={() => {
+                        if (activeTab === 'tasks') {
+                            setInitialRecordData(undefined);
+                            setEditingRecord(null);
+                            setShowModal(true);
+                        } else {
+                            setEditingTemplate(null);
+                            setShowTemplateModal(true);
+                        }
+                    }}
                     className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2"
                 >
                     <Plus className="w-4 h-4" />
@@ -437,7 +264,7 @@ export default function MaintenanceTab({
                                                     <option value="cancelled">Cancelled</option>
                                                 </select>
                                                 <button
-                                                    onClick={() => openModal(record)}
+                                                    onClick={() => { setInitialRecordData(undefined); setEditingRecord(record); setShowModal(true); }}
                                                     className="p-1 text-gray-400 hover:text-white transition-colors"
                                                 >
                                                     <Edit2 className="w-4 h-4" />
@@ -512,7 +339,7 @@ export default function MaintenanceTab({
                                                 <Plus className="w-4 h-4" />
                                             </button>
                                             <button
-                                                onClick={() => openTemplateModal(template)}
+                                                onClick={() => { setEditingTemplate(template); setShowTemplateModal(true); }}
                                                 className="p-1 text-gray-400 hover:text-white transition-colors"
                                             >
                                                 <Edit2 className="w-4 h-4" />
@@ -548,209 +375,23 @@ export default function MaintenanceTab({
                 </>
             )}
 
-            {/* Task Modal */}
-            <BaseFormModal
+            <MaintenanceRecordModal
                 isOpen={showModal}
                 onClose={() => setShowModal(false)}
-                title={editingRecord ? 'Edit Task' : 'Add Task'}
-                onSubmit={handleSubmit}
-                loading={loading}
-                submitLabel={editingRecord ? 'Update' : 'Create'}
-                submitDisabled={!formData.item.trim()}
-            >
-                <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-1">
-                        Task Name *
-                    </label>
-                    <input
-                        type="text"
-                        value={formData.item}
-                        onChange={(e) => setFormData({ ...formData, item: e.target.value })}
-                        required
-                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                        placeholder="e.g., Clean bathroom, Take out trash"
-                    />
-                </div>
+                editingRecord={editingRecord}
+                areas={areas}
+                propertyId={propertyId}
+                onSuccess={onRefresh}
+                initialData={initialRecordData}
+            />
 
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-1">
-                            Room
-                        </label>
-                        <select
-                            value={formData.area_id || ''}
-                            onChange={(e) =>
-                                setFormData({ ...formData, area_id: e.target.value || null })
-                            }
-                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                        >
-                            <option value="">Select room...</option>
-                            {areas.map((a) => (
-                                <option key={a.id} value={a.id}>
-                                    {a.name}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-1">
-                            Due Date
-                        </label>
-                        <input
-                            type="date"
-                            value={formData.service_date || ''}
-                            onChange={(e) =>
-                                setFormData({ ...formData, service_date: e.target.value || '' })
-                            }
-                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                        />
-                    </div>
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-1">
-                        Status
-                    </label>
-                    <select
-                        value={formData.status || 'pending'}
-                        onChange={(e) =>
-                            setFormData({
-                                ...formData,
-                                status: e.target.value as HomeMaintenanceStatus,
-                            })
-                        }
-                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                    >
-                        <option value="pending">Pending</option>
-                        <option value="scheduled">Scheduled</option>
-                        <option value="in_progress">In Progress</option>
-                        <option value="completed">Completed</option>
-                        <option value="skipped">Skipped</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-1">
-                        Notes
-                    </label>
-                    <textarea
-                        value={formData.notes || ''}
-                        onChange={(e) => setFormData({ ...formData, notes: e.target.value || null })}
-                        rows={2}
-                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                        placeholder="Any additional details..."
-                    />
-                </div>
-            </BaseFormModal>
-
-            {/* Template Modal */}
-            <BaseFormModal
+            <MaintenanceTemplateModal
                 isOpen={showTemplateModal}
                 onClose={() => setShowTemplateModal(false)}
-                title={editingTemplate ? 'Edit Recurring Chore' : 'Add Recurring Chore'}
-                onSubmit={handleTemplateSubmit}
-                loading={loading}
-                submitLabel={editingTemplate ? 'Update' : 'Create'}
-                submitDisabled={!templateFormData.name.trim()}
-            >
-                <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-1">
-                        Chore Name *
-                    </label>
-                    <input
-                        type="text"
-                        value={templateFormData.name}
-                        onChange={(e) => setTemplateFormData({ ...templateFormData, name: e.target.value })}
-                        required
-                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                        placeholder="e.g., Clean toilet, Vacuum living room"
-                    />
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-1">
-                        Category
-                    </label>
-                    <select
-                        value={templateFormData.category || ''}
-                        onChange={(e) =>
-                            setTemplateFormData({ ...templateFormData, category: e.target.value || null })
-                        }
-                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                    >
-                        <option value="">Select category...</option>
-                        {choreCategories.map((cat) => (
-                            <option key={cat} value={cat}>
-                                {cat}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                        Frequency
-                    </label>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-xs text-gray-500 mb-1">Days</label>
-                            <select
-                                value={templateFormData.interval_days || ''}
-                                onChange={(e) =>
-                                    setTemplateFormData({
-                                        ...templateFormData,
-                                        interval_days: e.target.value ? parseInt(e.target.value) : null,
-                                        interval_months: e.target.value ? null : templateFormData.interval_months,
-                                    })
-                                }
-                                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                            >
-                                <option value="">Select...</option>
-                                <option value="1">Daily</option>
-                                <option value="2">Every 2 days</option>
-                                <option value="3">Every 3 days</option>
-                                <option value="7">Weekly</option>
-                                <option value="14">Every 2 weeks</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-xs text-gray-500 mb-1">Months</label>
-                            <select
-                                value={templateFormData.interval_months || ''}
-                                onChange={(e) =>
-                                    setTemplateFormData({
-                                        ...templateFormData,
-                                        interval_months: e.target.value ? parseInt(e.target.value) : null,
-                                        interval_days: e.target.value ? null : templateFormData.interval_days,
-                                    })
-                                }
-                                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                            >
-                                <option value="">Select...</option>
-                                <option value="1">Monthly</option>
-                                <option value="2">Every 2 months</option>
-                                <option value="3">Quarterly</option>
-                                <option value="6">Every 6 months</option>
-                                <option value="12">Yearly</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-1">
-                        Notes
-                    </label>
-                    <textarea
-                        value={templateFormData.notes || ''}
-                        onChange={(e) => setTemplateFormData({ ...templateFormData, notes: e.target.value || null })}
-                        rows={2}
-                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                        placeholder="Any additional details..."
-                    />
-                </div>
-            </BaseFormModal>
+                editingTemplate={editingTemplate}
+                propertyId={propertyId}
+                onSuccess={onRefresh}
+            />
         </div>
     );
 }

@@ -5,11 +5,11 @@ import { useState, useEffect } from 'react';
 import { Target, Calendar, Check, Plus, Edit2, Trash2, MoreHorizontal } from 'lucide-react';
 import type { Habit, HabitLog, Goal, HabitSchedule } from '@/types/habits.types';
 import DeleteConfirmationModal from '@/components/DeleteConfirmationModal';
-import AddHabitModal from './AddHabitModal';
-import EditHabitModal from './EditHabitModal';
-import AddGoalModal from './AddGoalModal';
-import EditGoalModal from './EditGoalModal';
-import HabitLogModal from './HabitLogModal';
+import AddHabitModal from './modals/AddHabitModal';
+import EditHabitModal from './modals/EditHabitModal';
+import AddGoalModal from './modals/AddGoalModal';
+import EditGoalModal from './modals/EditGoalModal';
+import HabitLogModal from './modals/HabitLogModal';
 
 const TIME_OF_DAY_ORDER = ['morning', 'midday', 'evening'];
 const TIME_OF_DAY_LABELS: Record<string, string> = {
