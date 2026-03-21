@@ -83,6 +83,14 @@ export const modules: ModuleCard[] = [
         description: 'Plan your trips'
     },
     {
+        id: 'recipes',
+        name: 'Recipes',
+        icon: '🍳',
+        href: '/recipes',
+        color: 'bg-amber-500',
+        description: 'Recipes & cook log'
+    },
+    {
         id: 'nutrition',
         name: 'Nutrition',
         icon: '🥗',

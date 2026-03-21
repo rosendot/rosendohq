@@ -36,7 +36,8 @@ src/
 │   │   ├── car/            # Car tracker API
 │   │   ├── habits/         # Habits & Goals API
 │   │   ├── finance/        # Finance API
-│   │   └── house/          # House tracker API
+│   │   ├── house/          # House tracker API
+│   │   └── recipes/        # Recipes API
 │   ├── dashboard/          # Central hub
 │   ├── shopping/           # Shopping lists
 │   ├── wishlist/           # Wishlist
@@ -46,6 +47,7 @@ src/
 │   ├── habits/             # Habits & Goals
 │   ├── finance/            # Finance
 │   ├── house/              # House tracker
+│   ├── recipes/            # Recipes & cook log
 │   ├── inventory/          # Inventory (UI only)
 │   ├── notes/              # Notes (UI only)
 │   ├── travel/             # Travel planner (UI only)
@@ -70,7 +72,8 @@ src/
     ├── travel.types.ts     # Travel types
     ├── notes.types.ts      # Notes vault types
     ├── inventory.types.ts  # Inventory types
-    └── house.types.ts      # House tracker types
+    ├── house.types.ts      # House tracker types
+    └── recipes.types.ts    # Recipes types
 ```
 
 ## Modules
@@ -84,6 +87,7 @@ src/
 - **Habits & Goals** — Daily tracking with mood/time, goal linking
 - **Finance** — Multi-source CSV import pipeline with automated normalization triggers
 - **House Tracker** — Property management, maintenance, supplies, appliances, utilities, projects
+- **Recipes** — Library + detail pages, structured ingredients, steps, cook log, shopping integration
 
 ### UI Complete (Need Backend)
 - **Inventory**, **Notes**, **Travel Planner**, **Nutrition Tracker**
@@ -101,8 +105,8 @@ src/
 
 ## Database
 
-- 30+ tables across all modules in Supabase (Postgres)
-- 12+ materialized views for optimized queries
+- 34+ tables across all modules in Supabase (Postgres)
+- 14+ views for optimized queries
 - Finance uses a three-tier pipeline: raw CSV tables → `finance_normalized` → `transaction`
 - Database triggers handle automatic normalization for 6 bank/card CSV formats
 - Shared infrastructure: `tag`/`tag_map` system, `file` table, import/export tables
