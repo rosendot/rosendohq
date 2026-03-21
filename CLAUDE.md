@@ -57,6 +57,7 @@ src/
 ├── components/             # Reusable UI components
 │   ├── Sidebar.tsx         # Navigation sidebar
 │   ├── DeleteConfirmationModal.tsx
+│   ├── BaseFormModal.tsx   # Shared modal shell (overlay, header, footer, error)
 │   └── dashboard/          # Dashboard components
 ├── lib/                    # Utilities and helpers
 │   ├── supabase/client.ts  # Supabase client
@@ -88,9 +89,12 @@ src/
 - **Finance** — Multi-source CSV import pipeline with automated normalization triggers
 - **House Tracker** — Property management, maintenance, supplies, appliances, utilities, projects
 - **Recipes** — Library + detail pages, structured ingredients, steps, cook log, shopping integration
+- **Inventory** — Personal possessions tracker with category, location, and value tracking
+- **Notes** — Personal knowledge vault with markdown, categories, tags, pin support
+- **Travel Planner** — Trip management with itinerary, packing, expenses, journal
 
 ### UI Complete (Need Backend)
-- **Inventory**, **Notes**, **Travel Planner**, **Nutrition Tracker**
+- **Nutrition Tracker**
 
 ## Conventions
 
@@ -114,7 +118,7 @@ src/
 ## Design System
 
 - Dark theme, color-coded modules, responsive layouts
-- Mobile: swipeable sidebar drawer, touch-friendly buttons, long-press selection mode
+- Mobile: swipeable sidebar drawer, touch-friendly buttons, explicit Select button for bulk operations
 - Sidebar groups: Overview, Shopping & Lists, Home & Assets, Finance & Health, Personal Growth, Planning
 
 ## Environment Variables
