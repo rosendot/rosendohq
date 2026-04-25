@@ -24,12 +24,15 @@ EOF
 ```
 
 8. Run `git status` to verify the commit succeeded.
+9. Push the commit to the remote with `git push`. If the current branch has no upstream, use `git push -u origin <branch>`.
 
 ## Rules
 
 - Never amend existing commits unless explicitly asked
 - Never use `--no-verify` or skip hooks
-- Never force push
+- Never force push (no `git push --force` or `--force-with-lease`)
+- Never push to `main` if it would require a force push — investigate the divergence and ask the user
 - If a pre-commit hook fails, fix the issue and create a NEW commit
-- If there are no changes to commit, say so and stop
+- If a pre-push hook fails, fix the issue and re-run `git push` (do not bypass)
+- If there are no changes to commit, say so and stop (do not push)
 - If $ARGUMENTS is provided, use it as guidance for the commit message
