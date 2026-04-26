@@ -267,7 +267,7 @@ export default function BookDetailPage({ params }: { params: Promise<{ bookId: s
                 </div>
 
                 {/* Book Info Section */}
-                <div className="bg-gray-900 rounded-lg border border-gray-800 p-6 mb-6">
+                <div className="bg-gray-900 rounded-lg border border-gray-800 p-4 mb-4">
                     <div className="flex gap-6">
                         {/* Cover Placeholder */}
                         <div className="flex-shrink-0 w-32 h-48 bg-gradient-to-br from-blue-900 to-purple-900 rounded-lg flex items-center justify-center">
@@ -427,28 +427,28 @@ export default function BookDetailPage({ params }: { params: Promise<{ bookId: s
                     </div>
 
                     {/* Notes */}
-                    <div className="mt-6 pt-6 border-t border-gray-800">
-                        <h3 className="text-sm font-medium text-gray-300 mb-2">Notes</h3>
-                        {isEditMode ? (
-                            <textarea
-                                rows={4}
-                                value={formData.notes || ''}
-                                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="Add notes about this book..."
-                            />
-                        ) : (
-                            <p className="text-gray-400 text-sm">
-                                {book.notes || 'No notes yet.'}
-                            </p>
-                        )}
-                    </div>
+                    {(isEditMode || book.notes) && (
+                        <div className="mt-4">
+                            <h3 className="text-xs font-medium text-gray-400 mb-1">Notes</h3>
+                            {isEditMode ? (
+                                <textarea
+                                    rows={3}
+                                    value={formData.notes || ''}
+                                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="Add notes about this book..."
+                                />
+                            ) : (
+                                <p className="text-gray-400 text-sm whitespace-pre-line">{book.notes}</p>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 {/* Reading Log Section */}
-                <div className="bg-gray-900 rounded-lg border border-gray-800 p-6 mb-6">
-                    <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-lg font-semibold text-white">
+                <div className="bg-gray-900 rounded-lg border border-gray-800 p-4 mb-4">
+                    <div className="flex items-center justify-between mb-3">
+                        <h2 className="text-base font-semibold text-white">
                             Reading Log ({readingLogs.length})
                         </h2>
                         {!showAddLog && (
@@ -556,9 +556,9 @@ export default function BookDetailPage({ params }: { params: Promise<{ bookId: s
                 </div>
 
                 {/* Highlights Section */}
-                <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
-                    <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-lg font-semibold text-white">
+                <div className="bg-gray-900 rounded-lg border border-gray-800 p-4">
+                    <div className="flex items-center justify-between mb-3">
+                        <h2 className="text-base font-semibold text-white">
                             Highlights ({(formData.highlights || []).length})
                         </h2>
                         {!showAddHighlight && (

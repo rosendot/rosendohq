@@ -165,10 +165,8 @@ export default function ReadingTracker() {
                         <option value="progress_asc">Progress Low-High</option>
                     </select>
                 </div>
-            </div>
 
-            {/* Content */}
-            <div className="max-w-7xl mx-auto px-8 py-8">
+                {/* Content */}
                 {groupedBooks.reading.length > 0 && (
                     <BookCarousel
                         title={`Continue Reading (${groupedBooks.reading.length})`}
@@ -257,7 +255,7 @@ function BookCarousel({
 
     return (
         <div className="relative mb-8">
-            <h2 className="text-2xl font-bold text-white mb-4">{title}</h2>
+            <h2 className="text-base font-semibold text-white mb-3">{title}</h2>
 
             <div className="relative group">
                 {showLeftArrow && (
@@ -303,11 +301,7 @@ function BookCard({ book }: { book: Book }) {
             className="group flex-shrink-0 w-64 bg-gray-900 rounded-lg overflow-hidden border border-gray-800 hover:border-blue-500/50 transition-all cursor-pointer"
         >
             {/* Book Cover Placeholder */}
-            <div className="h-40 bg-gradient-to-br from-blue-900 to-purple-900 flex items-center justify-center relative">
-                <div className="text-center p-4">
-                    <p className="text-white font-bold text-lg line-clamp-3">{book.title}</p>
-                </div>
-            </div>
+            <div className="h-20 bg-gradient-to-br from-blue-900 to-purple-900" />
 
             {/* Book Info */}
             <div className="p-4">
