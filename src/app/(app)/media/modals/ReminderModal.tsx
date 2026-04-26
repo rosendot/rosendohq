@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Bell, Plus, Trash2, Loader2 } from "lucide-react";
+import { Bell, Plus, Trash2 } from "lucide-react";
 import type { MediaItem, MediaReminder } from "@/types/media.types";
 import BaseFormModal from "@/components/BaseFormModal";
 
@@ -22,23 +22,19 @@ interface ReminderModalProps {
   isOpen: boolean;
   onClose: () => void;
   item: MediaItem | null;
+  initialReminders?: MediaReminder[];
 }
 
-export default function ReminderModal({ isOpen, onClose, item }: ReminderModalProps) {
+export default function ReminderModal({ isOpen, onClose, item, initialReminders }: ReminderModalProps) {
   const [reminders, setReminders] = useState<MediaReminder[]>([]);
-  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [day, setDay] = useState(2);
   const [time, setTime] = useState("19:00");
 
   useEffect(() => {
     if (!isOpen || !item) return;
-    setLoading(true);
-    fetch(`/api/media/reminders?mediaItemId=${item.id}`)
-      .then((r) => r.json())
-      .then((data) => setReminders(Array.isArray(data) ? data : []))
-      .finally(() => setLoading(false));
-  }, [isOpen, item]);
+    setReminders(initialReminders ?? []);
+  }, [isOpen, item, initialReminders]);
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -129,11 +125,7 @@ export default function ReminderModal({ isOpen, onClose, item }: ReminderModalPr
 
       <div className="border-t border-gray-800 pt-3">
         <h3 className="mb-2 text-sm font-medium text-gray-300">Active reminders</h3>
-        {loading ? (
-          <div className="flex items-center justify-center py-4 text-gray-500">
-            <Loader2 className="h-4 w-4 animate-spin" />
-          </div>
-        ) : reminders.length === 0 ? (
+        {reminders.length === 0 ? (
           <p className="text-sm text-gray-500">No reminders yet.</p>
         ) : (
           <ul className="space-y-2">

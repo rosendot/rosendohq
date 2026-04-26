@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Plus, Film, Tv, Star, Search, Trash2, Edit2, ChevronLeft, ChevronRight, Bell } from 'lucide-react';
-import type { MediaItem, MediaType, MediaStatus } from '@/types/media.types';
+import type { MediaItem, MediaType, MediaStatus, MediaReminder } from '@/types/media.types';
 import DeleteConfirmationModal from '@/components/DeleteConfirmationModal';
 import MediaItemModal from './modals/MediaItemModal';
 import ReminderModal from './modals/ReminderModal';
@@ -51,6 +51,53 @@ const getPlatformColor = (platform: string | null): string => {
     return 'bg-gray-600';
 };
 
+const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+// Returns ms-from-now until the next firing of a weekly reminder.
+// Computes in the reminder's IANA timezone so cross-DST and cross-tz reminders sort correctly.
+function nextFireMs(r: MediaReminder, now: Date = new Date()): number {
+    try {
+        const fmt = new Intl.DateTimeFormat('en-US', {
+            timeZone: r.timezone,
+            weekday: 'short',
+            year: 'numeric', month: '2-digit', day: '2-digit',
+            hour: '2-digit', minute: '2-digit', hour12: false,
+        });
+        const parts = Object.fromEntries(fmt.formatToParts(now).map(p => [p.type, p.value]));
+        const weekdayMap: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+        const localDow = weekdayMap[parts.weekday];
+        const hour = parts.hour === '24' ? 0 : parseInt(parts.hour);
+        const localMin = hour * 60 + parseInt(parts.minute);
+        const [th, tm] = r.time_of_day.split(':');
+        const targetMin = parseInt(th) * 60 + parseInt(tm);
+
+        let dayDiff = (r.day_of_week - localDow + 7) % 7;
+        let minDiff = targetMin - localMin;
+        if (dayDiff === 0 && minDiff <= 0) dayDiff = 7;
+        return dayDiff * 86_400_000 + minDiff * 60_000;
+    } catch {
+        return Number.POSITIVE_INFINITY;
+    }
+}
+
+function formatTimeOfDay(t: string): string {
+    const [h, m] = t.split(':');
+    const hour = parseInt(h);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const display = hour % 12 || 12;
+    return `${display}:${m} ${ampm}`;
+}
+
+function formatNextFire(ms: number): string {
+    if (!Number.isFinite(ms)) return '';
+    const days = Math.floor(ms / 86_400_000);
+    const hours = Math.floor((ms % 86_400_000) / 3_600_000);
+    if (days >= 1) return `in ${days}d ${hours}h`;
+    if (hours >= 1) return `in ${hours}h`;
+    const mins = Math.max(1, Math.floor(ms / 60_000));
+    return `in ${mins}m`;
+}
+
 // Horizontal Carousel Component
 function MediaCarousel({
     title,
@@ -60,6 +107,7 @@ function MediaCarousel({
     onQuickRate,
     onQuickIncrement,
     onReminder,
+    remindersByItem,
     emptyMessage
 }: {
     title: string;
@@ -69,6 +117,7 @@ function MediaCarousel({
     onQuickRate: (itemId: string, rating: number) => void;
     onQuickIncrement?: (itemId: string) => void;
     onReminder?: (item: MediaItem) => void;
+    remindersByItem?: Record<string, MediaReminder[]>;
     emptyMessage: string;
 }) {
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -190,6 +239,7 @@ function MediaCarousel({
                         onQuickRate={onQuickRate}
                         onQuickIncrement={onQuickIncrement}
                         onReminder={onReminder}
+                        reminders={remindersByItem?.[item.id]}
                     />
                 ))}
             </div>
@@ -204,7 +254,8 @@ function MediaCard({
     onDelete,
     onQuickRate,
     onQuickIncrement,
-    onReminder
+    onReminder,
+    reminders
 }: {
     item: MediaItem;
     onEdit: (item: MediaItem) => void;
@@ -212,8 +263,13 @@ function MediaCard({
     onQuickRate: (itemId: string, rating: number) => void;
     onQuickIncrement?: (itemId: string) => void;
     onReminder?: (item: MediaItem) => void;
+    reminders?: MediaReminder[];
 }) {
     const Icon = item.type === 'movie' ? Film : Tv;
+    const activeReminders = (reminders ?? []).filter(r => r.is_active);
+    const nextReminder = activeReminders.length
+        ? [...activeReminders].sort((a, b) => nextFireMs(a) - nextFireMs(b))[0]
+        : null;
 
     return (
         <div className="min-w-[240px] max-w-[240px] bg-gray-900 border border-gray-800 rounded-lg overflow-hidden hover:border-gray-700 transition-all group">
@@ -234,10 +290,15 @@ function MediaCard({
                         {onReminder && (item.type === 'show' || item.type === 'anime') && (
                             <button
                                 onClick={() => onReminder(item)}
-                                className="p-1.5 hover:bg-gray-800 rounded-lg transition-colors active:bg-gray-700"
-                                aria-label="Set reminder"
+                                className={`relative p-1.5 hover:bg-gray-800 rounded-lg transition-colors active:bg-gray-700 ${activeReminders.length ? 'bg-blue-600/20' : ''}`}
+                                aria-label={activeReminders.length ? `${activeReminders.length} reminder${activeReminders.length > 1 ? 's' : ''}` : 'Set reminder'}
                             >
-                                <Bell className="w-3.5 h-3.5 text-blue-400" />
+                                <Bell className={`w-3.5 h-3.5 ${activeReminders.length ? 'fill-blue-400 text-blue-400' : 'text-gray-500'}`} />
+                                {activeReminders.length > 1 && (
+                                    <span className="absolute -top-0.5 -right-0.5 bg-blue-500 text-white text-[9px] font-bold rounded-full w-3.5 h-3.5 flex items-center justify-center leading-none">
+                                        {activeReminders.length}
+                                    </span>
+                                )}
                             </button>
                         )}
                         <button
@@ -392,6 +453,17 @@ function MediaCard({
                     )}
                 </div>
 
+                {/* Next reminder */}
+                {nextReminder && (
+                    <div className="flex items-center gap-1 text-xs mt-2 pt-2 border-t border-gray-800">
+                        <Bell className="w-3 h-3 fill-blue-400 text-blue-400 flex-shrink-0" />
+                        <span className="text-blue-300 truncate">
+                            {DAY_LABELS[nextReminder.day_of_week]} {formatTimeOfDay(nextReminder.time_of_day)}
+                        </span>
+                        <span className="text-gray-500 ml-auto flex-shrink-0">{formatNextFire(nextFireMs(nextReminder))}</span>
+                    </div>
+                )}
+
                 {/* Notes (truncated) */}
                 {item.notes && (
                     <p className="text-xs text-gray-500 mt-2 pt-2 border-t border-gray-800 line-clamp-2">
@@ -416,9 +488,11 @@ export default function MediaTrackerPage() {
         itemTitle: string;
     }>({ show: false, itemId: null, itemTitle: '' });
     const [reminderItem, setReminderItem] = useState<MediaItem | null>(null);
+    const [reminders, setReminders] = useState<MediaReminder[]>([]);
 
     useEffect(() => {
         fetchItems();
+        fetchReminders();
     }, []);
 
     const fetchItems = async () => {
@@ -435,6 +509,29 @@ export default function MediaTrackerPage() {
             setLoading(false);
         }
     };
+
+    const fetchReminders = async () => {
+        try {
+            const response = await fetch('/api/media/reminders');
+            if (!response.ok) return;
+            const data = await response.json();
+            setReminders(Array.isArray(data) ? data : []);
+        } catch (error) {
+            console.error('Error fetching reminders:', error);
+        }
+    };
+
+    const remindersByItem = reminders.reduce<Record<string, MediaReminder[]>>((acc, r) => {
+        (acc[r.media_item_id] ||= []).push(r);
+        return acc;
+    }, {});
+
+    const upcomingReminders = reminders
+        .filter(r => r.is_active)
+        .map(r => ({ r, ms: nextFireMs(r), item: items.find(i => i.id === r.media_item_id) }))
+        .filter(x => x.item)
+        .sort((a, b) => a.ms - b.ms)
+        .slice(0, 5);
 
     // Show delete confirmation
     const showDeleteConfirmation = (itemId: string, itemTitle: string) => {
@@ -621,6 +718,33 @@ export default function MediaTrackerPage() {
                 </div>
             </div>
 
+            {/* Upcoming Reminders */}
+            {upcomingReminders.length > 0 && (
+                <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 mb-4">
+                    <div className="bg-gradient-to-r from-blue-600/10 to-blue-600/5 border border-blue-600/20 rounded-lg p-3">
+                        <div className="flex items-center gap-2 mb-2">
+                            <Bell className="w-4 h-4 fill-blue-400 text-blue-400" />
+                            <h2 className="text-sm font-bold text-blue-300">Upcoming Reminders</h2>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
+                            {upcomingReminders.map(({ r, ms, item }) => (
+                                <button
+                                    key={r.id}
+                                    onClick={() => setReminderItem(item!)}
+                                    className="text-left bg-gray-900/60 hover:bg-gray-800 border border-gray-800 rounded-lg p-2 transition-colors group"
+                                >
+                                    <div className="text-xs font-medium text-white truncate">{item!.title}</div>
+                                    <div className="text-xs text-blue-300 mt-0.5">
+                                        {DAY_LABELS[r.day_of_week]} {formatTimeOfDay(r.time_of_day)}
+                                    </div>
+                                    <div className="text-[10px] text-gray-500">{formatNextFire(ms)}</div>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Carousels */}
             <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
                 <MediaCarousel
@@ -631,6 +755,7 @@ export default function MediaTrackerPage() {
                     onQuickRate={handleQuickRate}
                     onQuickIncrement={handleQuickIncrement}
                     onReminder={setReminderItem}
+                    remindersByItem={remindersByItem}
                     emptyMessage="No media currently watching. Start something from your plan to watch list!"
                 />
 
@@ -641,6 +766,7 @@ export default function MediaTrackerPage() {
                     onDelete={showDeleteConfirmation}
                     onQuickRate={handleQuickRate}
                     onReminder={setReminderItem}
+                    remindersByItem={remindersByItem}
                     emptyMessage="Your plan to watch list is empty. Add some media to get started!"
                 />
 
@@ -651,6 +777,7 @@ export default function MediaTrackerPage() {
                     onDelete={showDeleteConfirmation}
                     onQuickRate={handleQuickRate}
                     onReminder={setReminderItem}
+                    remindersByItem={remindersByItem}
                     emptyMessage="No completed media yet. Finish watching something!"
                 />
 
@@ -662,6 +789,7 @@ export default function MediaTrackerPage() {
                         onDelete={showDeleteConfirmation}
                         onQuickRate={handleQuickRate}
                         onReminder={setReminderItem}
+                    remindersByItem={remindersByItem}
                         emptyMessage=""
                     />
                 )}
@@ -674,6 +802,7 @@ export default function MediaTrackerPage() {
                         onDelete={showDeleteConfirmation}
                         onQuickRate={handleQuickRate}
                         onReminder={setReminderItem}
+                    remindersByItem={remindersByItem}
                         emptyMessage=""
                     />
                 )}
@@ -701,8 +830,12 @@ export default function MediaTrackerPage() {
             {/* Reminder Modal */}
             <ReminderModal
                 isOpen={reminderItem !== null}
-                onClose={() => setReminderItem(null)}
+                onClose={() => {
+                    setReminderItem(null);
+                    fetchReminders();
+                }}
                 item={reminderItem}
+                initialReminders={reminderItem ? remindersByItem[reminderItem.id] : undefined}
             />
 
             {/* Delete Confirmation Modal */}
