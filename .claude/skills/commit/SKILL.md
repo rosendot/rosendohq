@@ -17,7 +17,7 @@ Create a git commit for the current changes.
    - Focus on the "why" not the "what"
    - Keep it to 1-2 sentences
    - Do NOT commit files that contain secrets (.env, credentials, tokens)
-7. Run `npm run build` to verify the project compiles. If it fails, fix the errors before committing.
+7. **Do NOT run `npm run build`** — the user keeps `npm run dev` running continuously, and a parallel `next build` on Windows fights the dev server over the `.next` directory, leaving orphaned processes and EPERM errors. Skip build verification entirely; type errors will surface in the dev server.
 8. Stage the session files by name (NEVER `git add .` or `git add -A` — these would sweep up unrelated work from other sessions).
 9. Commit using a HEREDOC for the message:
 
