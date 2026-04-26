@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Package, MapPin, DollarSign, Search, Trash2, Edit2, X } from "lucide-react";
+import { Plus, Package, MapPin, Search, Trash2, Edit2, X } from "lucide-react";
 import type { InventoryItem } from "@/types/inventory.types";
 import InventoryItemModal from "./modals/InventoryItemModal";
 import DeleteConfirmationModal from "@/components/DeleteConfirmationModal";
@@ -80,12 +80,6 @@ export default function InventoryPage() {
     return matchesSearch && matchesCategory && matchesLocation;
   });
 
-  const totalValue = filteredItems.reduce(
-    (sum, item) => sum + (item.purchase_price_cents || 0) * item.quantity,
-    0,
-  );
-  const totalItems = filteredItems.reduce((sum, item) => sum + item.quantity, 0);
-
   const formatCurrency = (cents: number) => {
     return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(cents / 100);
   };
@@ -95,11 +89,6 @@ export default function InventoryPage() {
       <div className="min-h-screen bg-gray-950 p-8 text-white">
         <div className="mx-auto max-w-7xl">
           <div className="mb-8 h-10 w-48 animate-pulse rounded bg-gray-800" />
-          <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-24 animate-pulse rounded-lg border border-gray-800 bg-gray-900" />
-            ))}
-          </div>
           <div className="mb-6 h-20 animate-pulse rounded-lg border border-gray-800 bg-gray-900" />
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {[1, 2, 3].map((i) => (
@@ -130,31 +119,6 @@ export default function InventoryPage() {
             <Plus className="h-4 w-4" />
             Add Item
           </button>
-        </div>
-
-        {/* Stats */}
-        <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-3">
-          <div className="rounded-lg border border-gray-800 bg-gray-900 p-6">
-            <div className="mb-2 flex items-center gap-3">
-              <Package className="h-5 w-5 text-blue-400" />
-              <h3 className="text-sm font-medium text-gray-400">Total Items</h3>
-            </div>
-            <p className="text-3xl font-bold">{totalItems}</p>
-          </div>
-          <div className="rounded-lg border border-gray-800 bg-gray-900 p-6">
-            <div className="mb-2 flex items-center gap-3">
-              <DollarSign className="h-5 w-5 text-green-400" />
-              <h3 className="text-sm font-medium text-gray-400">Total Value</h3>
-            </div>
-            <p className="text-3xl font-bold">{formatCurrency(totalValue)}</p>
-          </div>
-          <div className="rounded-lg border border-gray-800 bg-gray-900 p-6">
-            <div className="mb-2 flex items-center gap-3">
-              <MapPin className="h-5 w-5 text-purple-400" />
-              <h3 className="text-sm font-medium text-gray-400">Locations</h3>
-            </div>
-            <p className="text-3xl font-bold">{new Set(items.map((i) => i.location).filter(Boolean)).size}</p>
-          </div>
         </div>
 
         {/* Filters */}
