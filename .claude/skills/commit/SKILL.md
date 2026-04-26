@@ -4,17 +4,22 @@ Create a git commit for the current changes.
 
 ## Steps
 
-1. Run `git status` to see all changed and untracked files.
-2. Run `git diff` to see staged and unstaged changes.
-3. Run `git log --oneline -5` to see recent commit message style.
-4. Analyze all changes and draft a concise commit message:
+1. **Identify the files this chat session touched.** Build a list from the conversation transcript: every file passed to `Write`, `Edit`, or `NotebookEdit`, plus any new files/directories created. This list — and only this list — is what gets committed. The user may be running other chats or doing manual work in parallel; do not assume unrelated dirty files are yours to commit.
+2. Run `git status` to see all changed and untracked files. Cross-reference against the session list:
+   - Files in the session list that show as modified/untracked → stage them
+   - Files NOT in the session list (even if dirty) → leave them alone, do not stage
+   - Files in the session list that are clean → mention this and skip
+3. If you cannot confidently attribute a dirty file to this session, ask the user before staging it. Do not guess.
+4. Run `git diff -- <session-files>` to review the changes you're about to commit.
+5. Run `git log --oneline -5` to see recent commit message style.
+6. Analyze the staged changes and draft a concise commit message:
    - Summarize the nature of the changes (new feature, bug fix, refactor, etc.)
    - Focus on the "why" not the "what"
    - Keep it to 1-2 sentences
    - Do NOT commit files that contain secrets (.env, credentials, tokens)
-5. Run `npm run build` to verify the project compiles. If it fails, fix the errors before committing.
-6. Stage the relevant files by name (avoid `git add .` or `git add -A`).
-7. Commit using a HEREDOC for the message:
+7. Run `npm run build` to verify the project compiles. If it fails, fix the errors before committing.
+8. Stage the session files by name (NEVER `git add .` or `git add -A` — these would sweep up unrelated work from other sessions).
+9. Commit using a HEREDOC for the message:
 
 ```
 git commit -m "$(cat <<'EOF'
@@ -23,8 +28,8 @@ EOF
 )"
 ```
 
-8. Run `git status` to verify the commit succeeded.
-9. Push the commit to the remote with `git push`. If the current branch has no upstream, use `git push -u origin <branch>`.
+10. Run `git status` to verify the commit succeeded. Any dirty files left behind belong to other sessions and that is expected.
+11. Push the commit to the remote with `git push`. If the current branch has no upstream, use `git push -u origin <branch>`.
 
 ## Rules
 
