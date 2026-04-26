@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { Target, Check, Plus, Edit2, Trash2, MoreHorizontal, Flame } from 'lucide-react';
+import { Target, Plus, Edit2, Trash2, MoreHorizontal, Flame } from 'lucide-react';
 import type { Habit, HabitLog, Goal } from '@/types/habits.types';
 import DeleteConfirmationModal from '@/components/DeleteConfirmationModal';
 import AddHabitModal from './modals/AddHabitModal';
@@ -278,6 +278,22 @@ export default function HabitsPage() {
             ? Math.round((doneTodayList.length / scheduledTodayList.length) * 100)
             : 0;
 
+    // Week completion % across all active habits' scheduled slots in the last 7 days
+    const weekPct = useMemo(() => {
+        const weekDates = lastNDates(7, today);
+        let scheduled = 0;
+        let done = 0;
+        for (const h of activeHabits) {
+            for (const d of weekDates) {
+                if (isHabitScheduledOn(h, d)) {
+                    scheduled += 1;
+                    if (isCompleted(h, d)) done += 1;
+                }
+            }
+        }
+        return scheduled === 0 ? 0 : Math.round((done / scheduled) * 100);
+    }, [activeHabits, logs, today]);
+
     // Group filtered habits by category
     const grouped = filteredHabits.reduce((acc, h) => {
         const cat = h.category || 'other';
@@ -290,24 +306,35 @@ export default function HabitsPage() {
         <div className="min-h-screen bg-gray-950 text-white">
             {/* Sticky date header */}
             <div className="sticky top-0 z-20 bg-gray-950/90 backdrop-blur border-b border-gray-800">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-4">
                     <div>
                         <p className="text-xs uppercase tracking-wider text-gray-500">Today</p>
                         <p className="text-lg font-semibold text-white">{todayLabel}</p>
                     </div>
-                    {scheduledTodayList.length > 0 && (
-                        <div className="text-right">
-                            <p className="text-xs text-gray-400">
-                                {doneTodayList.length} / {scheduledTodayList.length} done
-                            </p>
+                    <div className="flex items-center gap-6 text-right">
+                        {scheduledTodayList.length > 0 && (
+                            <div>
+                                <p className="text-xs text-gray-400">
+                                    {doneTodayList.length} / {scheduledTodayList.length} today
+                                </p>
+                                <div className="mt-1 w-32 h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                                    <div
+                                        className="h-full bg-gradient-to-r from-violet-500 to-violet-400 transition-all"
+                                        style={{ width: `${completionPct}%` }}
+                                    />
+                                </div>
+                            </div>
+                        )}
+                        <div>
+                            <p className="text-xs text-gray-400">{weekPct}% this week</p>
                             <div className="mt-1 w-32 h-1.5 bg-gray-800 rounded-full overflow-hidden">
                                 <div
-                                    className="h-full bg-gradient-to-r from-violet-500 to-violet-400 transition-all"
-                                    style={{ width: `${completionPct}%` }}
+                                    className="h-full bg-gradient-to-r from-blue-500 to-blue-400 transition-all"
+                                    style={{ width: `${weekPct}%` }}
                                 />
                             </div>
                         </div>
-                    )}
+                    </div>
                 </div>
             </div>
 
@@ -333,63 +360,6 @@ export default function HabitsPage() {
                             <Plus className="w-4 h-4" />
                             Add Goal
                         </button>
-                    </div>
-                </div>
-
-                {/* Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-gray-400 text-sm font-medium">Active Habits</p>
-                                <p className="text-3xl font-bold text-white mt-1">{activeHabits.length}</p>
-                            </div>
-                            <div className="p-3 bg-green-500/10 rounded-lg">
-                                <Flame className="w-8 h-8 text-green-400" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-gray-400 text-sm font-medium">This Week</p>
-                                <p className="text-3xl font-bold text-white mt-1">
-                                    {(() => {
-                                        const weekDates = lastNDates(7, today);
-                                        let scheduled = 0;
-                                        let done = 0;
-                                        for (const h of activeHabits) {
-                                            for (const d of weekDates) {
-                                                if (isHabitScheduledOn(h, d)) {
-                                                    scheduled += 1;
-                                                    if (isCompleted(h, d)) done += 1;
-                                                }
-                                            }
-                                        }
-                                        return scheduled === 0 ? '0%' : `${Math.round((done / scheduled) * 100)}%`;
-                                    })()}
-                                </p>
-                                <p className="text-xs text-gray-500 mt-1">last 7 days</p>
-                            </div>
-                            <div className="p-3 bg-blue-500/10 rounded-lg">
-                                <Check className="w-8 h-8 text-blue-400" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-gray-400 text-sm font-medium">Active Goals</p>
-                                <p className="text-3xl font-bold text-white mt-1">
-                                    {goals.filter((g) => g.status === 'active').length}
-                                </p>
-                            </div>
-                            <div className="p-3 bg-purple-500/10 rounded-lg">
-                                <Target className="w-8 h-8 text-purple-400" />
-                            </div>
-                        </div>
                     </div>
                 </div>
 
