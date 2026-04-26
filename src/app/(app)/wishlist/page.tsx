@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Search, Heart, ExternalLink, Tag, DollarSign, Calendar, Store, Shirt, Palette, Edit } from 'lucide-react';
+import { Plus, Search, Heart, ExternalLink, DollarSign, Calendar, Edit } from 'lucide-react';
 import AddWishlistItemModal from './modals/AddWishlistItemModal';
 import EditWishlistItemModal from './modals/EditWishlistItemModal';
 import DeleteConfirmationModal from '@/components/DeleteConfirmationModal';
@@ -212,17 +212,17 @@ export default function WishlistPage() {
 
     return (
         <div className="min-h-screen bg-gray-950 text-gray-100">
-            <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4">
+            <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-3">
                 {/* Header */}
-                <div className="mb-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div className="mb-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                         <div>
-                            <h1 className="text-2xl font-bold text-white mb-1">Wishlist</h1>
-                            <p className="text-gray-400 text-sm hidden sm:block">Track items you want to purchase</p>
+                            <h1 className="text-xl sm:text-2xl font-bold text-white">Wishlist</h1>
+                            <p className="text-gray-400 text-xs hidden sm:block">Track items you want to purchase</p>
                         </div>
                         <button
                             onClick={() => setShowAddModal(true)}
-                            className="w-full sm:w-auto px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-1.5 text-sm"
+                            className="w-full sm:w-auto px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-1.5 text-sm"
                         >
                             <Plus className="w-4 h-4" />
                             Add Item
@@ -231,7 +231,7 @@ export default function WishlistPage() {
                 </div>
 
                 {/* Filters */}
-                <div className="bg-gray-900 rounded-lg border border-gray-800 p-3 mb-4">
+                <div className="bg-gray-900 rounded-lg border border-gray-800 p-2 mb-3">
                     <div className="flex flex-col md:flex-row gap-2">
                         {/* Search */}
                         <div className="flex-1 relative">
@@ -296,63 +296,45 @@ export default function WishlistPage() {
                         {filteredItems.map((item) => (
                                 <div
                                     key={item.id}
-                                    className="bg-gray-900 rounded-lg border border-gray-800 p-4 hover:border-gray-700 transition-all"
+                                    className="bg-gray-900 rounded-lg border border-gray-800 p-3 hover:border-gray-700 transition-all"
                                 >
                                     {/* Image */}
                                     {item.image_url && (
-                                        <div className="mb-3 rounded-lg overflow-hidden bg-gray-800">
+                                        <div className="mb-2 rounded-lg overflow-hidden bg-gray-800">
                                             <img
                                                 src={item.image_url}
                                                 alt={item.title}
-                                                className="w-full h-40 object-cover"
+                                                className="w-full h-32 object-cover"
                                             />
                                         </div>
                                     )}
 
-                                    <div className="flex items-start justify-between mb-3">
-                                        <div className="flex-1">
-                                            <h3 className="text-base font-semibold text-white mb-1.5">{item.title}</h3>
-                                            <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
-                                                {item.category && (
-                                                    <span className="inline-flex items-center px-1.5 h-5 bg-blue-500/20 text-blue-400 rounded text-xs font-medium border border-blue-500/20">
-                                                        {item.category}
-                                                    </span>
-                                                )}
-                                                {/* Quick Status Dropdown - auto-width based on selected option */}
-                                                <div className="relative inline-flex items-center h-5">
-                                                    <select
-                                                        value={item.status}
-                                                        onChange={(e) => handleQuickUpdate(item.id, { status: e.target.value as WishlistStatus })}
-                                                        className={`appearance-none h-5 pl-1.5 pr-5 rounded text-xs font-medium border cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-500 ${
-                                                            item.status === 'wanted' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
-                                                            item.status === 'considering' ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' :
-                                                            item.status === 'on_hold' ? 'bg-gray-500/20 text-gray-400 border-gray-500/30' :
-                                                            item.status === 'purchased' ? 'bg-green-500/20 text-green-400 border-green-500/30' :
-                                                            'bg-red-500/20 text-red-400 border-red-500/30'
-                                                        }`}
-                                                        style={{ minWidth: '70px' }}
-                                                    >
-                                                        {STATUSES.map(({ value, label }) => (
-                                                            <option key={value} value={value}>{label}</option>
-                                                        ))}
-                                                    </select>
-                                                    <svg className="absolute right-1 top-1/2 -translate-y-1/2 w-3 h-3 pointer-events-none text-current opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    {/* Title row + actions */}
+                                    <div className="flex items-start justify-between gap-2 mb-1.5">
+                                        <h3 className="flex-1 min-w-0 text-sm font-semibold text-white leading-tight">
+                                            {item.title}
+                                            {item.notes && (
+                                                <span
+                                                    className="ml-1.5 inline-flex items-center text-gray-500 hover:text-gray-300 cursor-help align-middle"
+                                                    title={item.notes}
+                                                >
+                                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                                     </svg>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="flex gap-0.5 ml-2">
+                                                </span>
+                                            )}
+                                        </h3>
+                                        <div className="flex gap-0.5 shrink-0">
                                             <button
                                                 onClick={() => handleEdit(item)}
-                                                className="p-1.5 text-gray-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
+                                                className="p-1 text-gray-400 hover:text-blue-400 hover:bg-blue-500/10 rounded transition-colors"
                                                 title="Edit item"
                                             >
                                                 <Edit className="w-3.5 h-3.5" />
                                             </button>
                                             <button
                                                 onClick={() => showDeleteConfirmation(item.id, item.title)}
-                                                className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                                                className="p-1 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"
                                                 title="Delete item"
                                             >
                                                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -362,63 +344,67 @@ export default function WishlistPage() {
                                         </div>
                                     </div>
 
-                                    {/* Brand/Color/Size - NEW */}
-                                    {(item.brand || item.color || item.size) && (
-                                        <div className="mb-2 space-y-0.5">
-                                            {item.brand && (
-                                                <div className="flex items-center gap-1.5 text-xs text-gray-400">
-                                                    <Tag className="w-3 h-3" />
-                                                    <span className="font-medium text-gray-300">Brand:</span>
-                                                    {item.brand}
-                                                </div>
-                                            )}
-                                            {item.color && (
-                                                <div className="flex items-center gap-1.5 text-xs text-gray-400">
-                                                    <Palette className="w-3 h-3" />
-                                                    <span className="font-medium text-gray-300">Color:</span>
-                                                    {item.color}
-                                                </div>
-                                            )}
-                                            {item.size && (
-                                                <div className="flex items-center gap-1.5 text-xs text-gray-400">
-                                                    <Shirt className="w-3 h-3" />
-                                                    <span className="font-medium text-gray-300">Size:</span>
-                                                    {item.size}
-                                                </div>
-                                            )}
+                                    {/* Category + status row */}
+                                    <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
+                                        {item.category && (
+                                            <span className="inline-flex items-center px-1.5 h-5 bg-blue-500/20 text-blue-400 rounded text-xs font-medium border border-blue-500/20">
+                                                {item.category}
+                                            </span>
+                                        )}
+                                        <div className="relative inline-flex items-center h-5">
+                                            <select
+                                                value={item.status}
+                                                onChange={(e) => handleQuickUpdate(item.id, { status: e.target.value as WishlistStatus })}
+                                                className={`appearance-none h-5 pl-1.5 pr-5 rounded text-xs font-medium border cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-500 ${
+                                                    item.status === 'wanted' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
+                                                    item.status === 'considering' ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' :
+                                                    item.status === 'on_hold' ? 'bg-gray-500/20 text-gray-400 border-gray-500/30' :
+                                                    item.status === 'purchased' ? 'bg-green-500/20 text-green-400 border-green-500/30' :
+                                                    'bg-red-500/20 text-red-400 border-red-500/30'
+                                                }`}
+                                                style={{ minWidth: '70px' }}
+                                            >
+                                                {STATUSES.map(({ value, label }) => (
+                                                    <option key={value} value={value}>{label}</option>
+                                                ))}
+                                            </select>
+                                            <svg className="absolute right-1 top-1/2 -translate-y-1/2 w-3 h-3 pointer-events-none text-current opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                            </svg>
                                         </div>
-                                    )}
+                                    </div>
+
+                                    {/* Inline meta: Brand · Vendor · Color · Size — drop labels, drop per-field icons, dedupe vendor==brand */}
+                                    {(() => {
+                                        const parts: string[] = [];
+                                        if (item.brand) parts.push(item.brand);
+                                        if (item.vendor && item.vendor !== item.brand) parts.push(item.vendor);
+                                        if (item.color) parts.push(item.color);
+                                        if (item.size) parts.push(item.size);
+                                        if (parts.length === 0) return null;
+                                        return (
+                                            <div className="text-xs text-gray-400 mb-1.5 truncate">
+                                                {parts.join(' · ')}
+                                            </div>
+                                        );
+                                    })()}
 
                                     {/* Price */}
                                     {item.price_cents && (
-                                        <div className="mb-2 flex items-center gap-1.5 text-emerald-400 font-semibold text-lg">
-                                            <DollarSign className="w-4 h-4" />
+                                        <div className="mb-2 flex items-center gap-1 text-emerald-400 font-semibold text-base">
+                                            <DollarSign className="w-3.5 h-3.5" />
                                             {formatPrice(item.price_cents, item.currency)}
                                         </div>
                                     )}
 
-                                    {/* Vendor */}
-                                    {item.vendor && (
-                                        <div className="mb-2 flex items-center gap-1.5 text-xs text-gray-400">
-                                            <Store className="w-3 h-3" />
-                                            {item.vendor}
-                                        </div>
-                                    )}
-
-                                    {/* Notes */}
-                                    {item.notes && (
-                                        <p className="text-gray-400 text-xs mb-3">{item.notes}</p>
-                                    )}
-
-                                    {/* Quick Priority Selector & Link */}
-                                    <div className="flex items-center justify-between mb-3">
-                                        <div className="flex items-center gap-1">
-                                            <span className="text-xs text-gray-500 mr-1">Priority:</span>
+                                    {/* Priority + link + date — single row, no border */}
+                                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                                        <div className="flex items-center gap-0.5">
                                             {[1, 2, 3, 4, 5].map((p) => (
                                                 <button
                                                     key={p}
                                                     onClick={() => handleQuickUpdate(item.id, { priority: p })}
-                                                    className={`w-6 h-6 rounded text-xs font-medium transition-all ${
+                                                    className={`w-5 h-5 rounded text-[10px] font-medium transition-all ${
                                                         item.priority === p
                                                             ? p === 1 ? 'bg-red-500 text-white' :
                                                               p === 2 ? 'bg-orange-500 text-white' :
@@ -433,28 +419,22 @@ export default function WishlistPage() {
                                                 </button>
                                             ))}
                                         </div>
-                                        {item.url && (
-                                            <a
-                                                href={item.url}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="flex items-center gap-1 text-blue-400 hover:text-blue-300 text-xs"
-                                            >
-                                                <ExternalLink className="w-3 h-3" />
-                                                Link
-                                            </a>
-                                        )}
-                                    </div>
-
-                                    {/* Footer */}
-                                    <div className="flex items-center justify-between pt-3 border-t border-gray-800">
-                                        <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                                            <Calendar className="w-3 h-3" />
-                                            {item.purchased_at ? (
-                                                <span>Purchased {new Date(item.purchased_at).toLocaleDateString()}</span>
-                                            ) : (
-                                                <span>Added {new Date(item.created_at).toLocaleDateString()}</span>
+                                        <div className="flex items-center gap-3 text-xs text-gray-500">
+                                            {item.url && (
+                                                <a
+                                                    href={item.url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex items-center gap-1 text-blue-400 hover:text-blue-300"
+                                                >
+                                                    <ExternalLink className="w-3 h-3" />
+                                                    Link
+                                                </a>
                                             )}
+                                            <span className="flex items-center gap-1">
+                                                <Calendar className="w-3 h-3" />
+                                                {new Date(item.purchased_at || item.created_at).toLocaleDateString(undefined, { month: 'numeric', day: 'numeric', year: '2-digit' })}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
