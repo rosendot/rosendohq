@@ -31,20 +31,82 @@ function timeToMinutes(t: string): number {
   return parseInt(h) * 60 + parseInt(m);
 }
 
-function buildMessage(item: MediaItem): string {
-  const isShow = item.type === "show" || item.type === "anime";
-  let progress = "";
-  if (isShow) {
-    if (item.current_season && item.current_episode) {
-      progress = ` — S${item.current_season}E${item.current_episode}`;
-    } else if (item.current_season) {
-      progress = ` — Season ${item.current_season}`;
-    } else if (item.current_episode) {
-      progress = ` — Episode ${item.current_episode}`;
-    }
+// Maps platform name fragments to Discord embed colors (decimal RGB).
+// Mirrors the UI's getPlatformColor() so reminders feel visually consistent with cards.
+function getPlatformEmbedColor(platform: string | null): number {
+  if (!platform) return 0x4b5563; // gray-600
+  const p = platform.toLowerCase();
+  if (p.includes("netflix")) return 0xe50914;
+  if (p.includes("hulu")) return 0x1ce783;
+  if (p.includes("disney")) return 0x113ccf;
+  if (p.includes("prime") || p.includes("amazon")) return 0x00a8e1;
+  if (p.includes("max") || p.includes("hbo")) return 0x9b4dca;
+  if (p.includes("apple")) return 0x1f1f1f;
+  if (p.includes("peacock")) return 0xfacc15;
+  if (p.includes("paramount")) return 0x0064ff;
+  if (p.includes("crunchyroll")) return 0xf47521;
+  if (p.includes("funimation")) return 0x8b5cf6;
+  if (p.includes("hidive")) return 0x60a5fa;
+  if (p.includes("youtube")) return 0xff0000;
+  if (p.includes("tubi")) return 0xfb923c;
+  if (p.includes("pluto")) return 0xfacc15;
+  if (p.includes("showtime")) return 0xb91c1c;
+  if (p.includes("starz")) return 0x111827;
+  if (p.includes("amc")) return 0x374151;
+  return 0x4b5563;
+}
+
+function formatProgress(item: MediaItem): string {
+  if (item.current_season && item.current_episode) {
+    const ep = item.episodes_in_season
+      ? `Episode ${item.current_episode} / ${item.episodes_in_season}`
+      : `Episode ${item.current_episode}`;
+    const season = item.total_seasons
+      ? `Season ${item.current_season} of ${item.total_seasons}`
+      : `Season ${item.current_season}`;
+    return `${season} • ${ep}`;
   }
-  const platform = item.platform ? ` (${item.platform})` : "";
-  return `📺 Time to watch **${item.title}**${progress}${platform}`;
+  if (item.current_season) return `Season ${item.current_season}`;
+  if (item.current_episode) return `Episode ${item.current_episode}`;
+  return "Just getting started";
+}
+
+function buildEmbedPayload(item: MediaItem, reminder: { day_of_week: number; time_of_day: string; timezone: string }) {
+  const dayLabels = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const [h, m] = reminder.time_of_day.split(":");
+  const hour = parseInt(h);
+  const ampm = hour >= 12 ? "PM" : "AM";
+  const display = hour % 12 || 12;
+  const timeStr = `${display}:${m} ${ampm}`;
+
+  const typeLabel =
+    item.type === "anime" ? "Anime" : item.type === "show" ? "TV Show" : "Movie";
+
+  const fields: Array<{ name: string; value: string; inline?: boolean }> = [
+    { name: "Progress", value: formatProgress(item), inline: true },
+    { name: "Type", value: typeLabel, inline: true },
+  ];
+  if (item.platform) {
+    fields.push({ name: "Platform", value: item.platform, inline: true });
+  }
+  if (item.rating) {
+    fields.push({ name: "Your Rating", value: "★".repeat(item.rating) + "☆".repeat(5 - item.rating), inline: true });
+  }
+
+  return {
+    embeds: [
+      {
+        title: `📺 ${item.title}`,
+        description: "Time to keep watching",
+        color: getPlatformEmbedColor(item.platform),
+        fields,
+        footer: {
+          text: `Weekly reminder • ${dayLabels[reminder.day_of_week]} ${timeStr}`,
+        },
+        timestamp: new Date().toISOString(),
+      },
+    ],
+  };
 }
 
 export async function POST(request: Request) {
@@ -108,7 +170,7 @@ export async function POST(request: Request) {
       const res = await fetch(webhookUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content: buildMessage(r.media_item) }),
+        body: JSON.stringify(buildEmbedPayload(r.media_item, r)),
       });
       if (!res.ok) {
         failed.push(`${r.id} (discord ${res.status})`);
