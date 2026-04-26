@@ -1,5 +1,3 @@
-// frontend/src/components/dashboard/UpcomingItems.tsx
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -22,28 +20,25 @@ export default function UpcomingItems() {
     useEffect(() => {
         async function fetchUpcoming() {
             try {
-                // Fetch upcoming items from various modules
                 const responses = await Promise.allSettled([
-                    fetch('/api/car/maintenance').then(r => r.json()),
-                    fetch('/api/house/tasks').then(r => r.json()),
+                    fetch('/api/house/maintenance/upcoming').then(r => r.json()),
                     fetch('/api/travel/trips').then(r => r.json()),
                 ]);
 
                 const allItems: UpcomingItem[] = [];
 
-                // Car maintenance
                 if (responses[0].status === 'fulfilled') {
                     const maintenance = responses[0].value;
                     if (Array.isArray(maintenance)) {
-                        maintenance.forEach((m: { id: string; service_type: string; next_due_date?: string }) => {
+                        maintenance.forEach((m: { property_id: string; item: string; next_due_date?: string }) => {
                             if (m.next_due_date) {
                                 allItems.push({
-                                    id: `car-${m.id}`,
-                                    type: 'car',
-                                    title: `Car: ${m.service_type}`,
+                                    id: `house-${m.property_id}-${m.item}`,
+                                    type: 'house',
+                                    title: `Home: ${m.item}`,
                                     dueDate: m.next_due_date,
-                                    icon: '🚗',
-                                    href: '/car',
+                                    icon: '🏠',
+                                    href: '/house',
                                     priority: 'medium'
                                 });
                             }
@@ -51,36 +46,15 @@ export default function UpcomingItems() {
                     }
                 }
 
-                // House tasks
                 if (responses[1].status === 'fulfilled') {
-                    const tasks = responses[1].value;
-                    if (Array.isArray(tasks)) {
-                        tasks.forEach((t: { id: string; title: string; due_date?: string; status?: string; priority?: 'high' | 'medium' | 'low' }) => {
-                            if (t.due_date && t.status !== 'completed') {
-                                allItems.push({
-                                    id: `house-${t.id}`,
-                                    type: 'house',
-                                    title: `Home: ${t.title}`,
-                                    dueDate: t.due_date,
-                                    icon: '🏠',
-                                    href: '/house',
-                                    priority: t.priority || 'medium'
-                                });
-                            }
-                        });
-                    }
-                }
-
-                // Travel trips
-                if (responses[2].status === 'fulfilled') {
-                    const trips = responses[2].value;
+                    const trips = responses[1].value;
                     if (Array.isArray(trips)) {
-                        trips.forEach((t: { id: string; destination: string; start_date?: string }) => {
-                            if (t.start_date && new Date(t.start_date) > new Date()) {
+                        trips.forEach((t: { id: string; name: string; destination?: string; start_date?: string; status?: string }) => {
+                            if (t.start_date && t.status !== 'completed' && new Date(t.start_date) > new Date()) {
                                 allItems.push({
                                     id: `travel-${t.id}`,
                                     type: 'travel',
-                                    title: `Trip: ${t.destination}`,
+                                    title: `Trip: ${t.destination || t.name}`,
                                     dueDate: t.start_date,
                                     icon: '✈️',
                                     href: '/travel',
@@ -91,9 +65,8 @@ export default function UpcomingItems() {
                     }
                 }
 
-                // Sort by date
                 allItems.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
-                setItems(allItems.slice(0, 5)); // Top 5 upcoming items
+                setItems(allItems.slice(0, 5));
             } catch (error) {
                 console.error('Error fetching upcoming items:', error);
             } finally {

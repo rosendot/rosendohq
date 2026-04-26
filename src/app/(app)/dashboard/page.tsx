@@ -4,7 +4,6 @@ import { Suspense } from 'react';
 import { modules } from '@/lib/dashboard-utils';
 import DashboardCard from '@/components/dashboard/DashboardCard';
 import QuickStats from '@/components/dashboard/QuickStats';
-import RecentActivity from '@/components/dashboard/RecentActivity';
 import UpcomingItems from '@/components/dashboard/UpcomingItems';
 
 export default function DashboardPage() {
@@ -27,11 +26,8 @@ export default function DashboardPage() {
                 </Suspense>
             </div>
 
-            {/* Recent Activity & Upcoming Items */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                <Suspense fallback={<div className="h-96 bg-gray-200 dark:bg-gray-800 rounded-xl animate-pulse" />}>
-                    <RecentActivity />
-                </Suspense>
+            {/* Upcoming Items */}
+            <div className="mb-8">
                 <Suspense fallback={<div className="h-96 bg-gray-200 dark:bg-gray-800 rounded-xl animate-pulse" />}>
                     <UpcomingItems />
                 </Suspense>

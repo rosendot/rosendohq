@@ -1,5 +1,3 @@
-// frontend/src/components/dashboard/QuickStats.tsx
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -19,7 +17,6 @@ export default function QuickStats() {
     useEffect(() => {
         async function fetchStats() {
             try {
-                // Fetch stats from all modules
                 const responses = await Promise.allSettled([
                     fetch('/api/shopping/lists').then(r => r.json()),
                     fetch('/api/wishlist').then(r => r.json()),
@@ -32,20 +29,24 @@ export default function QuickStats() {
 
                 setStats([
                     {
-                        label: 'Active Shopping Lists',
-                        value: Array.isArray(shoppingLists) ? shoppingLists.filter((l: { completed?: boolean }) => !l.completed).length : 0,
+                        label: 'Shopping Lists',
+                        value: Array.isArray(shoppingLists) ? shoppingLists.length : 0,
                         icon: '🛒',
                         color: 'bg-blue-500',
                     },
                     {
                         label: 'Wishlist Items',
-                        value: Array.isArray(wishlistItems) ? wishlistItems.length : 0,
+                        value: Array.isArray(wishlistItems)
+                            ? wishlistItems.filter((i: { status?: string }) => i.status === 'wanted').length
+                            : 0,
                         icon: '⭐',
                         color: 'bg-purple-500',
                     },
                     {
                         label: 'Active Habits',
-                        value: Array.isArray(habits) ? habits.filter((h: { active?: boolean }) => h.active).length : 0,
+                        value: Array.isArray(habits)
+                            ? habits.filter((h: { is_active?: boolean }) => h.is_active !== false).length
+                            : 0,
                         icon: '🎯',
                         color: 'bg-teal-500',
                     },
