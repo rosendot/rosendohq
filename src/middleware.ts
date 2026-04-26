@@ -1,7 +1,15 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+// API routes that authenticate themselves (e.g. via x-cron-secret header) and
+// must not be redirected to /login by the session middleware.
+const PUBLIC_API_ROUTES = ["/api/media/reminders/dispatch"];
+
 export async function middleware(request: NextRequest) {
+  if (PUBLIC_API_ROUTES.some((path) => request.nextUrl.pathname.startsWith(path))) {
+    return NextResponse.next({ request });
+  }
+
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
