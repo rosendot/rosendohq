@@ -37,7 +37,8 @@ src/
 │   │   ├── habits/         # Habits & Goals API
 │   │   ├── finance/        # Finance API
 │   │   ├── house/          # House tracker API
-│   │   └── recipes/        # Recipes API
+│   │   ├── recipes/        # Recipes API
+│   │   └── nutrition/      # Nutrition API
 │   ├── dashboard/          # Central hub
 │   ├── shopping/           # Shopping lists
 │   ├── wishlist/           # Wishlist
@@ -51,7 +52,7 @@ src/
 │   ├── inventory/          # Inventory (UI only)
 │   ├── notes/              # Notes (UI only)
 │   ├── travel/             # Travel planner (UI only)
-│   ├── nutrition/          # Nutrition tracker (UI only)
+│   ├── nutrition/          # Nutrition tracker
 │   ├── layout.tsx          # Root layout with sidebar
 │   └── page.tsx            # Redirects to /dashboard
 ├── components/             # Reusable UI components
@@ -74,7 +75,8 @@ src/
     ├── notes.types.ts      # Notes vault types
     ├── inventory.types.ts  # Inventory types
     ├── house.types.ts      # House tracker types
-    └── recipes.types.ts    # Recipes types
+    ├── recipes.types.ts    # Recipes types
+    └── nutrition.types.ts  # Nutrition types
 ```
 
 ## Modules
@@ -92,9 +94,7 @@ src/
 - **Inventory** — Personal possessions tracker with category, location, and value tracking
 - **Notes** — Personal knowledge vault with markdown, categories, tags, pin support
 - **Travel Planner** — Trip management with itinerary, packing, expenses, journal
-
-### UI Complete (Need Backend)
-- **Nutrition Tracker**
+- **Nutrition Tracker** — Daily meals (breakfast/lunch/dinner/snack), per-entry macros, food library, daily macro targets
 
 ## Conventions
 

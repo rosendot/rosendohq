@@ -1,303 +1,323 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Plus, Droplet, Flame, Activity } from 'lucide-react';
+import { useState, useEffect, useCallback } from "react";
+import { Plus, Flame, Activity, Trash2, Target } from "lucide-react";
+import DeleteConfirmationModal from "@/components/DeleteConfirmationModal";
+import AddMealEntryModal from "./modals/AddMealEntryModal";
+import SetGoalsModal from "./modals/SetGoalsModal";
+import type { FoodItem, Meal, MealEntry, MealName, NutritionTarget } from "@/types/nutrition.types";
 
-type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
+const MEAL_NAMES: MealName[] = ["breakfast", "lunch", "dinner", "snack"];
 
-interface Meal {
-    id: string;
-    name: string;
-    meal_type: MealType;
-    calories: number;
-    protein?: number;
-    carbs?: number;
-    fat?: number;
-    time: string;
-}
-
-interface NutritionGoal {
-    daily_calories: number;
-    daily_protein: number;
-    daily_carbs: number;
-    daily_fat: number;
-    daily_water: number;
+interface MealWithEntries extends Meal {
+  entries: MealEntry[];
 }
 
 export default function NutritionPage() {
-    const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-    const [showMealModal, setShowMealModal] = useState(false);
-    const [showGoalModal, setShowGoalModal] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
+  const [meals, setMeals] = useState<MealWithEntries[]>([]);
+  const [target, setTarget] = useState<NutritionTarget | null>(null);
+  const [foods, setFoods] = useState<FoodItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showEntryModal, setShowEntryModal] = useState(false);
+  const [defaultMeal, setDefaultMeal] = useState<MealName | undefined>(undefined);
+  const [showGoalsModal, setShowGoalsModal] = useState(false);
+  const [deleteEntry, setDeleteEntry] = useState<MealEntry | null>(null);
 
-    // Minimal mock data
-    const [goals] = useState<NutritionGoal>({
-        daily_calories: 2000,
-        daily_protein: 150,
-        daily_carbs: 200,
-        daily_fat: 65,
-        daily_water: 2000,
-    });
+  const fetchDay = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [mealsRes, targetRes, foodsRes] = await Promise.allSettled([
+        fetch(`/api/nutrition/meals?date=${selectedDate}`),
+        fetch("/api/nutrition/targets?active=true"),
+        fetch("/api/nutrition/foods"),
+      ]);
 
-    const [meals] = useState<Meal[]>([
-        {
-            id: '1',
-            name: 'Oatmeal with berries',
-            meal_type: 'breakfast',
-            calories: 350,
-            protein: 12,
-            carbs: 60,
-            fat: 8,
-            time: '08:00',
-        },
-    ]);
+      let mealsData: Meal[] = [];
+      if (mealsRes.status === "fulfilled" && mealsRes.value.ok) {
+        mealsData = await mealsRes.value.json();
+      }
 
-    const [waterIntake, setWaterIntake] = useState(500); // ml
+      const entriesByMeal = await Promise.all(
+        mealsData.map(async (m) => {
+          const r = await fetch(`/api/nutrition/meals/${m.id}/entries`);
+          if (!r.ok) return [];
+          return (await r.json()) as MealEntry[];
+        }),
+      );
 
-    const totalCalories = meals.reduce((sum, meal) => sum + meal.calories, 0);
-    const totalProtein = meals.reduce((sum, meal) => sum + (meal.protein || 0), 0);
-    const totalCarbs = meals.reduce((sum, meal) => sum + (meal.carbs || 0), 0);
-    const totalFat = meals.reduce((sum, meal) => sum + (meal.fat || 0), 0);
+      setMeals(mealsData.map((m, i) => ({ ...m, entries: entriesByMeal[i] })));
 
-    const addWater = (amount: number) => {
-        setWaterIntake((prev) => Math.min(prev + amount, goals.daily_water));
-    };
+      if (targetRes.status === "fulfilled" && targetRes.value.ok) {
+        const targets: NutritionTarget[] = await targetRes.value.json();
+        setTarget(targets[0] ?? null);
+      }
 
-    const getMealsByType = (type: MealType) => meals.filter((m) => m.meal_type === type);
+      if (foodsRes.status === "fulfilled" && foodsRes.value.ok) {
+        setFoods(await foodsRes.value.json());
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedDate]);
 
-    const MacroProgress = ({ label, current, goal, color }: { label: string; current: number; goal: number; color: string }) => {
-        const percentage = Math.min((current / goal) * 100, 100);
-        return (
-            <div className="space-y-1">
-                <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">{label}</span>
-                    <span className="text-gray-300">
-                        {current}g / {goal}g
-                    </span>
-                </div>
-                <div className="w-full bg-gray-700 rounded-full h-2">
-                    <div className={`${color} h-2 rounded-full transition-all`} style={{ width: `${percentage}%` }} />
-                </div>
-            </div>
-        );
-    };
+  useEffect(() => {
+    fetchDay();
+  }, [fetchDay]);
 
+  const allEntries = meals.flatMap((m) => m.entries);
+  const totalCalories = allEntries.reduce((s, e) => s + (Number(e.calories) || 0), 0);
+  const totalProtein = allEntries.reduce((s, e) => s + (Number(e.protein_g) || 0), 0);
+  const totalCarbs = allEntries.reduce((s, e) => s + (Number(e.carbs_g) || 0), 0);
+  const totalFat = allEntries.reduce((s, e) => s + (Number(e.fat_g) || 0), 0);
+
+  const goalCal = Number(target?.calories) || 2000;
+  const goalProtein = Number(target?.protein_g) || 150;
+  const goalCarbs = Number(target?.carbs_g) || 200;
+  const goalFat = Number(target?.fat_g) || 65;
+
+  const entriesByMeal = (name: MealName): MealEntry[] => {
+    const meal = meals.find((m) => m.name === name);
+    return meal ? meal.entries : [];
+  };
+
+  const handleDeleteEntry = async () => {
+    if (!deleteEntry) return;
+    const res = await fetch(`/api/nutrition/entries/${deleteEntry.id}`, { method: "DELETE" });
+    if (res.ok) {
+      setMeals((prev) =>
+        prev.map((m) => ({ ...m, entries: m.entries.filter((e) => e.id !== deleteEntry.id) })),
+      );
+    }
+    setDeleteEntry(null);
+  };
+
+  const openAddForMeal = (name: MealName) => {
+    setDefaultMeal(name);
+    setShowEntryModal(true);
+  };
+
+  const MacroProgress = ({
+    label,
+    current,
+    goal,
+    color,
+  }: {
+    label: string;
+    current: number;
+    goal: number;
+    color: string;
+  }) => {
+    const percentage = goal > 0 ? Math.min((current / goal) * 100, 100) : 0;
     return (
-        <div className="min-h-screen bg-gray-950 text-gray-100">
-            <div className="max-w-7xl mx-auto p-6">
-                {/* Header */}
-                <div className="flex justify-between items-center mb-8">
-                    <div>
-                        <h1 className="text-3xl font-bold text-white mb-2">Nutrition Tracker</h1>
-                        <p className="text-gray-400">Track your meals and macros</p>
-                    </div>
-                    <div className="flex gap-3">
-                        <button
-                            onClick={() => setShowGoalModal(true)}
-                            className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors border border-gray-700"
-                        >
-                            Set Goals
-                        </button>
-                        <button
-                            onClick={() => setShowMealModal(true)}
-                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2"
-                        >
-                            <Plus className="w-4 h-4" />
-                            Add Meal
-                        </button>
-                    </div>
-                </div>
-
-                {/* Date Selector */}
-                <div className="mb-6">
-                    <input
-                        type="date"
-                        value={selectedDate}
-                        onChange={(e) => setSelectedDate(e.target.value)}
-                        className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* Main Content */}
-                    <div className="lg:col-span-2 space-y-6">
-                        {/* Daily Summary */}
-                        <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
-                            <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-                                <Flame className="w-5 h-5 text-orange-500" />
-                                Daily Summary
-                            </h2>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                <div className="text-center p-4 bg-gray-800 rounded-lg border border-gray-700">
-                                    <div className="text-2xl font-bold text-white">{totalCalories}</div>
-                                    <div className="text-sm text-gray-400">/ {goals.daily_calories} cal</div>
-                                    <div className="text-xs text-gray-500 mt-1">Calories</div>
-                                </div>
-                                <div className="text-center p-4 bg-gray-800 rounded-lg border border-gray-700">
-                                    <div className="text-2xl font-bold text-blue-400">{totalProtein}g</div>
-                                    <div className="text-sm text-gray-400">/ {goals.daily_protein}g</div>
-                                    <div className="text-xs text-gray-500 mt-1">Protein</div>
-                                </div>
-                                <div className="text-center p-4 bg-gray-800 rounded-lg border border-gray-700">
-                                    <div className="text-2xl font-bold text-green-400">{totalCarbs}g</div>
-                                    <div className="text-sm text-gray-400">/ {goals.daily_carbs}g</div>
-                                    <div className="text-xs text-gray-500 mt-1">Carbs</div>
-                                </div>
-                                <div className="text-center p-4 bg-gray-800 rounded-lg border border-gray-700">
-                                    <div className="text-2xl font-bold text-yellow-400">{totalFat}g</div>
-                                    <div className="text-sm text-gray-400">/ {goals.daily_fat}g</div>
-                                    <div className="text-xs text-gray-500 mt-1">Fat</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Meals by Type */}
-                        {(['breakfast', 'lunch', 'dinner', 'snack'] as MealType[]).map((mealType) => {
-                            const typeMeals = getMealsByType(mealType);
-                            const typeCalories = typeMeals.reduce((sum, m) => sum + m.calories, 0);
-
-                            return (
-                                <div key={mealType} className="bg-gray-900 rounded-lg border border-gray-800 p-6">
-                                    <div className="flex justify-between items-center mb-4">
-                                        <h3 className="text-lg font-semibold text-white capitalize">{mealType}</h3>
-                                        <span className="text-sm text-gray-400">{typeCalories} cal</span>
-                                    </div>
-
-                                    {typeMeals.length === 0 ? (
-                                        <p className="text-gray-500 text-sm">No meals logged</p>
-                                    ) : (
-                                        <div className="space-y-3">
-                                            {typeMeals.map((meal) => (
-                                                <div key={meal.id} className="flex justify-between items-start p-3 bg-gray-800 rounded-lg border border-gray-700">
-                                                    <div className="flex-1">
-                                                        <div className="font-medium text-white">{meal.name}</div>
-                                                        <div className="text-sm text-gray-400 mt-1">
-                                                            {meal.time} • {meal.calories} cal
-                                                            {meal.protein && ` • P: ${meal.protein}g`}
-                                                            {meal.carbs && ` • C: ${meal.carbs}g`}
-                                                            {meal.fat && ` • F: ${meal.fat}g`}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            );
-                        })}
-                    </div>
-
-                    {/* Sidebar */}
-                    <div className="space-y-6">
-                        {/* Water Intake */}
-                        <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
-                            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                                <Droplet className="w-5 h-5 text-blue-400" />
-                                Water Intake
-                            </h3>
-
-                            <div className="text-center mb-4">
-                                <div className="text-3xl font-bold text-white">
-                                    {waterIntake}ml
-                                </div>
-                                <div className="text-sm text-gray-400">/ {goals.daily_water}ml</div>
-                            </div>
-
-                            <div className="w-full bg-gray-700 rounded-full h-3 mb-4">
-                                <div
-                                    className="bg-blue-500 h-3 rounded-full transition-all"
-                                    style={{ width: `${(waterIntake / goals.daily_water) * 100}%` }}
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-3 gap-2">
-                                <button
-                                    onClick={() => addWater(250)}
-                                    className="px-3 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg text-sm transition-colors border border-gray-700"
-                                >
-                                    +250ml
-                                </button>
-                                <button
-                                    onClick={() => addWater(500)}
-                                    className="px-3 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg text-sm transition-colors border border-gray-700"
-                                >
-                                    +500ml
-                                </button>
-                                <button
-                                    onClick={() => addWater(1000)}
-                                    className="px-3 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg text-sm transition-colors border border-gray-700"
-                                >
-                                    +1L
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Macro Breakdown */}
-                        <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
-                            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                                <Activity className="w-5 h-5 text-green-400" />
-                                Macro Progress
-                            </h3>
-
-                            <div className="space-y-4">
-                                <MacroProgress label="Protein" current={totalProtein} goal={goals.daily_protein} color="bg-blue-500" />
-                                <MacroProgress label="Carbs" current={totalCarbs} goal={goals.daily_carbs} color="bg-green-500" />
-                                <MacroProgress label="Fat" current={totalFat} goal={goals.daily_fat} color="bg-yellow-500" />
-                            </div>
-                        </div>
-
-                        {/* Calorie Progress */}
-                        <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
-                            <h3 className="text-lg font-semibold text-white mb-4">Calorie Progress</h3>
-                            <div className="text-center mb-4">
-                                <div className="text-4xl font-bold text-white">{totalCalories}</div>
-                                <div className="text-gray-400">/ {goals.daily_calories} cal</div>
-                            </div>
-                            <div className="w-full bg-gray-700 rounded-full h-4">
-                                <div
-                                    className="bg-gradient-to-r from-orange-500 to-red-500 h-4 rounded-full transition-all"
-                                    style={{ width: `${Math.min((totalCalories / goals.daily_calories) * 100, 100)}%` }}
-                                />
-                            </div>
-                            <div className="mt-2 text-sm text-gray-400 text-center">
-                                {goals.daily_calories - totalCalories > 0
-                                    ? `${goals.daily_calories - totalCalories} cal remaining`
-                                    : `${totalCalories - goals.daily_calories} cal over`}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Modals */}
-                {showMealModal && (
-                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                        <div className="bg-gray-900 rounded-lg border border-gray-800 p-6 max-w-md w-full">
-                            <h2 className="text-xl font-semibold text-white mb-4">Add Meal</h2>
-                            <p className="text-gray-400 mb-4">Meal form would go here</p>
-                            <button
-                                onClick={() => setShowMealModal(false)}
-                                className="w-full px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors border border-gray-700"
-                            >
-                                Close
-                            </button>
-                        </div>
-                    </div>
-                )}
-
-                {showGoalModal && (
-                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                        <div className="bg-gray-900 rounded-lg border border-gray-800 p-6 max-w-md w-full">
-                            <h2 className="text-xl font-semibold text-white mb-4">Set Nutrition Goals</h2>
-                            <p className="text-gray-400 mb-4">Goals form would go here</p>
-                            <button
-                                onClick={() => setShowGoalModal(false)}
-                                className="w-full px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors border border-gray-700"
-                            >
-                                Close
-                            </button>
-                        </div>
-                    </div>
-                )}
-            </div>
+      <div className="space-y-1">
+        <div className="flex justify-between text-sm">
+          <span className="text-gray-400">{label}</span>
+          <span className="text-gray-300">
+            {Math.round(current)}g / {goal}g
+          </span>
         </div>
+        <div className="h-2 w-full rounded-full bg-gray-700">
+          <div className={`${color} h-2 rounded-full transition-all`} style={{ width: `${percentage}%` }} />
+        </div>
+      </div>
     );
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-950 text-gray-100">
+      <div className="mx-auto max-w-7xl p-6">
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="mb-2 text-3xl font-bold text-white">Nutrition Tracker</h1>
+            <p className="text-gray-400">Track your meals and macros</p>
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setShowGoalsModal(true)}
+              className="flex items-center gap-2 rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-white transition-colors hover:bg-gray-700"
+            >
+              <Target className="h-4 w-4" />
+              Set Goals
+            </button>
+            <button
+              onClick={() => {
+                setDefaultMeal(undefined);
+                setShowEntryModal(true);
+              }}
+              className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
+            >
+              <Plus className="h-4 w-4" />
+              Add Entry
+            </button>
+          </div>
+        </div>
+
+        <div className="mb-6">
+          <input
+            type="date"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            className="rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        {loading ? (
+          <div className="rounded-lg border border-gray-800 bg-gray-900 p-12 text-center text-gray-400">
+            Loading...
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+            <div className="space-y-6 lg:col-span-2">
+              <div className="rounded-lg border border-gray-800 bg-gray-900 p-6">
+                <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold text-white">
+                  <Flame className="h-5 w-5 text-orange-500" />
+                  Daily Summary
+                </h2>
+                <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                  <div className="rounded-lg border border-gray-700 bg-gray-800 p-4 text-center">
+                    <div className="text-2xl font-bold text-white">{Math.round(totalCalories)}</div>
+                    <div className="text-sm text-gray-400">/ {goalCal} cal</div>
+                    <div className="mt-1 text-xs text-gray-500">Calories</div>
+                  </div>
+                  <div className="rounded-lg border border-gray-700 bg-gray-800 p-4 text-center">
+                    <div className="text-2xl font-bold text-blue-400">{Math.round(totalProtein)}g</div>
+                    <div className="text-sm text-gray-400">/ {goalProtein}g</div>
+                    <div className="mt-1 text-xs text-gray-500">Protein</div>
+                  </div>
+                  <div className="rounded-lg border border-gray-700 bg-gray-800 p-4 text-center">
+                    <div className="text-2xl font-bold text-green-400">{Math.round(totalCarbs)}g</div>
+                    <div className="text-sm text-gray-400">/ {goalCarbs}g</div>
+                    <div className="mt-1 text-xs text-gray-500">Carbs</div>
+                  </div>
+                  <div className="rounded-lg border border-gray-700 bg-gray-800 p-4 text-center">
+                    <div className="text-2xl font-bold text-yellow-400">{Math.round(totalFat)}g</div>
+                    <div className="text-sm text-gray-400">/ {goalFat}g</div>
+                    <div className="mt-1 text-xs text-gray-500">Fat</div>
+                  </div>
+                </div>
+              </div>
+
+              {MEAL_NAMES.map((mealName) => {
+                const entries = entriesByMeal(mealName);
+                const cal = entries.reduce((s, e) => s + (Number(e.calories) || 0), 0);
+                return (
+                  <div key={mealName} className="rounded-lg border border-gray-800 bg-gray-900 p-6">
+                    <div className="mb-4 flex items-center justify-between">
+                      <h3 className="text-lg font-semibold capitalize text-white">{mealName}</h3>
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm text-gray-400">{Math.round(cal)} cal</span>
+                        <button
+                          onClick={() => openAddForMeal(mealName)}
+                          className="rounded-lg bg-gray-800 p-1.5 text-gray-400 transition-colors hover:bg-gray-700 hover:text-white"
+                        >
+                          <Plus className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {entries.length === 0 ? (
+                      <p className="text-sm text-gray-500">No entries logged</p>
+                    ) : (
+                      <div className="space-y-3">
+                        {entries.map((entry) => {
+                          const food = foods.find((f) => f.id === entry.food_item_id);
+                          const displayName = food?.name || entry.custom_name || "Unnamed";
+                          return (
+                            <div
+                              key={entry.id}
+                              className="flex items-start justify-between rounded-lg border border-gray-700 bg-gray-800 p-3"
+                            >
+                              <div className="flex-1">
+                                <div className="font-medium text-white">{displayName}</div>
+                                <div className="mt-1 text-sm text-gray-400">
+                                  {entry.servings}× • {Math.round(Number(entry.calories) || 0)} cal
+                                  {entry.protein_g != null && ` • P: ${Math.round(Number(entry.protein_g))}g`}
+                                  {entry.carbs_g != null && ` • C: ${Math.round(Number(entry.carbs_g))}g`}
+                                  {entry.fat_g != null && ` • F: ${Math.round(Number(entry.fat_g))}g`}
+                                </div>
+                              </div>
+                              <button
+                                onClick={() => setDeleteEntry(entry)}
+                                className="ml-2 rounded p-1 text-gray-400 transition-colors hover:bg-red-500/10 hover:text-red-400"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="space-y-6">
+              <div className="rounded-lg border border-gray-800 bg-gray-900 p-6">
+                <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-white">
+                  <Activity className="h-5 w-5 text-green-400" />
+                  Macro Progress
+                </h3>
+                <div className="space-y-4">
+                  <MacroProgress label="Protein" current={totalProtein} goal={goalProtein} color="bg-blue-500" />
+                  <MacroProgress label="Carbs" current={totalCarbs} goal={goalCarbs} color="bg-green-500" />
+                  <MacroProgress label="Fat" current={totalFat} goal={goalFat} color="bg-yellow-500" />
+                </div>
+              </div>
+
+              <div className="rounded-lg border border-gray-800 bg-gray-900 p-6">
+                <h3 className="mb-4 text-lg font-semibold text-white">Calorie Progress</h3>
+                <div className="mb-4 text-center">
+                  <div className="text-4xl font-bold text-white">{Math.round(totalCalories)}</div>
+                  <div className="text-gray-400">/ {goalCal} cal</div>
+                </div>
+                <div className="h-4 w-full rounded-full bg-gray-700">
+                  <div
+                    className="h-4 rounded-full bg-gradient-to-r from-orange-500 to-red-500 transition-all"
+                    style={{ width: `${Math.min((totalCalories / goalCal) * 100, 100)}%` }}
+                  />
+                </div>
+                <div className="mt-2 text-center text-sm text-gray-400">
+                  {goalCal - totalCalories > 0
+                    ? `${Math.round(goalCal - totalCalories)} cal remaining`
+                    : `${Math.round(totalCalories - goalCal)} cal over`}
+                </div>
+              </div>
+
+              {!target && (
+                <div className="rounded-lg border border-blue-500/20 bg-blue-500/5 p-4 text-sm text-blue-300">
+                  No goals set yet. Click <strong>Set Goals</strong> to define daily targets.
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        <AddMealEntryModal
+          isOpen={showEntryModal}
+          onClose={() => setShowEntryModal(false)}
+          date={selectedDate}
+          defaultMeal={defaultMeal}
+          foods={foods}
+          onSuccess={fetchDay}
+          onFoodCreated={(food) => setFoods((prev) => [...prev, food].sort((a, b) => a.name.localeCompare(b.name)))}
+        />
+
+        <SetGoalsModal
+          isOpen={showGoalsModal}
+          onClose={() => setShowGoalsModal(false)}
+          current={target}
+          onSuccess={(t) => setTarget(t)}
+        />
+
+        <DeleteConfirmationModal
+          isOpen={deleteEntry !== null}
+          onClose={() => setDeleteEntry(null)}
+          onConfirm={handleDeleteEntry}
+          itemName={deleteEntry?.custom_name || foods.find((f) => f.id === deleteEntry?.food_item_id)?.name || "this entry"}
+        />
+      </div>
+    </div>
+  );
 }
