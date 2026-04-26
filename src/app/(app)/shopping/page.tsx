@@ -876,13 +876,12 @@ export default function ShoppingPage() {
                                         {sortedCategories.map(([category, categoryItems]) => (
                                             <div key={category}>
                                                 {/* Category Header */}
-                                                <div className="flex items-center gap-2 mb-2">
+                                                <div className="flex items-baseline justify-between mb-1.5">
                                                     <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
                                                         {category}
                                                     </h4>
-                                                    <div className="h-px flex-1 bg-gray-800"></div>
                                                     <span className="text-xs text-gray-500">
-                                                        {categoryItems.length} item{categoryItems.length !== 1 ? 's' : ''}
+                                                        {categoryItems.length}
                                                     </span>
                                                 </div>
                                                 {/* Category Items */}
@@ -928,7 +927,7 @@ export default function ShoppingPage() {
                                                                             <div className="flex-1">
                                                                                 <div className="flex items-baseline gap-2">
                                                                                     <h4 className="text-white font-medium text-sm">{item.item_name}</h4>
-                                                                                    {item.quantity && (
+                                                                                    {item.quantity && (item.quantity !== 1 || item.unit) && (
                                                                                         <span className="text-base font-semibold text-blue-400">
                                                                                             ×{item.quantity}{item.unit ? ` ${item.unit}` : ''}
                                                                                         </span>
@@ -936,9 +935,7 @@ export default function ShoppingPage() {
                                                                                 </div>
                                                                                 {/* Quick Priority Rating */}
                                                                                 {!isSelectionMode && (
-                                                                                    <div className="flex items-center gap-1.5 mt-1.5">
-                                                                                        <span className="text-xs text-gray-500 font-medium">Priority:</span>
-                                                                                        <div className="flex items-center gap-0.5">
+                                                                                    <div className="flex items-center gap-0.5 mt-1.5">
                                                                                             {[1, 2, 3, 4, 5].map((priorityLevel) => {
                                                                                                 const isActive = priorityLevel === (item.priority || 3);
                                                                                                 const buttonColor = priorityLevel === 1 ? 'hover:bg-red-500/20 hover:text-red-400' :
@@ -970,27 +967,17 @@ export default function ShoppingPage() {
                                                                                                     </button>
                                                                                                 );
                                                                                             })}
-                                                                                        </div>
                                                                                     </div>
                                                                                 )}
                                                                                 <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1 text-xs">
                                                                                     {item.aisle && (
-                                                                                        <div className="flex items-center gap-1 text-purple-400">
-                                                                                            <span className="opacity-60">📍</span>
-                                                                                            <span>{item.aisle}</span>
-                                                                                        </div>
+                                                                                        <span className="text-purple-400">{item.aisle}</span>
                                                                                     )}
                                                                                     {item.store_preference && (
-                                                                                        <div className="flex items-center gap-1 text-green-400">
-                                                                                            <span className="opacity-60">🏪</span>
-                                                                                            <span>{item.store_preference}</span>
-                                                                                        </div>
+                                                                                        <span className="text-green-400">{item.store_preference}</span>
                                                                                     )}
                                                                                     {item.needed_by && (
-                                                                                        <div className="flex items-center gap-1 text-orange-400">
-                                                                                            <Calendar className="w-3 h-3 opacity-60" />
-                                                                                            <span>Need by {new Date(item.needed_by).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
-                                                                                        </div>
+                                                                                        <span className="text-orange-400">Need by {new Date(item.needed_by).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
                                                                                     )}
                                                                                 </div>
                                                                                 {item.notes && (
@@ -1075,7 +1062,7 @@ export default function ShoppingPage() {
                                                                 <div className="flex-1">
                                                                     <div className="flex items-baseline gap-2">
                                                                         <h4 className="text-white font-medium text-sm">{item.item_name}</h4>
-                                                                        {item.quantity && (
+                                                                        {item.quantity && (item.quantity !== 1 || item.unit) && (
                                                                             <span className="text-base font-semibold text-blue-400">
                                                                                 ×{item.quantity}{item.unit ? ` ${item.unit}` : ''}
                                                                             </span>
@@ -1086,16 +1073,13 @@ export default function ShoppingPage() {
                                                                     )}
                                                                     <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1 text-xs">
                                                                         {item.aisle && (
-                                                                            <span className="text-purple-400">📍 {item.aisle}</span>
+                                                                            <span className="text-purple-400">{item.aisle}</span>
                                                                         )}
                                                                         {item.store_preference && (
-                                                                            <span className="text-green-400">🏪 {item.store_preference}</span>
+                                                                            <span className="text-green-400">{item.store_preference}</span>
                                                                         )}
                                                                         {item.needed_by && (
-                                                                            <span className="text-orange-400 flex items-center gap-1">
-                                                                                <Calendar className="w-3 h-3" />
-                                                                                {new Date(item.needed_by).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                                                                            </span>
+                                                                            <span className="text-orange-400">Need by {new Date(item.needed_by).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
                                                                         )}
                                                                     </div>
                                                                     {item.notes && (
@@ -1155,13 +1139,12 @@ export default function ShoppingPage() {
                                     <div className="space-y-4">
                                         {sortedCompletedCategories.map(([category, categoryItems]) => (
                                             <div key={category}>
-                                                <div className="flex items-center gap-2 mb-2">
+                                                <div className="flex items-baseline justify-between mb-1.5">
                                                     <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
                                                         {category}
                                                     </h4>
-                                                    <div className="h-px flex-1 bg-gray-800"></div>
                                                     <span className="text-xs text-gray-500">
-                                                        {categoryItems.length} item{categoryItems.length !== 1 ? 's' : ''}
+                                                        {categoryItems.length}
                                                     </span>
                                                 </div>
                                                 <div className="space-y-2">
@@ -1205,16 +1188,14 @@ export default function ShoppingPage() {
                                                                             <div className="flex-1">
                                                                                 <div className="flex items-baseline gap-2">
                                                                                     <h4 className="text-white font-medium text-sm">{item.item_name}</h4>
-                                                                                    {item.quantity && (
+                                                                                    {item.quantity && (item.quantity !== 1 || item.unit) && (
                                                                                         <span className="text-base font-semibold text-blue-400">
                                                                                             ×{item.quantity}{item.unit ? ` ${item.unit}` : ''}
                                                                                         </span>
                                                                                     )}
                                                                                 </div>
                                                                                 {!isSelectionMode && (
-                                                                                    <div className="flex items-center gap-1.5 mt-1.5">
-                                                                                        <span className="text-xs text-gray-500 font-medium">Priority:</span>
-                                                                                        <div className="flex items-center gap-0.5">
+                                                                                    <div className="flex items-center gap-0.5 mt-1.5">
                                                                                             {[1, 2, 3, 4, 5].map((priorityLevel) => {
                                                                                                 const isActive = priorityLevel === (item.priority || 3);
                                                                                                 const buttonColor = priorityLevel === 1 ? 'hover:bg-red-500/20 hover:text-red-400' :
@@ -1246,21 +1227,14 @@ export default function ShoppingPage() {
                                                                                                     </button>
                                                                                                 );
                                                                                             })}
-                                                                                        </div>
                                                                                     </div>
                                                                                 )}
                                                                                 <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1 text-xs">
                                                                                     {item.aisle && (
-                                                                                        <div className="flex items-center gap-1 text-purple-400">
-                                                                                            <span className="opacity-60">📍</span>
-                                                                                            <span>{item.aisle}</span>
-                                                                                        </div>
+                                                                                        <span className="text-purple-400">{item.aisle}</span>
                                                                                     )}
                                                                                     {item.store_preference && (
-                                                                                        <div className="flex items-center gap-1 text-green-400">
-                                                                                            <span className="opacity-60">🏪</span>
-                                                                                            <span>{item.store_preference}</span>
-                                                                                        </div>
+                                                                                        <span className="text-green-400">{item.store_preference}</span>
                                                                                     )}
                                                                                     {item.last_purchased_at && (
                                                                                         <div className="flex items-center gap-1 text-gray-400">
@@ -1351,7 +1325,7 @@ export default function ShoppingPage() {
                                                                 <div className="flex-1">
                                                                     <div className="flex items-baseline gap-2">
                                                                         <h4 className="text-white font-medium text-sm">{item.item_name}</h4>
-                                                                        {item.quantity && (
+                                                                        {item.quantity && (item.quantity !== 1 || item.unit) && (
                                                                             <span className="text-base font-semibold text-blue-400">
                                                                                 ×{item.quantity}{item.unit ? ` ${item.unit}` : ''}
                                                                             </span>
@@ -1362,10 +1336,10 @@ export default function ShoppingPage() {
                                                                     )}
                                                                     <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1 text-xs">
                                                                         {item.aisle && (
-                                                                            <span className="text-purple-400">📍 {item.aisle}</span>
+                                                                            <span className="text-purple-400">{item.aisle}</span>
                                                                         )}
                                                                         {item.store_preference && (
-                                                                            <span className="text-green-400">🏪 {item.store_preference}</span>
+                                                                            <span className="text-green-400">{item.store_preference}</span>
                                                                         )}
                                                                         {item.last_purchased_at && (
                                                                             <span className="text-gray-400 flex items-center gap-1">

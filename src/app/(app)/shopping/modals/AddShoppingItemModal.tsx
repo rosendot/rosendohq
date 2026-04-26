@@ -181,9 +181,11 @@ export default function AddShoppingItemModal({
             disabled={loading}
           >
             <option value="">None</option>
-            <option value="1">1 - High</option>
-            <option value="2">2 - Medium</option>
-            <option value="3">3 - Low</option>
+            <option value="1">1 - Highest</option>
+            <option value="2">2 - High</option>
+            <option value="3">3 - Medium</option>
+            <option value="4">4 - Low</option>
+            <option value="5">5 - Lowest</option>
           </select>
         </div>
         <div>
