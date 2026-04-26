@@ -268,9 +268,9 @@ export default function BookDetailPage({ params }: { params: Promise<{ bookId: s
 
                 {/* Book Info Section */}
                 <div className="bg-gray-900 rounded-lg border border-gray-800 p-4 mb-4">
-                    <div className="flex gap-6">
+                    <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
                         {/* Cover Placeholder */}
-                        <div className="flex-shrink-0 w-32 h-48 bg-gradient-to-br from-blue-900 to-purple-900 rounded-lg flex items-center justify-center">
+                        <div className="flex-shrink-0 w-24 h-32 sm:w-32 sm:h-48 bg-gradient-to-br from-blue-900 to-purple-900 rounded-lg flex items-center justify-center">
                             <span className="text-white text-center text-sm font-medium px-2 line-clamp-3">
                                 {book.title}
                             </span>
@@ -294,7 +294,7 @@ export default function BookDetailPage({ params }: { params: Promise<{ bookId: s
                                         className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         placeholder="Author"
                                     />
-                                    <div className="grid grid-cols-3 gap-3">
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                         <select
                                             value={formData.status || 'planned'}
                                             onChange={(e) => setFormData({ ...formData, status: e.target.value as BookStatus })}
@@ -545,7 +545,7 @@ export default function BookDetailPage({ params }: { params: Promise<{ bookId: s
                                     </div>
                                     <button
                                         onClick={() => handleDeleteLog(log.id)}
-                                        className="p-1 hover:bg-gray-700 rounded transition-colors"
+                                        className="p-2 hover:bg-gray-700 rounded transition-colors flex-shrink-0"
                                     >
                                         <Trash2 className="w-4 h-4 text-red-400" />
                                     </button>
@@ -631,7 +631,7 @@ export default function BookDetailPage({ params }: { params: Promise<{ bookId: s
                                         </div>
                                         <button
                                             onClick={() => handleDeleteHighlight(index)}
-                                            className="p-1 hover:bg-gray-700 rounded transition-colors ml-2"
+                                            className="p-2 hover:bg-gray-700 rounded transition-colors ml-2 flex-shrink-0"
                                         >
                                             <Trash2 className="w-4 h-4 text-red-400" />
                                         </button>
