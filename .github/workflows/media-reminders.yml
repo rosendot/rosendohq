@@ -15,9 +15,10 @@ jobs:
         env:
           APP_URL: ${{ secrets.APP_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          VERCEL_BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
         run: |
-          if [ -z "$APP_URL" ] || [ -z "$CRON_SECRET" ]; then
-            echo "::error::APP_URL or CRON_SECRET secret is not set"
+          if [ -z "$APP_URL" ] || [ -z "$CRON_SECRET" ] || [ -z "$VERCEL_BYPASS" ]; then
+            echo "::error::APP_URL, CRON_SECRET, or VERCEL_AUTOMATION_BYPASS_SECRET is not set"
             exit 1
           fi
 
@@ -25,6 +26,8 @@ jobs:
             --max-time 60 \
             -X POST \
             -H "x-cron-secret: $CRON_SECRET" \
+            -H "x-vercel-protection-bypass: $VERCEL_BYPASS" \
+            -H "x-vercel-set-bypass-cookie: samesitenone" \
             -H "Content-Type: application/json" \
             "$APP_URL/api/media/reminders/dispatch")
 
