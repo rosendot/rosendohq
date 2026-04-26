@@ -306,56 +306,58 @@ export default function HabitsPage() {
         <div className="min-h-screen bg-gray-950 text-white">
             {/* Sticky date header */}
             <div className="sticky top-0 z-20 bg-gray-950/90 backdrop-blur border-b border-gray-800">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-4">
-                    <div>
-                        <p className="text-xs uppercase tracking-wider text-gray-500">Today</p>
-                        <p className="text-lg font-semibold text-white">{todayLabel}</p>
-                    </div>
-                    <div className="flex items-center gap-6 text-right">
-                        {scheduledTodayList.length > 0 && (
-                            <div>
-                                <p className="text-xs text-gray-400">
-                                    {doneTodayList.length} / {scheduledTodayList.length} today
-                                </p>
-                                <div className="mt-1 w-32 h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+                    <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                            <p className="text-[10px] uppercase tracking-wider text-gray-500">Today</p>
+                            <p className="text-sm md:text-lg font-semibold text-white truncate">{todayLabel}</p>
+                        </div>
+                        <div className="flex items-center gap-3 md:gap-6 shrink-0">
+                            {scheduledTodayList.length > 0 && (
+                                <div className="text-right">
+                                    <p className="text-[10px] md:text-xs text-gray-400">
+                                        {doneTodayList.length}/{scheduledTodayList.length} today
+                                    </p>
+                                    <div className="mt-1 w-20 md:w-32 h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                                        <div
+                                            className="h-full bg-gradient-to-r from-violet-500 to-violet-400 transition-all"
+                                            style={{ width: `${completionPct}%` }}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+                            <div className="text-right">
+                                <p className="text-[10px] md:text-xs text-gray-400">{weekPct}% week</p>
+                                <div className="mt-1 w-20 md:w-32 h-1.5 bg-gray-800 rounded-full overflow-hidden">
                                     <div
-                                        className="h-full bg-gradient-to-r from-violet-500 to-violet-400 transition-all"
-                                        style={{ width: `${completionPct}%` }}
+                                        className="h-full bg-gradient-to-r from-blue-500 to-blue-400 transition-all"
+                                        style={{ width: `${weekPct}%` }}
                                     />
                                 </div>
-                            </div>
-                        )}
-                        <div>
-                            <p className="text-xs text-gray-400">{weekPct}% this week</p>
-                            <div className="mt-1 w-32 h-1.5 bg-gray-800 rounded-full overflow-hidden">
-                                <div
-                                    className="h-full bg-gradient-to-r from-blue-500 to-blue-400 transition-all"
-                                    style={{ width: `${weekPct}%` }}
-                                />
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8">
                 {/* Header */}
-                <div className="flex items-center justify-between mb-8">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6 md:mb-8">
                     <div>
-                        <h1 className="text-3xl font-bold text-white mb-2">Habits & Goals</h1>
-                        <p className="text-gray-400">Your everyday tasks, ongoing</p>
+                        <h1 className="text-2xl md:text-3xl font-bold text-white">Habits & Goals</h1>
+                        <p className="text-sm text-gray-400 hidden sm:block mt-1">Your everyday tasks, ongoing</p>
                     </div>
                     <div className="flex gap-2">
                         <button
                             onClick={() => setShowAddHabitModal(true)}
-                            className="px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-lg font-medium transition-colors flex items-center gap-1.5 text-sm"
+                            className="flex-1 sm:flex-none px-3 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-1.5 text-sm"
                         >
                             <Plus className="w-4 h-4" />
                             Add Habit
                         </button>
                         <button
                             onClick={() => setShowAddGoalModal(true)}
-                            className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors flex items-center gap-1.5 text-sm border border-gray-700"
+                            className="flex-1 sm:flex-none px-3 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-1.5 text-sm border border-gray-700"
                         >
                             <Plus className="w-4 h-4" />
                             Add Goal
@@ -392,13 +394,13 @@ export default function HabitsPage() {
                 {/* Habits Tab */}
                 {activeTab === 'habits' && (
                     <div className="space-y-6">
-                        {/* Filter chips */}
-                        <div className="flex flex-wrap gap-2">
+                        {/* Filter chips — horizontal scroll on mobile so they stay on one line */}
+                        <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap">
                             {(Object.keys(FILTER_LABELS) as HabitFilter[]).map((f) => (
                                 <button
                                     key={f}
                                     onClick={() => setFilter(f)}
-                                    className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors flex items-center gap-2 ${
+                                    className={`shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-colors flex items-center gap-2 ${
                                         filter === f
                                             ? 'bg-violet-600 text-white'
                                             : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-gray-200'
@@ -416,8 +418,8 @@ export default function HabitsPage() {
                             ))}
                         </div>
 
-                        {/* Strip legend */}
-                        <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500">
+                        {/* Strip legend — desktop only; on mobile it's clutter */}
+                        <div className="hidden md:flex flex-wrap items-center gap-4 text-xs text-gray-500">
                             <span>Last {STRIP_DAYS} days · click any cell to toggle</span>
                             <span className="flex items-center gap-1.5">
                                 <span className="w-3 h-3 rounded bg-violet-500" /> done
@@ -460,10 +462,10 @@ export default function HabitsPage() {
                                         key={category}
                                         className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden"
                                     >
-                                        <div className="px-6 py-4 border-b border-gray-800 flex items-center justify-between gap-4">
-                                            <h2 className="text-lg font-bold">
+                                        <div className="px-4 md:px-6 py-3 md:py-4 border-b border-gray-800 flex items-center justify-between gap-4">
+                                            <h2 className="text-base md:text-lg font-bold">
                                                 {CATEGORY_LABELS[category] || category}
-                                                <span className="ml-2 text-sm font-normal text-gray-500">
+                                                <span className="ml-2 text-xs md:text-sm font-normal text-gray-500">
                                                     ({categoryHabits.length})
                                                 </span>
                                             </h2>
@@ -480,57 +482,91 @@ export default function HabitsPage() {
                                                     return (
                                                         <div
                                                             key={habit.id}
-                                                            className={`p-4 flex items-center gap-4 transition-colors ${
+                                                            className={`p-3 md:p-4 transition-colors ${
                                                                 !habit.is_active ? 'opacity-50' : ''
-                                                            }`}
+                                                            } flex flex-col md:flex-row md:items-center gap-3 md:gap-4`}
                                                         >
-                                                            {/* Name + meta */}
-                                                            <div className="flex-1 min-w-0">
-                                                                <div className="flex items-center gap-2 flex-wrap">
-                                                                    <Link
-                                                                        href={`/habits/${habit.id}`}
-                                                                        className="font-medium truncate hover:text-violet-400 transition-colors"
-                                                                    >
-                                                                        {habit.name}
-                                                                    </Link>
-                                                                    <span className="text-xs px-1.5 py-0.5 rounded font-normal bg-gray-700/50 text-gray-400">
-                                                                        {cadence}
-                                                                    </span>
-                                                                    {habit.period && (
-                                                                        <span className="text-xs text-gray-500">
-                                                                            {PERIOD_LABELS[habit.period] || habit.period}
+                                                            {/* Top row on mobile: name + meta + actions */}
+                                                            <div className="flex items-start justify-between gap-2 md:flex-1 md:min-w-0">
+                                                                <div className="flex-1 min-w-0">
+                                                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                                                        <Link
+                                                                            href={`/habits/${habit.id}`}
+                                                                            className="font-medium truncate hover:text-violet-400 transition-colors text-sm md:text-base"
+                                                                        >
+                                                                            {habit.name}
+                                                                        </Link>
+                                                                        <span className="text-[10px] md:text-xs px-1.5 py-0.5 rounded font-normal bg-gray-700/50 text-gray-400">
+                                                                            {cadence}
                                                                         </span>
-                                                                    )}
-                                                                    {!habit.is_active && (
-                                                                        <span className="text-xs px-1.5 py-0.5 bg-gray-700 text-gray-400 rounded">
-                                                                            Inactive
-                                                                        </span>
+                                                                        {habit.period && (
+                                                                            <span className="text-[10px] md:text-xs text-gray-500 hidden sm:inline">
+                                                                                {PERIOD_LABELS[habit.period] || habit.period}
+                                                                            </span>
+                                                                        )}
+                                                                        {!habit.is_active && (
+                                                                            <span className="text-[10px] md:text-xs px-1.5 py-0.5 bg-gray-700 text-gray-400 rounded">
+                                                                                Inactive
+                                                                            </span>
+                                                                        )}
+                                                                        {streak > 0 && (
+                                                                            <span className="flex items-center gap-0.5 text-xs text-orange-400 ml-auto md:ml-0">
+                                                                                <Flame className="w-3.5 h-3.5" />
+                                                                                <span className="font-semibold">{streak}</span>
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                    {habit.unit && (
+                                                                        <div className="text-[10px] md:text-xs text-gray-500 mt-0.5">
+                                                                            Target:{' '}
+                                                                            {habit.target_per_day ||
+                                                                                habit.target_value ||
+                                                                                1}{' '}
+                                                                            {habit.unit}
+                                                                        </div>
                                                                     )}
                                                                 </div>
-                                                                {habit.unit && (
-                                                                    <div className="text-xs text-gray-500 mt-0.5">
-                                                                        Target:{' '}
-                                                                        {habit.target_per_day ||
-                                                                            habit.target_value ||
-                                                                            1}{' '}
-                                                                        {habit.unit}
-                                                                    </div>
-                                                                )}
+                                                                {/* Mobile-only actions on the right of the name row */}
+                                                                <div className="flex gap-0.5 shrink-0 md:hidden">
+                                                                    <button
+                                                                        onClick={() => openHabitLogModal(habit)}
+                                                                        className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded transition-colors"
+                                                                        title="Log details"
+                                                                    >
+                                                                        <MoreHorizontal className="w-4 h-4" />
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            setEditingHabit(habit);
+                                                                            setShowEditHabitModal(true);
+                                                                        }}
+                                                                        className="p-1.5 text-gray-400 hover:text-blue-400 rounded"
+                                                                        title="Edit"
+                                                                    >
+                                                                        <Edit2 className="w-4 h-4" />
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() =>
+                                                                            setDeleteConfirmation({
+                                                                                show: true,
+                                                                                type: 'habit',
+                                                                                id: habit.id,
+                                                                                name: habit.name,
+                                                                            })
+                                                                        }
+                                                                        className="p-1.5 text-gray-400 hover:text-red-400 rounded"
+                                                                        title="Delete"
+                                                                    >
+                                                                        <Trash2 className="w-4 h-4" />
+                                                                    </button>
+                                                                </div>
                                                             </div>
 
-                                                            {/* Streak */}
-                                                            {streak > 0 && (
-                                                                <div className="flex items-center gap-1 text-sm text-orange-400 shrink-0">
-                                                                    <Flame className="w-4 h-4" />
-                                                                    <span className="font-semibold">{streak}</span>
-                                                                </div>
-                                                            )}
-
-                                                            {/* Day strip — labels and boxes share the same flex column so widths line up exactly */}
-                                                            <div className="flex flex-col gap-1 shrink-0">
-                                                                <div className="flex gap-3">
+                                                            {/* Day strip — full-width on mobile, fixed-width on desktop */}
+                                                            <div className="flex flex-col gap-1 shrink-0 self-end md:self-auto">
+                                                                <div className="flex gap-2 md:gap-3">
                                                                     {[stripDates.slice(0, 7), stripDates.slice(7, 14)].map((week, wi) => (
-                                                                        <div key={wi} className="flex gap-1">
+                                                                        <div key={wi} className="flex gap-0.5 md:gap-1">
                                                                             {week.map((d) => {
                                                                                 const dow = new Date(d + 'T00:00:00').getDay();
                                                                                 const isToday = d === today;
@@ -538,7 +574,7 @@ export default function HabitsPage() {
                                                                                 return (
                                                                                     <div
                                                                                         key={d}
-                                                                                        className={`w-6 text-center text-[10px] font-semibold ${
+                                                                                        className={`w-5 md:w-6 text-center text-[9px] md:text-[10px] font-semibold ${
                                                                                             isToday ? 'text-blue-400' : 'text-gray-600'
                                                                                         }`}
                                                                                     >
@@ -549,9 +585,9 @@ export default function HabitsPage() {
                                                                         </div>
                                                                     ))}
                                                                 </div>
-                                                                <div className="flex gap-3">
+                                                                <div className="flex gap-2 md:gap-3">
                                                                     {[stripDates.slice(0, 7), stripDates.slice(7, 14)].map((week, wi) => (
-                                                                        <div key={wi} className="flex gap-1">
+                                                                        <div key={wi} className="flex gap-0.5 md:gap-1">
                                                                             {week.map((d) => {
                                                                                 const scheduled = isHabitScheduledOn(habit, d);
                                                                                 const done = isCompleted(habit, d);
@@ -572,7 +608,7 @@ export default function HabitsPage() {
                                                                                         })}${isToday ? ' (today)' : ''}${
                                                                                             scheduled ? '' : ' · not scheduled'
                                                                                         }${done ? ' · done' : ''}`}
-                                                                                        className={`w-6 h-6 rounded transition-colors ${
+                                                                                        className={`w-5 h-5 md:w-6 md:h-6 rounded transition-colors ${
                                                                                             isToday ? 'ring-2 ring-blue-400 ring-offset-2 ring-offset-gray-900' : ''
                                                                                         } ${
                                                                                             !scheduled
@@ -589,8 +625,8 @@ export default function HabitsPage() {
                                                                 </div>
                                                             </div>
 
-                                                            {/* Actions */}
-                                                            <div className="flex gap-1 shrink-0">
+                                                            {/* Desktop-only actions on the right edge */}
+                                                            <div className="hidden md:flex gap-1 shrink-0">
                                                                 <button
                                                                     onClick={() => openHabitLogModal(habit)}
                                                                     className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded transition-colors"
