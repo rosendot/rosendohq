@@ -215,14 +215,14 @@ export default function WishlistPage() {
             <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4">
                 {/* Header */}
                 <div className="mb-4">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                         <div>
                             <h1 className="text-2xl font-bold text-white mb-1">Wishlist</h1>
-                            <p className="text-gray-400 text-sm">Track items you want to purchase</p>
+                            <p className="text-gray-400 text-sm hidden sm:block">Track items you want to purchase</p>
                         </div>
                         <button
                             onClick={() => setShowAddModal(true)}
-                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center gap-1.5 text-sm"
+                            className="w-full sm:w-auto px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-1.5 text-sm"
                         >
                             <Plus className="w-4 h-4" />
                             Add Item
@@ -245,45 +245,48 @@ export default function WishlistPage() {
                             />
                         </div>
 
-                        {/* Category Filter */}
-                        <select
-                            value={selectedCategory}
-                            onChange={(e) => setSelectedCategory(e.target.value)}
-                            className="px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-                        >
-                            {categories.map(cat => (
-                                <option key={cat} value={cat}>
-                                    {cat === 'all' ? 'All Categories' : cat}
-                                </option>
-                            ))}
-                        </select>
+                        {/* On mobile: 3 selects share a row in a grid. On md+: each becomes a flex item again via md:contents */}
+                        <div className="grid grid-cols-3 gap-2 md:contents">
+                            {/* Category Filter */}
+                            <select
+                                value={selectedCategory}
+                                onChange={(e) => setSelectedCategory(e.target.value)}
+                                className="px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 min-w-0"
+                            >
+                                {categories.map(cat => (
+                                    <option key={cat} value={cat}>
+                                        {cat === 'all' ? 'All Categories' : cat}
+                                    </option>
+                                ))}
+                            </select>
 
-                        {/* Status Filter */}
-                        <select
-                            value={selectedStatus}
-                            onChange={(e) => setSelectedStatus(e.target.value as WishlistStatus | 'all')}
-                            className="px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-                        >
-                            <option value="all">All Status</option>
-                            {STATUSES.map(({ value, label }) => (
-                                <option key={value} value={value}>{label}</option>
-                            ))}
-                        </select>
+                            {/* Status Filter */}
+                            <select
+                                value={selectedStatus}
+                                onChange={(e) => setSelectedStatus(e.target.value as WishlistStatus | 'all')}
+                                className="px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 min-w-0"
+                            >
+                                <option value="all">All Status</option>
+                                {STATUSES.map(({ value, label }) => (
+                                    <option key={value} value={value}>{label}</option>
+                                ))}
+                            </select>
 
-                        {/* Sort */}
-                        <select
-                            value={sortBy}
-                            onChange={(e) => setSortBy(e.target.value as SortOption)}
-                            className="px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-                        >
-                            <option value="priority_desc">Priority (High-Low)</option>
-                            <option value="priority_asc">Priority (Low-High)</option>
-                            <option value="price_desc">Price (High-Low)</option>
-                            <option value="price_asc">Price (Low-High)</option>
-                            <option value="date_desc">Newest First</option>
-                            <option value="date_asc">Oldest First</option>
-                            <option value="title_asc">Title (A-Z)</option>
-                        </select>
+                            {/* Sort */}
+                            <select
+                                value={sortBy}
+                                onChange={(e) => setSortBy(e.target.value as SortOption)}
+                                className="px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 min-w-0"
+                            >
+                                <option value="priority_desc">Priority (High-Low)</option>
+                                <option value="priority_asc">Priority (Low-High)</option>
+                                <option value="price_desc">Price (High-Low)</option>
+                                <option value="price_asc">Price (Low-High)</option>
+                                <option value="date_desc">Newest First</option>
+                                <option value="date_asc">Oldest First</option>
+                                <option value="title_asc">Title (A-Z)</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
@@ -327,7 +330,7 @@ export default function WishlistPage() {
                                                             item.status === 'purchased' ? 'bg-green-500/20 text-green-400 border-green-500/30' :
                                                             'bg-red-500/20 text-red-400 border-red-500/30'
                                                         }`}
-                                                        style={{ width: `${(STATUSES.find(s => s.value === item.status)?.label.length || 4) * 7 + 28}px` }}
+                                                        style={{ minWidth: '70px' }}
                                                     >
                                                         {STATUSES.map(({ value, label }) => (
                                                             <option key={value} value={value}>{label}</option>

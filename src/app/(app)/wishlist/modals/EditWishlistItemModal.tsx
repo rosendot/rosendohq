@@ -166,7 +166,7 @@ export default function EditItemModal({ isOpen, item, onClose, onSuccess }: Edit
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-300">Category</label>
             <select
@@ -228,7 +228,7 @@ export default function EditItemModal({ isOpen, item, onClose, onSuccess }: Edit
       <div className="space-y-3 border-t border-gray-800 pt-3">
         <h3 className="text-base font-semibold text-white">Product Details</h3>
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-300">Brand</label>
             <input
@@ -254,7 +254,7 @@ export default function EditItemModal({ isOpen, item, onClose, onSuccess }: Edit
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-300">Color</label>
             <input
@@ -280,8 +280,8 @@ export default function EditItemModal({ isOpen, item, onClose, onSuccess }: Edit
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-2">
-          <div className="col-span-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div className="col-span-1 sm:col-span-2">
             <label className="mb-1 block text-sm font-medium text-gray-300">Price</label>
             <input
               type="number"
