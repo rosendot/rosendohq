@@ -12,6 +12,8 @@ Create a git commit for the current changes.
 3. If you cannot confidently attribute a dirty file to this session, ask the user before staging it. Do not guess.
 4. Run `git diff -- <session-files>` to review the changes you're about to commit.
 5. **Run the `sync-docs` skill against the session files.** It inspects the diff and decides whether any documentation (`README.md`, `CLAUDE.md`, `.claude/rules/<module>-module.md`) needs updates. If it edits anything, those doc files become part of this commit. If it returns "No doc updates needed," continue with no extra files. See `.claude/skills/sync-docs/SKILL.md` for what triggers an update.
+
+   **CRITICAL: Do not pause after sync-docs returns.** sync-docs is one step in the middle of this skill, not the end. As soon as it reports back, immediately continue with steps 6–12 (log → message → stage → commit → status → push) in the same response. The only valid reason to stop here is if sync-docs itself raised a real blocker (e.g. ambiguous file ownership requiring user confirmation). "No doc updates needed" is not a blocker.
 6. Run `git log --oneline -5` to see recent commit message style.
 7. Analyze the staged changes and draft a commit message in this exact format:
 
@@ -69,8 +71,8 @@ EOF
 )"
 ```
 
-10. Run `git status` to verify the commit succeeded. Any dirty files left behind belong to other sessions and that is expected.
-11. Push the commit to the remote with `git push`. If the current branch has no upstream, use `git push -u origin <branch>`.
+11. Run `git status` to verify the commit succeeded. Any dirty files left behind belong to other sessions and that is expected.
+12. Push the commit to the remote with `git push`. If the current branch has no upstream, use `git push -u origin <branch>`.
 
 ## Rules
 
@@ -82,3 +84,4 @@ EOF
 - If a pre-push hook fails, fix the issue and re-run `git push` (do not bypass)
 - If there are no changes to commit, say so and stop (do not push)
 - If $ARGUMENTS is provided, use it as guidance for the commit message
+- Run the entire flow (sync-docs → log → message → stage → commit → status → push) in one continuous response. Do NOT pause for user input between steps unless a real blocker appears (hook failure, push rejection, ambiguous file ownership). The user invoked `/commit` once; finish it.
