@@ -618,14 +618,14 @@ export default function ShoppingPage() {
             <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4">
                 {/* Header */}
                 <div className="mb-4">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                         <div>
-                            <h1 className="text-2xl font-bold text-white mb-1">Shopping Lists</h1>
-                            <p className="text-gray-400 text-sm">Manage your grocery shopping</p>
+                            <h1 className="text-xl sm:text-2xl font-bold text-white mb-1">Shopping Lists</h1>
+                            <p className="text-gray-400 text-sm hidden sm:block">Manage your grocery shopping</p>
                         </div>
                         <button
                             onClick={() => setShowAddModal(true)}
-                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center gap-1.5 text-sm"
+                            className="w-full sm:w-auto px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-1.5 text-sm"
                         >
                             <Plus className="w-4 h-4" />
                             Add Item
@@ -661,53 +661,52 @@ export default function ShoppingPage() {
                                                 : 'bg-gray-800 text-gray-300 hover:bg-gray-750'
                                                 }`}
                                         >
-                                            <button
-                                                onClick={() => setSelectedListId(list.id)}
-                                                className="w-full text-left px-3 py-2"
-                                            >
-                                                <div className="flex items-center justify-between">
-                                                    <div className="font-medium text-sm">{list.name}</div>
-                                                    <span className={`text-xs px-1.5 py-0.5 rounded-full ${isSelected
-                                                        ? 'bg-white/20 text-white'
-                                                        : 'bg-gray-700 text-gray-400'
-                                                        }`}>
-                                                        {itemCount}
-                                                    </span>
+                                            <div className="flex items-center gap-2 px-3 py-2">
+                                                <button
+                                                    onClick={() => setSelectedListId(list.id)}
+                                                    className="flex-1 min-w-0 text-left"
+                                                >
+                                                    <div className="font-medium text-sm truncate">{list.name}</div>
+                                                    {list.notes && (
+                                                        <div className={`text-xs mt-1 truncate ${isSelected ? 'text-blue-100' : 'text-gray-400'}`}>
+                                                            {list.notes}
+                                                        </div>
+                                                    )}
+                                                </button>
+                                                <span className={`shrink-0 text-xs px-1.5 py-0.5 rounded-full ${isSelected
+                                                    ? 'bg-white/20 text-white'
+                                                    : 'bg-gray-700 text-gray-400'
+                                                    }`}>
+                                                    {itemCount}
+                                                </span>
+                                                <div className="shrink-0 flex items-center gap-0.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            openListModal(list);
+                                                        }}
+                                                        className={`p-1 rounded transition-colors ${isSelected
+                                                            ? 'text-blue-100 hover:text-white hover:bg-white/10'
+                                                            : 'text-gray-400 hover:text-blue-400 hover:bg-blue-500/10'
+                                                            }`}
+                                                        title="Edit list"
+                                                    >
+                                                        <Edit2 className="w-3 h-3" />
+                                                    </button>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            showListDeleteConfirmation(list.id, list.name);
+                                                        }}
+                                                        className={`p-1 rounded transition-colors ${isSelected
+                                                            ? 'text-blue-100 hover:text-red-300 hover:bg-red-500/20'
+                                                            : 'text-gray-400 hover:text-red-400 hover:bg-red-500/10'
+                                                            }`}
+                                                        title="Delete list"
+                                                    >
+                                                        <Trash2 className="w-3 h-3" />
+                                                    </button>
                                                 </div>
-                                                {list.notes && (
-                                                    <div className={`text-xs mt-1 ${isSelected ? 'text-blue-100' : 'text-gray-400'}`}>
-                                                        {list.notes}
-                                                    </div>
-                                                )}
-                                            </button>
-                                            {/* List actions - show on hover */}
-                                            <div className={`absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity ${isSelected ? '' : ''}`}>
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        openListModal(list);
-                                                    }}
-                                                    className={`p-1 rounded transition-colors ${isSelected
-                                                        ? 'text-blue-100 hover:text-white hover:bg-white/10'
-                                                        : 'text-gray-400 hover:text-blue-400 hover:bg-blue-500/10'
-                                                        }`}
-                                                    title="Edit list"
-                                                >
-                                                    <Edit2 className="w-3 h-3" />
-                                                </button>
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        showListDeleteConfirmation(list.id, list.name);
-                                                    }}
-                                                    className={`p-1 rounded transition-colors ${isSelected
-                                                        ? 'text-blue-100 hover:text-red-300 hover:bg-red-500/20'
-                                                        : 'text-gray-400 hover:text-red-400 hover:bg-red-500/10'
-                                                        }`}
-                                                    title="Delete list"
-                                                >
-                                                    <Trash2 className="w-3 h-3" />
-                                                </button>
                                             </div>
                                         </div>
                                     );
@@ -724,7 +723,7 @@ export default function ShoppingPage() {
                     {/* Main Content */}
                     <div className="lg:col-span-3">
                         {/* Filters */}
-                        <div className="bg-gray-900 rounded-lg border border-gray-800 p-3 mb-3">
+                        <div className="bg-gray-900 rounded-lg border border-gray-800 p-3 mb-3 space-y-3">
                             <div className="flex flex-col md:flex-row gap-2">
                                 <div className="flex-1 relative">
                                     <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -737,77 +736,83 @@ export default function ShoppingPage() {
                                     />
                                 </div>
 
-                                <select
-                                    value={selectedCategory}
-                                    onChange={(e) => setSelectedCategory(e.target.value)}
-                                    className="px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                >
-                                    {categories.map(cat => (
-                                        <option key={cat} value={cat}>
-                                            {cat === 'all' ? 'All Categories' : cat}
-                                        </option>
-                                    ))}
-                                </select>
+                                {/* On mobile: 2 selects share a row in a grid. On md+: each becomes a flex item again via md:contents */}
+                                <div className="grid grid-cols-2 gap-2 md:contents">
+                                    <select
+                                        value={selectedCategory}
+                                        onChange={(e) => setSelectedCategory(e.target.value)}
+                                        className="px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 min-w-0"
+                                    >
+                                        {categories.map(cat => (
+                                            <option key={cat} value={cat}>
+                                                {cat === 'all' ? 'All Categories' : cat}
+                                            </option>
+                                        ))}
+                                    </select>
 
-                                {/* Sort */}
-                                <select
-                                    value={sortBy}
-                                    onChange={(e) => setSortBy(e.target.value as SortOption)}
-                                    className="px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                >
-                                    <option value="category">By Category</option>
-                                    <option value="priority_asc">Priority (High-Low)</option>
-                                    <option value="priority_desc">Priority (Low-High)</option>
-                                    <option value="name_asc">Name (A-Z)</option>
-                                    <option value="name_desc">Name (Z-A)</option>
-                                    <option value="date_desc">Newest First</option>
-                                    <option value="date_asc">Oldest First</option>
-                                </select>
+                                    {/* Sort */}
+                                    <select
+                                        value={sortBy}
+                                        onChange={(e) => setSortBy(e.target.value as SortOption)}
+                                        className="px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 min-w-0"
+                                    >
+                                        <option value="category">By Category</option>
+                                        <option value="priority_asc">Priority (High-Low)</option>
+                                        <option value="priority_desc">Priority (Low-High)</option>
+                                        <option value="name_asc">Name (A-Z)</option>
+                                        <option value="name_desc">Name (Z-A)</option>
+                                        <option value="date_desc">Newest First</option>
+                                        <option value="date_asc">Oldest First</option>
+                                    </select>
+                                </div>
                             </div>
 
-                            {/* View Mode Toggle */}
-                            <div className="flex rounded-lg border border-gray-700 bg-gray-800 p-0.5">
+                            {/* View Mode Toggle + Select — share one row */}
+                            <div className="flex items-center gap-2">
+                                <div className="flex flex-1 rounded-lg border border-gray-700 bg-gray-800 p-0.5">
+                                    <button
+                                        onClick={() => { setViewMode('to_buy'); clearSelection(); }}
+                                        className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${viewMode === 'to_buy' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-gray-200'}`}
+                                    >
+                                        <Circle className="h-3.5 w-3.5" />
+                                        To Buy
+                                        <span className={`rounded-full px-1.5 py-0.5 text-xs ${viewMode === 'to_buy' ? 'bg-white/20 text-white' : 'bg-gray-700 text-gray-400'}`}>
+                                            {activeItems.length}
+                                        </span>
+                                    </button>
+                                    <button
+                                        onClick={() => { setViewMode('bought'); clearSelection(); }}
+                                        className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${viewMode === 'bought' ? 'bg-green-600 text-white' : 'text-gray-400 hover:text-gray-200'}`}
+                                    >
+                                        <CheckCircle2 className="h-3.5 w-3.5" />
+                                        Bought
+                                        <span className={`rounded-full px-1.5 py-0.5 text-xs ${viewMode === 'bought' ? 'bg-white/20 text-white' : 'bg-gray-700 text-gray-400'}`}>
+                                            {completedItems.length}
+                                        </span>
+                                    </button>
+                                </div>
+
+                                {/* Select Mode Toggle */}
                                 <button
-                                    onClick={() => { setViewMode('to_buy'); clearSelection(); }}
-                                    className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${viewMode === 'to_buy' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-gray-200'}`}
+                                    onClick={() => {
+                                        if (isSelectionMode) {
+                                            clearSelection();
+                                        } else {
+                                            setIsSelectionMode(true);
+                                        }
+                                    }}
+                                    className={`shrink-0 flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${isSelectionMode ? 'border-blue-500 bg-blue-600 text-white' : 'border-gray-700 bg-gray-800 text-gray-400 hover:text-gray-200'}`}
+                                    title="Toggle selection mode"
                                 >
-                                    <Circle className="h-3.5 w-3.5" />
-                                    To Buy
-                                    <span className={`rounded-full px-1.5 py-0.5 text-xs ${viewMode === 'to_buy' ? 'bg-white/20 text-white' : 'bg-gray-700 text-gray-400'}`}>
-                                        {activeItems.length}
-                                    </span>
-                                </button>
-                                <button
-                                    onClick={() => { setViewMode('bought'); clearSelection(); }}
-                                    className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${viewMode === 'bought' ? 'bg-green-600 text-white' : 'text-gray-400 hover:text-gray-200'}`}
-                                >
-                                    <CheckCircle2 className="h-3.5 w-3.5" />
-                                    Bought
-                                    <span className={`rounded-full px-1.5 py-0.5 text-xs ${viewMode === 'bought' ? 'bg-white/20 text-white' : 'bg-gray-700 text-gray-400'}`}>
-                                        {completedItems.length}
-                                    </span>
+                                    <CheckSquare className="h-3.5 w-3.5" />
+                                    <span className="hidden sm:inline">Select</span>
                                 </button>
                             </div>
-
-                            {/* Select Mode Toggle */}
-                            <button
-                                onClick={() => {
-                                    if (isSelectionMode) {
-                                        clearSelection();
-                                    } else {
-                                        setIsSelectionMode(true);
-                                    }
-                                }}
-                                className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${isSelectionMode ? 'border-blue-500 bg-blue-600 text-white' : 'border-gray-700 bg-gray-800 text-gray-400 hover:text-gray-200'}`}
-                            >
-                                <CheckSquare className="h-3.5 w-3.5" />
-                                Select
-                            </button>
                         </div>
 
                         {/* Bulk Actions Toolbar */}
                         {selectedItems.size > 0 && (
-                            <div className="bg-blue-600 rounded-lg p-3 mb-3 flex items-center justify-between">
+                            <div className="bg-blue-600 rounded-lg p-3 mb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                                 <div className="flex items-center gap-2">
                                     <span className="text-white font-medium text-sm">
                                         {selectedItems.size} item{selectedItems.size > 1 ? 's' : ''} selected
@@ -850,7 +855,7 @@ export default function ShoppingPage() {
                         )}
 
                         {/* Items Container with Scroll */}
-                        <div className="max-h-[calc(100vh-340px)] overflow-y-auto pr-2 space-y-4">
+                        <div className="md:max-h-[calc(100vh-340px)] md:overflow-y-auto md:pr-2 space-y-4">
                             {/* Active Items (To Buy view) */}
                             {viewMode === 'to_buy' && activeItems.length > 0 && (
                                 <div>

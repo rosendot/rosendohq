@@ -40,6 +40,8 @@ Walk every target file against this list. Each finding cites a specific file + l
 | 12 | **Long page subtitle visible on mobile** | A long descriptor `<p>` under the page title that adds noise on small screens | Low |
 | 13 | **Excess padding on mobile** | Container `p-6` or `py-8` everywhere with no `p-3 md:p-6` / `py-4 md:py-8` reduction | Low |
 | 14 | **Font size doesn't scale** | `text-3xl` / `text-2xl` headers without `text-xl md:text-2xl` mobile shrink | Low |
+| 15 | **Hover-only control with no touch fallback** | `opacity-0 group-hover:opacity-100` (or `hidden group-hover:block`) on edit/delete/quick-action buttons. Touch devices have no hover — these controls are completely undiscoverable on mobile. Fix: `opacity-100 sm:opacity-0 sm:group-hover:opacity-100`. **When applying, also check that the un-hidden buttons don't overlap absolute-positioned siblings (e.g. count badges) that were sized assuming the controls would be hidden — may need to restructure into a flat flex row instead of overlay.** | Medium |
+| 16 | **Sibling sections in a card with no vertical rhythm** | A wrapper `<div>` (especially filter/toolbar cards) with 2+ child sections (search row, toggle row, button row) as direct siblings, no `space-y-*` on the parent — sections butt against each other. Fix: add `space-y-3` (or similar) to the parent wrapper. | Medium |
 
 ## Severity meaning
 

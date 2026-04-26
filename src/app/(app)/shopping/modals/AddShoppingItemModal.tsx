@@ -118,7 +118,7 @@ export default function AddShoppingItemModal({
       </div>
 
       {/* Quantity and Unit */}
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-300">Quantity</label>
           <input
@@ -145,7 +145,7 @@ export default function AddShoppingItemModal({
       </div>
 
       {/* Category and Aisle */}
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-300">Category</label>
           <input
@@ -171,7 +171,7 @@ export default function AddShoppingItemModal({
       </div>
 
       {/* Priority and Needed By */}
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-300">Priority</label>
           <select

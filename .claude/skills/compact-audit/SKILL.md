@@ -46,6 +46,7 @@ Pick one form:
 | 12 | **Empty heading row above a single item** | A `<h2>` "Section" header above a single field/value pair; the pair could carry its own label inline and skip the header | Medium |
 | 13 | **Footer section that just shows a date** | A separate row at the bottom of every card that does nothing but show a created/updated/added date — fold it into an existing row as muted text | Medium |
 | 14 | **Decorative subtitle / helper text always visible** | A descriptor `<p>` under a section heading explaining what the section is. Fine on first-visit, noise after; can be `hidden md:block` or removed | Low |
+| 15 | **Two single-row controls that could share a row** | Adjacent siblings in a vertical stack where each takes a full row but neither needs the full width — e.g. a segmented toggle next to a single-button mode switch, two short button groups, or a filter pill next to a sort dropdown. Combine into one `flex items-center gap-2` row with the wider control as `flex-1` and the smaller as `shrink-0`; on very narrow screens use icon-only via `<span className="hidden sm:inline">` for the secondary label. | Medium |
 
 ## Severity meaning
 
