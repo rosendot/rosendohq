@@ -540,25 +540,22 @@ The following modules have fully functional UIs but are using mock data and need
 
 ---
 
-### 12. Nutrition Tracker — **UI COMPLETE** 🔴
+### 12. Nutrition Tracker — **COMPLETE** 🟢
 
-**Frontend Features:**
-* Daily macro tracking (Calories, Protein, Carbs, Fat)
-* Meal type organization (Breakfast, Lunch, Dinner, Snacks)
-* Water intake tracking with goal
-* Macro progress bars vs. daily goals
-* Date-based navigation
-* Summary cards with percentages
+**Features:**
+* Daily macro tracking (Calories, Protein, Carbs, Fat) per entry
+* Meal type organization (Breakfast, Lunch, Dinner, Snacks) — auto-creates meal row on first entry per slot
+* Two entry modes: custom one-off or pick from `food_item` library (with optional "save to library" on custom)
+* Servings multiplier — frontend stores already-multiplied per-entry totals
+* Daily macro targets via `nutrition_target` (single active row, PATCH-on-update)
+* Macro + calorie progress bars vs. active target
+* Date selector drives the whole page
 
-**Database Ready:** `food_item`, `meal`, `meal_entry`, `nutrition_target`, `recipe`
+**Tables:** `food_item`, `meal`, `meal_entry`, `nutrition_target`
 
-**Views Ready:** `v_daily_macros`, `v_daily_macros_vs_target`
+**Views:** `v_daily_macros`, `v_daily_macros_vs_target`
 
-**Backend Needed:**
-* [ ] API routes for food items, meals, entries, targets
-* [ ] Supabase client integration
-* [ ] Daily macro aggregation
-* [ ] CSV import/export
+**API Routes:** `/api/nutrition/foods`, `/api/nutrition/meals`, `/api/nutrition/meals/[id]/entries`, `/api/nutrition/entries/[id]`, `/api/nutrition/targets`, `/api/nutrition/daily`
 
 ---
 
@@ -696,7 +693,7 @@ Materialized views for optimized queries:
 
 ### Priority 3: Connect Next Backend Module
 * [✅] **House** - Maintenance and supply tracking (COMPLETE)
-* [ ] **Nutrition** - Daily macro tracking
+* [✅] **Nutrition** - Daily macro tracking (COMPLETE)
 
 ### Priority 4: Import/Export Framework
 * [✅] Build CSV upload interface with account/source selection
@@ -753,7 +750,7 @@ rosendohq/
 │   │   ├── inventory/            # Inventory (UI only)
 │   │   ├── notes/                # Notes/KB (UI only)
 │   │   ├── travel/               # Travel planner (UI only)
-│   │   ├── nutrition/            # Nutrition tracker (UI only)
+│   │   ├── nutrition/            # Nutrition tracker
 │   │   ├── api/                  # API routes
 │   │   │   ├── shopping/         # Shopping API
 │   │   │   ├── wishlist/         # Wishlist API
