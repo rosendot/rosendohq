@@ -2,10 +2,11 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Plus, Film, Tv, Star, Search, Trash2, Edit2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Film, Tv, Star, Search, Trash2, Edit2, ChevronLeft, ChevronRight, Bell } from 'lucide-react';
 import type { MediaItem, MediaType, MediaStatus } from '@/types/media.types';
 import DeleteConfirmationModal from '@/components/DeleteConfirmationModal';
 import MediaItemModal from './modals/MediaItemModal';
+import ReminderModal from './modals/ReminderModal';
 
 const MEDIA_TYPES: { value: MediaType; label: string; icon: typeof Film }[] = [
     { value: 'movie', label: 'Movies', icon: Film },
@@ -58,6 +59,7 @@ function MediaCarousel({
     onDelete,
     onQuickRate,
     onQuickIncrement,
+    onReminder,
     emptyMessage
 }: {
     title: string;
@@ -66,6 +68,7 @@ function MediaCarousel({
     onDelete: (id: string, title: string) => void;
     onQuickRate: (itemId: string, rating: number) => void;
     onQuickIncrement?: (itemId: string) => void;
+    onReminder?: (item: MediaItem) => void;
     emptyMessage: string;
 }) {
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -186,6 +189,7 @@ function MediaCarousel({
                         onDelete={onDelete}
                         onQuickRate={onQuickRate}
                         onQuickIncrement={onQuickIncrement}
+                        onReminder={onReminder}
                     />
                 ))}
             </div>
@@ -199,13 +203,15 @@ function MediaCard({
     onEdit,
     onDelete,
     onQuickRate,
-    onQuickIncrement
+    onQuickIncrement,
+    onReminder
 }: {
     item: MediaItem;
     onEdit: (item: MediaItem) => void;
     onDelete: (id: string, title: string) => void;
     onQuickRate: (itemId: string, rating: number) => void;
     onQuickIncrement?: (itemId: string) => void;
+    onReminder?: (item: MediaItem) => void;
 }) {
     const Icon = item.type === 'movie' ? Film : Tv;
 
@@ -225,6 +231,15 @@ function MediaCard({
                     </div>
                     {/* Mobile-friendly buttons - always visible on mobile, hover on desktop */}
                     <div className="flex gap-0.5 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
+                        {onReminder && (item.type === 'show' || item.type === 'anime') && (
+                            <button
+                                onClick={() => onReminder(item)}
+                                className="p-1.5 hover:bg-gray-800 rounded-lg transition-colors active:bg-gray-700"
+                                aria-label="Set reminder"
+                            >
+                                <Bell className="w-3.5 h-3.5 text-blue-400" />
+                            </button>
+                        )}
                         <button
                             onClick={() => onEdit(item)}
                             className="p-1.5 hover:bg-gray-800 rounded-lg transition-colors active:bg-gray-700"
@@ -400,6 +415,7 @@ export default function MediaTrackerPage() {
         itemId: string | null;
         itemTitle: string;
     }>({ show: false, itemId: null, itemTitle: '' });
+    const [reminderItem, setReminderItem] = useState<MediaItem | null>(null);
 
     useEffect(() => {
         fetchItems();
@@ -614,6 +630,7 @@ export default function MediaTrackerPage() {
                     onDelete={showDeleteConfirmation}
                     onQuickRate={handleQuickRate}
                     onQuickIncrement={handleQuickIncrement}
+                    onReminder={setReminderItem}
                     emptyMessage="No media currently watching. Start something from your plan to watch list!"
                 />
 
@@ -623,6 +640,7 @@ export default function MediaTrackerPage() {
                     onEdit={(item) => { setEditingItem(item); setShowAddModal(true); }}
                     onDelete={showDeleteConfirmation}
                     onQuickRate={handleQuickRate}
+                    onReminder={setReminderItem}
                     emptyMessage="Your plan to watch list is empty. Add some media to get started!"
                 />
 
@@ -632,6 +650,7 @@ export default function MediaTrackerPage() {
                     onEdit={(item) => { setEditingItem(item); setShowAddModal(true); }}
                     onDelete={showDeleteConfirmation}
                     onQuickRate={handleQuickRate}
+                    onReminder={setReminderItem}
                     emptyMessage="No completed media yet. Finish watching something!"
                 />
 
@@ -642,6 +661,7 @@ export default function MediaTrackerPage() {
                         onEdit={(item) => { setEditingItem(item); setShowAddModal(true); }}
                         onDelete={showDeleteConfirmation}
                         onQuickRate={handleQuickRate}
+                        onReminder={setReminderItem}
                         emptyMessage=""
                     />
                 )}
@@ -653,6 +673,7 @@ export default function MediaTrackerPage() {
                         onEdit={(item) => { setEditingItem(item); setShowAddModal(true); }}
                         onDelete={showDeleteConfirmation}
                         onQuickRate={handleQuickRate}
+                        onReminder={setReminderItem}
                         emptyMessage=""
                     />
                 )}
@@ -675,6 +696,13 @@ export default function MediaTrackerPage() {
                     setShowAddModal(false);
                     setEditingItem(null);
                 }}
+            />
+
+            {/* Reminder Modal */}
+            <ReminderModal
+                isOpen={reminderItem !== null}
+                onClose={() => setReminderItem(null)}
+                item={reminderItem}
             />
 
             {/* Delete Confirmation Modal */}

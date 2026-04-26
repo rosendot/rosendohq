@@ -47,3 +47,32 @@ export type MediaLogInsert = Omit<MediaLog, "id" | "created_at"> & {
   id?: string;
   created_at?: string;
 };
+
+// Media Reminder
+export interface MediaReminder {
+  id: string;
+  owner_id: string;
+  media_item_id: string;
+  day_of_week: number; // 0=Sun .. 6=Sat
+  time_of_day: string; // "HH:MM" or "HH:MM:SS"
+  timezone: string; // IANA tz, e.g. "America/New_York"
+  is_active: boolean;
+  last_sent_on: string | null; // YYYY-MM-DD in the row's timezone
+  created_at: string;
+  updated_at: string;
+}
+
+export type MediaReminderInsert = Omit<
+  MediaReminder,
+  "id" | "owner_id" | "created_at" | "updated_at" | "last_sent_on"
+> & {
+  id?: string;
+  owner_id?: string;
+  created_at?: string;
+  updated_at?: string;
+  last_sent_on?: string | null;
+};
+
+export type MediaReminderUpdate = Partial<
+  Omit<MediaReminder, "id" | "owner_id" | "created_at">
+>;

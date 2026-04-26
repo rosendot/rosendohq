@@ -40,6 +40,7 @@ All under `src/app/api/media/`:
 |-------|---------|
 | `media_item` | Movies, shows, and anime with type, status lifecycle, episode/season progress, platform, rating (1-5), start/completion dates |
 | `media_log` | Per-episode viewing log with date, progress (episode number), and optional note. FK to `media_item` |
+| `media_reminder` | Weekly Discord reminder for a `media_item`. Holds `day_of_week` (0=Sun..6=Sat), `time_of_day` (HH:MM), `timezone` (IANA), `is_active`, and `last_sent_on` (date in row's TZ — used to dedupe within a single local day) |
 
 ### Database Views
 
@@ -52,8 +53,8 @@ All under `src/app/api/media/`:
 Defined in `src/types/media.types.ts`:
 
 - **Enums**: `MediaType` (anime, show, movie), `MediaStatus` (planned, watching, completed, on_hold, dropped)
-- **Interfaces**: `MediaItem`, `MediaLog`
-- **Insert/Update types**: `MediaItemInsert` (omits id, created_at, updated_at), `MediaItemUpdate` (partial, omits id, owner_id, created_at), `MediaLogInsert` (omits id, created_at)
+- **Interfaces**: `MediaItem`, `MediaLog`, `MediaReminder`
+- **Insert/Update types**: `MediaItemInsert` (omits id, created_at, updated_at), `MediaItemUpdate` (partial, omits id, owner_id, created_at), `MediaLogInsert` (omits id, created_at), `MediaReminderInsert`, `MediaReminderUpdate`
 
 ## Key Patterns
 
@@ -68,3 +69,5 @@ Defined in `src/types/media.types.ts`:
 - `owner_id` is hardcoded in POST as a constant UUID
 - Touch swipe support on carousels for mobile (50px minimum swipe distance)
 - Cards are always visible on mobile (no hover-only actions), hover reveals edit/delete on desktop
+- **Discord watch reminders**: shows/anime cards have a Bell button that opens `ReminderModal` (`src/app/(app)/media/modals/ReminderModal.tsx`). Reminders are weekly (day_of_week + time_of_day + IANA timezone). Dispatch route `/api/media/reminders/dispatch` is POSTed by a GitHub Actions cron every 15 min (`.github/workflows/media-reminders.yml`) — protected by the `x-cron-secret` header. The dispatcher uses the Supabase service role key to read across users, computes each row's local time, posts to `DISCORD_REMINDER_WEBHOOK_URL`, and stamps `last_sent_on` to dedupe within the local day.
+- Required env vars for reminders: `SUPABASE_SERVICE_ROLE_KEY`, `DISCORD_REMINDER_WEBHOOK_URL`, `CRON_SECRET` on the Vercel deployment; `APP_URL` and `CRON_SECRET` as GitHub Actions secrets.

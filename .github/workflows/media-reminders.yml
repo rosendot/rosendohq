@@ -1,0 +1,31 @@
+name: Media Reminder Dispatch
+
+on:
+  schedule:
+    # Every 15 minutes — heartbeat for the dispatcher.
+    # Each reminder row has its own day_of_week + time_of_day in its own timezone.
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger dispatch route
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$APP_URL" ] || [ -z "$CRON_SECRET" ]; then
+            echo "::error::APP_URL or CRON_SECRET secret is not set"
+            exit 1
+          fi
+
+          response=$(curl --silent --show-error --fail \
+            --max-time 60 \
+            -X POST \
+            -H "x-cron-secret: $CRON_SECRET" \
+            -H "Content-Type: application/json" \
+            "$APP_URL/api/media/reminders/dispatch")
+
+          echo "Dispatch response: $response"
