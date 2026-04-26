@@ -310,59 +310,68 @@ Central hub providing an overview of all modules with quick stats, recent activi
 
 ### 6. Habits & Goals — **LIVE** ✅
 
-**Status:** Production-ready with full CRUD (30 habits, 0 logs, 0 goals)
+**Status:** Production-ready, habit-centric UX, mobile-first (30 habits, 0 logs, 0 goals)
 
 **Features:**
-* ✅ **Three-tab interface**: Habits, Goals, Manage
-* ✅ **Habits Tab** - Daily habit tracking with date navigation:
-  - Categories (Oral Care, Beard Care, Hair Care, Shower, Body Care, Supplements, Exercise, Mindfulness, Productivity, Other)
-  - Time-of-day organization (Morning, Midday, Evening)
-  - Progress bars showing completion
-  - Quick toggle (checkbox) for fast logging
-  - Detailed log button (...) for full entry
-  - Target values with units
-* ✅ **Manage Tab** - Habit management:
-  - View all habits with edit/delete buttons
-  - Active/inactive status toggle
-  - Schedule display (days of week)
-  - Category and time-of-day badges
+* ✅ **Two-tab interface**: Habits, Goals (Manage merged into Habits — edit/delete inline on each row)
+* ✅ **Habits Tab** — habit-centric master list (no date scrubbing):
+  - Sticky date header always shows today's date + today/week progress mini-bars
+  - Filter chips: All / Scheduled today / Done today / Pending today / Inactive (each with count badge)
+  - Habits grouped by category (Oral Care, Beard Care, Hair Care, Shower, Body Care, Supplements, Exercise, Mindfulness, Productivity, Other)
+  - Per row: name (links to detail page), cadence badge ("Daily" / "Every 3d"), period label (morning/midday/evening), streak (🔥), 14-day strip with weekday letters and today ringed in blue, edit / delete / log-details buttons
+  - Click any cell on the strip to mark that day done/undone (optimistic update, no refetch)
+* ✅ **Habit Detail Page** (`/habits/[habitId]`):
+  - 90-day GitHub-style heatmap with weekday labels, click cells to toggle
+  - Stats: current streak, longest streak (90d), completion %, total logs
+  - Recent logs list (last 30) with date / time / mood / note / value, edit any
+  - Inline "Log today" button
 * ✅ **Add/Edit Habit Modals**:
-  - Name, category, time of day
-  - Unit and target value
-  - Schedule picker (Mon-Sun toggle buttons)
+  - Name, category, period (morning/midday/evening)
+  - Unit + target_per_day
+  - **Repeat every N days** (single integer — 1 = daily, 2 = every other day, 7 = weekly)
   - Sort order for custom ordering
   - Active/inactive toggle (edit only)
-* ✅ **Habit Log Modal** with enhanced fields:
+* ✅ **Habit Log Modal**:
   - Value input with target display
   - Time of day picker
   - Mood selector (5 emoji scale: 😫😕😐🙂😄)
   - Note textarea
 * ✅ **Goal tracking** with full CRUD:
-  - Goal name, target value, unit
+  - Goal name, target value, unit, category
   - Progress tracking (current vs. target)
-  - Status buttons (Active, Completed, On Hold, Abandoned)
+  - Status (Active, Completed, On Hold, Abandoned)
   - Start date and due date
-  - **Progress source**: Manual or Habit-linked
-  - Habit dropdown when linked to habit
+  - **Progress source**: Manual or Habit-linked. Linked goals auto-sync `current_value` via DB triggers.
   - Auto-set completed_at when marking complete
+* ✅ **Mobile-first responsive**: stacked cards on phone (name/actions on top, strip on its own line), horizontal layout on desktop
 * ✅ Header buttons for Add Habit + Add Goal
 * ✅ Delete confirmation modals for both habits and goals
-* ✅ Stats section with completion summary
 
 **Database:** `habit`, `habit_log`, `goal`
+* `habit.every_n_days` (INT, default 1) + `habit.anchor_date` (DATE, default today) replaced the old `schedule` JSONB
+* `habit.period` replaced the old `habit.time_of_day` (disambiguated from `habit_log.time_of_day` which is a real Postgres `time`)
+* `habit.target_per_day` lifted out of the JSONB to a top-level numeric column
+
+**Triggers:**
+* `habit_log_sync_goal` — keeps `goal.current_value` in sync for habit-linked goals on log insert/update/delete
+* `goal_sync_on_link` — backfills `current_value` from existing logs when a goal is first linked to a habit
+
+**Indexes:**
+* `idx_habit_log_owner_date` — hot path for `?date=` lookups
+* `idx_habit_log_owner_habit` — for `?habit_id=` filter and goal-sync trigger
+* `idx_goal_owner_habit` (partial WHERE habit_id IS NOT NULL) — trigger goal lookup
 
 **API Endpoints:**
-* `GET/POST /api/habits` - Manage habits
-* `GET/PUT/DELETE /api/habits/[id]` - Individual habits
-* `GET/POST /api/habits/logs` - Habit logs (supports `?date=YYYY-MM-DD`)
-* `GET/PATCH/DELETE /api/habits/logs/[id]` - Individual logs
-* `GET/POST /api/habits/goals` - Goal management
-* `GET/PUT/DELETE /api/habits/goals/[id]` - Individual goals
+* `GET/POST /api/habits` — Manage habits. GET filters `is_active=true` by default; pass `?include_inactive=true` for all
+* `GET/PATCH/DELETE /api/habits/[id]` — Individual habits
+* `GET/POST /api/habits/logs` — Habit logs (`?date=YYYY-MM-DD`, `?start_date=...&end_date=...`, or `?habit_id=...`)
+* `GET/PATCH/DELETE /api/habits/logs/[id]` — Individual logs
+* `GET/POST /api/habits/goals` — Goal management
+* `GET/PATCH/DELETE /api/habits/goals/[id]` — Individual goals
 
 **Views:** `v_habit_daily_totals`, `v_goal_progress`
 
 **Remaining:**
-* [ ] Habit streak calculations
 * [ ] CSV import/export
 
 ---
@@ -852,9 +861,9 @@ Sentry DSN is configured in Sentry config files.
 * **Maintenance Records**: `vehicle,serviceDate,mileage,costCents,vendor,warrantyWork,notes`
 
 ### Habits & Goals
-* **Habits**: `name,unit,targetValue,category,timeOfDay,schedule`
-* **Logs**: `habit,logDate,value,note,timeOfDay,mood`
-* **Goals**: `name,targetValue,unit,dueDate,status,progressSource,habitId`
+* **Habits**: `name,unit,targetPerDay,targetValue,category,period,everyNDays,anchorDate,sortOrder,isActive`
+* **Logs**: `habit,logDate,value,note,timeOfDay,mood` (UNIQUE per habit per day)
+* **Goals**: `name,targetValue,currentValue,unit,startedAt,dueDate,completedAt,status,category,progressSource,habitId`
 
 ### Finance
 **Note:** Finance now uses automated CSV upload. See supported formats below:

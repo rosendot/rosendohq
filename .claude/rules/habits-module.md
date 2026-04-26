@@ -23,12 +23,12 @@ The Habits & Goals module tracks daily habits with completion logging, mood trac
 
 ### Page Layout — Habits Index
 
-1. **Sticky date header** — Always visible at the top of the page. Shows "Today" + the long-form date (e.g. "Saturday, April 25") plus a small `done / scheduled` progress bar. Stays in place as you scroll.
-2. **Stats row** — Active Habits count, This Week (7-day completion %), Active Goals.
+1. **Sticky date header** — Always visible at the top of the page. Shows "Today" + the long-form date plus two mini progress bars: `done/scheduled today` (violet) and `week %` (blue). Stays pinned as you scroll. No separate stats cards above the list — the header carries the summary.
+2. **Page header** — Title + Add Habit / Add Goal buttons. Stacks vertically on mobile.
 3. **Tabs** — Habits / Goals.
-4. **Filter chips (Habits tab)** — `All habits` (active only) / `Scheduled today` / `Done today` / `Pending today` / `Inactive`. Each chip has a count badge.
-5. **Habit rows** — Grouped by category. Each row: name (link to detail page) + cadence badge + period + inactive badge / streak / 14-day strip (click any cell to toggle, today's cell has a blue ring) / edit / delete / log-details buttons. There is no separate "today toggle" column — you click today's cell in the strip.
-6. **Goals tab** — Unchanged from before: cards with progress bars, status badges, due dates.
+4. **Filter chips (Habits tab)** — `All habits` (active only) / `Scheduled today` / `Done today` / `Pending today` / `Inactive`. Each chip has a count badge. Horizontally scrollable on mobile.
+5. **Habit rows** — Grouped by category. Each row: name (link to detail page) + cadence badge + period + inactive badge / streak / 14-day strip (click any cell to toggle, today's cell has a blue ring) / edit / delete / log-details buttons. There is no separate "today toggle" column — you click today's cell in the strip. On mobile the row stacks: name + actions on top, strip beneath.
+6. **Goals tab** — Cards with progress bars, status badges, due dates.
 
 ### Habit Detail Page Layout
 
@@ -73,6 +73,14 @@ Defined in `src/types/habits.types.ts`:
 | `v_habit_daily_totals` | Aggregates `habit_log` entries by owner, habit, and date — sums `value` per day. |
 | `v_goal_progress` | For each goal, returns `progress_value`. If `progress_source = 'habit'`, sums matching `habit_log.value`; otherwise returns `current_value`. |
 
+### Database Indexes
+
+| Index | Purpose |
+|-------|---------|
+| `idx_habit_log_owner_date` (owner_id, log_date) | Hot path for `?date=` lookups from the daily view |
+| `idx_habit_log_owner_habit` (owner_id, habit_id) | `?habit_id=` filter on the detail page + the goal-sync trigger's `SUM(value) WHERE habit_id` |
+| `idx_goal_owner_habit` (owner_id, habit_id) WHERE habit_id IS NOT NULL | Trigger lookup for habit-linked goals |
+
 ### Database Triggers
 
 | Trigger | Purpose |
@@ -87,7 +95,10 @@ Defined in `src/types/habits.types.ts`:
 - **Habit-centric main view**: there is no date picker. The index renders the full habit list and uses a 14-day window of logs to draw streaks and the strip per habit. One log fetch on mount; toggles are optimistic (no refetch).
 - **Detail page** uses a 90-day window per habit, fetched on mount with a `?habit_id=` filter.
 - **Recurrence is `every_n_days`**: 1 = daily, 2 = every other day, 7 = weekly. A habit shows on date D iff `(D - anchor_date) % every_n_days == 0`. No weekday bitmap, no JSONB.
-- **Mini-strip backfill**: clicking any cell in a habit's 7-day strip toggles that day's completion. Cells for non-scheduled days are visually muted and disabled.
+- **Mini-strip backfill**: clicking any cell in a habit's 14-day strip toggles that day's completion (optimistic, no refetch). Cells for non-scheduled days are visually muted and disabled.
+- **Schedule recurrence is symmetric around the anchor**: `isHabitScheduledOn` uses `Math.abs(daysBetween(date, anchor_date)) % every_n_days === 0`, so historical cells light up correctly even when the anchor is today.
+- **Mobile-first layout**: habit rows stack on mobile (name + actions on top, strip on its own line beneath) and go horizontal at `md:` breakpoint. Filter chips horizontally scroll on mobile; strip legend hides. Strip cells are `w-5` on mobile / `w-6` on desktop with tighter inter-cell gaps so 14 days fit on a phone width.
+- **Sticky header carries summary**: the page-level stats cards were removed; the sticky header shows today's done-count + week-completion-% mini-bars, always visible while scrolling.
 - **Streak**: walks backwards day-by-day from today, counting consecutive *scheduled* days completed. Today not being done yet does not break the streak.
 - **Period label** (`habit.period`) is a UI grouping — morning/midday/evening. Logs use `habit_log.time_of_day` (Postgres `time`) for the actual HH:MM stamp; the two columns no longer share a name.
 - **Habit-linked goals auto-sync**: do not write `current_value` from the client when `progress_source = 'habit'` — the trigger overwrites it.
