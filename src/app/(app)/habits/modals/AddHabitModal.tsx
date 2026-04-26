@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
 import BaseFormModal from "@/components/BaseFormModal";
-import type { Habit, HabitSchedule } from "@/types/habits.types";
+import type { Habit } from "@/types/habits.types";
 
 const CATEGORIES = [
   { value: "oral_care", label: "Oral Care" },
@@ -19,20 +19,10 @@ const CATEGORIES = [
   { value: "other", label: "Other" },
 ];
 
-const TIME_OF_DAY = [
+const PERIODS = [
   { value: "morning", label: "Morning" },
   { value: "midday", label: "Midday" },
   { value: "evening", label: "Evening" },
-];
-
-const DAYS_OF_WEEK = [
-  { value: 1, label: "Mon" },
-  { value: 2, label: "Tue" },
-  { value: 3, label: "Wed" },
-  { value: 4, label: "Thu" },
-  { value: 5, label: "Fri" },
-  { value: 6, label: "Sat" },
-  { value: 7, label: "Sun" },
 ];
 
 interface AddHabitModalProps {
@@ -48,24 +38,22 @@ export default function AddHabitModal({ isOpen, onClose, onSuccess }: AddHabitMo
   const [formData, setFormData] = useState({
     name: "",
     category: "",
-    time_of_day: "morning",
+    period: "morning",
     unit: "",
-    target_value: "",
     sort_order: "",
-    schedule_days: [1, 2, 3, 4, 5, 6, 7] as number[],
-    target_per_day: "",
+    every_n_days: "1",
+    target_per_day: "1",
   });
 
   const resetForm = () => {
     setFormData({
       name: "",
       category: "",
-      time_of_day: "morning",
+      period: "morning",
       unit: "",
-      target_value: "",
       sort_order: "",
-      schedule_days: [1, 2, 3, 4, 5, 6, 7],
-      target_per_day: "",
+      every_n_days: "1",
+      target_per_day: "1",
     });
     setError(null);
   };
@@ -75,34 +63,20 @@ export default function AddHabitModal({ isOpen, onClose, onSuccess }: AddHabitMo
     onClose();
   };
 
-  const toggleDay = (day: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      schedule_days: prev.schedule_days.includes(day)
-        ? prev.schedule_days.filter((d) => d !== day)
-        : [...prev.schedule_days, day].sort((a, b) => a - b),
-    }));
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
     try {
-      const schedule: HabitSchedule = {
-        days: formData.schedule_days,
-        target_per_day: formData.target_per_day ? parseFloat(formData.target_per_day) : null,
-      };
-
       const payload = {
         name: formData.name.trim(),
         category: formData.category || null,
-        time_of_day: formData.time_of_day || null,
+        period: formData.period || null,
         unit: formData.unit.trim() || null,
-        target_value: formData.target_value ? parseFloat(formData.target_value) : null,
         sort_order: formData.sort_order ? parseInt(formData.sort_order) : null,
-        schedule,
+        every_n_days: Math.max(1, parseInt(formData.every_n_days) || 1),
+        target_per_day: formData.target_per_day ? parseFloat(formData.target_per_day) : 1,
         is_active: true,
       };
 
@@ -156,7 +130,7 @@ export default function AddHabitModal({ isOpen, onClose, onSuccess }: AddHabitMo
         />
       </div>
 
-      {/* Category & Time of Day */}
+      {/* Category & Period */}
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-300">Category</label>
@@ -176,23 +150,23 @@ export default function AddHabitModal({ isOpen, onClose, onSuccess }: AddHabitMo
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-300">Time of Day</label>
+          <label className="mb-1 block text-sm font-medium text-gray-300">Period</label>
           <select
-            value={formData.time_of_day}
-            onChange={(e) => setFormData({ ...formData, time_of_day: e.target.value })}
+            value={formData.period}
+            onChange={(e) => setFormData({ ...formData, period: e.target.value })}
             className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
             disabled={loading}
           >
-            {TIME_OF_DAY.map((time) => (
-              <option key={time.value} value={time.value}>
-                {time.label}
+            {PERIODS.map((p) => (
+              <option key={p.value} value={p.value}>
+                {p.label}
               </option>
             ))}
           </select>
         </div>
       </div>
 
-      {/* Unit & Target Value */}
+      {/* Unit & Target per day */}
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-300">Unit (optional)</label>
@@ -221,28 +195,24 @@ export default function AddHabitModal({ isOpen, onClose, onSuccess }: AddHabitMo
         </div>
       </div>
 
-      {/* Schedule Days */}
+      {/* Repeat every N days */}
       <div>
-        <label className="mb-2 block text-sm font-medium text-gray-300">
-          Schedule (days of week)
+        <label className="mb-1 block text-sm font-medium text-gray-300">
+          Repeat every (days)
         </label>
-        <div className="flex gap-2">
-          {DAYS_OF_WEEK.map((day) => (
-            <button
-              key={day.value}
-              type="button"
-              onClick={() => toggleDay(day.value)}
-              className={`flex-1 rounded py-2 text-xs font-medium transition-all ${
-                formData.schedule_days.includes(day.value)
-                  ? "bg-violet-500 text-white"
-                  : "bg-gray-700 text-gray-400 hover:bg-gray-600"
-              }`}
-              disabled={loading}
-            >
-              {day.label}
-            </button>
-          ))}
-        </div>
+        <input
+          type="number"
+          min="1"
+          step="1"
+          value={formData.every_n_days}
+          onChange={(e) => setFormData({ ...formData, every_n_days: e.target.value })}
+          className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          placeholder="1 = daily, 2 = every other day, 7 = weekly"
+          disabled={loading}
+        />
+        <p className="mt-1 text-xs text-gray-500">
+          1 = daily · 2 = every other day · 7 = weekly. Counted from today.
+        </p>
       </div>
 
       {/* Sort Order */}

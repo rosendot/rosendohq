@@ -1,9 +1,4 @@
 // Habits & Goals Types
-export interface HabitSchedule {
-  days: number[];
-  target_per_day: number | null;
-}
-
 export interface Habit {
   id: string;
   owner_id: string;
@@ -12,9 +7,11 @@ export interface Habit {
   target_value: number | null;
   is_active: boolean | null;
   category: string | null;
-  time_of_day: string | null;
+  period: string | null;
   sort_order: number | null;
-  schedule: HabitSchedule | null;
+  every_n_days: number;
+  target_per_day: number | null;
+  anchor_date: string;
   created_at: string;
 }
 

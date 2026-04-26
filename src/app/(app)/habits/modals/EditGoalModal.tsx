@@ -198,15 +198,22 @@ export default function EditGoalModal({
       {/* Progress */}
       <div className="grid grid-cols-3 gap-3">
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-300">Current</label>
+          <label className="mb-1 block text-sm font-medium text-gray-300">
+            Current{formData.progress_source === "habit" && " (auto)"}
+          </label>
           <input
             type="number"
             min="0"
             step="any"
             value={formData.current_value}
             onChange={(e) => setFormData({ ...formData, current_value: e.target.value })}
-            className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-60"
             disabled={loading || formData.progress_source === "habit"}
+            title={
+              formData.progress_source === "habit"
+                ? "Auto-synced from linked habit's logs"
+                : undefined
+            }
           />
         </div>
 

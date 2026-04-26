@@ -2,15 +2,23 @@
 import { NextResponse } from 'next/server';
 import { createClient } from "@/lib/supabase/server";
 
-export async function GET() {
+export async function GET(request: Request) {
     const supabase = await createClient();
-    const { data, error } = await supabase
+    const { searchParams } = new URL(request.url);
+    const includeInactive = searchParams.get('include_inactive') === 'true';
+
+    let query = supabase
         .from('habit')
         .select('*')
-        .eq('is_active', true)
         .order('category', { ascending: true })
-        .order('time_of_day', { ascending: true })
+        .order('period', { ascending: true })
         .order('sort_order', { ascending: true });
+
+    if (!includeInactive) {
+        query = query.eq('is_active', true);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
         return NextResponse.json({ error: error.message }, { status: 500 });

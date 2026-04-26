@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import { Save } from "lucide-react";
 import BaseFormModal from "@/components/BaseFormModal";
-import type { Habit, HabitLog, HabitSchedule } from "@/types/habits.types";
+import type { Habit, HabitLog } from "@/types/habits.types";
 
 const MOOD_OPTIONS = [
   { value: 1, label: "\u{1F62B}", description: "Terrible" },
@@ -43,8 +43,7 @@ export default function HabitLogModal({
 
   useEffect(() => {
     if (habit) {
-      const schedule = habit.schedule as HabitSchedule | null;
-      const targetValue = schedule?.target_per_day || habit.target_value || 1;
+      const targetValue = habit.target_per_day || habit.target_value || 1;
 
       if (existingLog) {
         setFormData({
@@ -114,8 +113,7 @@ export default function HabitLogModal({
 
   if (!habit) return null;
 
-  const schedule = habit.schedule as HabitSchedule | null;
-  const targetValue = schedule?.target_per_day || habit.target_value || 1;
+  const targetValue = habit.target_per_day || habit.target_value || 1;
 
   return (
     <BaseFormModal
