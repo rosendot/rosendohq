@@ -72,7 +72,7 @@ function nextFireMs(r: MediaReminder, now: Date = new Date()): number {
         const targetMin = parseInt(th) * 60 + parseInt(tm);
 
         let dayDiff = (r.day_of_week - localDow + 7) % 7;
-        let minDiff = targetMin - localMin;
+        const minDiff = targetMin - localMin;
         if (dayDiff === 0 && minDiff <= 0) dayDiff = 7;
         return dayDiff * 86_400_000 + minDiff * 60_000;
     } catch {
