@@ -11,15 +11,16 @@ Create a git commit for the current changes.
    - Files in the session list that are clean → mention this and skip
 3. If you cannot confidently attribute a dirty file to this session, ask the user before staging it. Do not guess.
 4. Run `git diff -- <session-files>` to review the changes you're about to commit.
-5. Run `git log --oneline -5` to see recent commit message style.
-6. Analyze the staged changes and draft a concise commit message:
+5. **Run the `sync-docs` skill against the session files.** It inspects the diff and decides whether any documentation (`README.md`, `CLAUDE.md`, `.claude/rules/<module>-module.md`) needs updates. If it edits anything, those doc files become part of this commit. If it returns "No doc updates needed," continue with no extra files. See `.claude/skills/sync-docs/SKILL.md` for what triggers an update.
+6. Run `git log --oneline -5` to see recent commit message style.
+7. Analyze the staged changes and draft a concise commit message:
    - Summarize the nature of the changes (new feature, bug fix, refactor, etc.)
    - Focus on the "why" not the "what"
    - Keep it to 1-2 sentences
    - Do NOT commit files that contain secrets (.env, credentials, tokens)
-7. **Do NOT run `npm run build`** — the user keeps `npm run dev` running continuously, and a parallel `next build` on Windows fights the dev server over the `.next` directory, leaving orphaned processes and EPERM errors. Skip build verification entirely; type errors will surface in the dev server.
-8. Stage the session files by name (NEVER `git add .` or `git add -A` — these would sweep up unrelated work from other sessions).
-9. Commit using a HEREDOC for the message:
+8. **Do NOT run `npm run build`** — the user keeps `npm run dev` running continuously, and a parallel `next build` on Windows fights the dev server over the `.next` directory, leaving orphaned processes and EPERM errors. Skip build verification entirely; type errors will surface in the dev server.
+9. Stage the session files plus any doc files `sync-docs` edited (by name — NEVER `git add .` or `git add -A`).
+10. Commit using a HEREDOC for the message:
 
 ```
 git commit -m "$(cat <<'EOF'
