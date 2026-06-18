@@ -35,25 +35,26 @@ src/
 │   │   ├── books/          # Reading tracker API
 │   │   ├── car/            # Car tracker API
 │   │   ├── habits/         # Habits & Goals API
-│   │   ├── finance/        # Finance API
 │   │   ├── house/          # House tracker API
 │   │   ├── recipes/        # Recipes API
 │   │   └── nutrition/      # Nutrition API
-│   ├── dashboard/          # Central hub
-│   ├── shopping/           # Shopping lists
-│   ├── wishlist/           # Wishlist
-│   ├── media/              # Media tracker
-│   ├── reading/            # Reading tracker
-│   ├── car/                # Car tracker
-│   ├── habits/             # Habits & Goals
-│   ├── finance/            # Finance
-│   ├── house/              # House tracker
-│   ├── recipes/            # Recipes & cook log
-│   ├── inventory/          # Inventory (UI only)
-│   ├── notes/              # Notes (UI only)
-│   ├── travel/             # Travel planner (UI only)
-│   ├── nutrition/          # Nutrition tracker
-│   ├── layout.tsx          # Root layout with sidebar
+│   ├── (app)/              # Authenticated route group (shared sidebar layout)
+│   │   ├── dashboard/      # Central hub
+│   │   ├── shopping/       # Shopping lists
+│   │   ├── wishlist/       # Wishlist
+│   │   ├── media/          # Media tracker
+│   │   ├── reading/        # Reading tracker
+│   │   ├── car/            # Car tracker
+│   │   ├── habits/         # Habits & Goals
+│   │   ├── house/          # House tracker
+│   │   ├── recipes/        # Recipes & cook log
+│   │   ├── inventory/      # Inventory
+│   │   ├── notes/          # Notes (Vault)
+│   │   ├── travel/         # Travel planner
+│   │   ├── nutrition/      # Nutrition tracker
+│   │   ├── layout.tsx      # Authenticated layout with sidebar
+│   │   └── page.tsx        # Redirects to /dashboard
+│   ├── login/              # Login page (unauthenticated)
 │   └── page.tsx            # Redirects to /dashboard
 ├── components/             # Reusable UI components
 │   ├── Sidebar.tsx         # Navigation sidebar
@@ -62,7 +63,6 @@ src/
 │   └── dashboard/          # Dashboard components
 ├── lib/                    # Utilities and helpers
 │   ├── supabase/client.ts  # Supabase client
-│   ├── finance/csv-importers/  # CSV import utilities
 │   └── dashboard-utils.ts
 └── types/
     ├── wishlist.types.ts   # Wishlist types
@@ -81,14 +81,14 @@ src/
 
 ## Modules
 
-### Live (Backend Connected)
+All modules are live and backend-connected (Supabase + RLS). Finance is intentionally not part of this app — personal finances are handled in Monarch.
+
 - **Shopping Lists** — Multiple lists, category grouping, priority rating, bulk operations
 - **Wishlist** — Status tracking, quick actions, multi-currency pricing
 - **Media Tracker** — Movies, TV, Anime with episode/season tracking and platform badges
 - **Car Tracker** — Tabbed: Dashboard, Maintenance, Fuel, Tires, Incidents
 - **Reading Tracker** — Book detail pages, reading logs, highlights
 - **Habits & Goals** — Daily tracking with mood/time, goal linking
-- **Finance** — Multi-source CSV import pipeline with automated normalization triggers
 - **House Tracker** — Property management, maintenance, supplies, appliances, utilities, projects
 - **Recipes** — Library + detail pages, structured ingredients, steps, cook log, shopping integration
 - **Inventory** — Personal possessions tracker with category, location, and value tracking
@@ -111,15 +111,13 @@ src/
 
 - 34+ tables across all modules in Supabase (Postgres)
 - 14+ views for optimized queries
-- Finance uses a three-tier pipeline: raw CSV tables → `finance_normalized` → `transaction`
-- Database triggers handle automatic normalization for 6 bank/card CSV formats
 - Shared infrastructure: `tag`/`tag_map` system, `file` table, import/export tables
 
 ## Design System
 
 - Dark theme, color-coded modules, responsive layouts
 - Mobile: swipeable sidebar drawer, touch-friendly buttons, explicit Select button for bulk operations
-- Sidebar groups: Overview, Shopping & Lists, Home & Assets, Finance & Health, Personal Growth, Planning
+- Sidebar groups: Overview, Shopping & Lists, Home & Assets, Personal Growth, Planning
 
 ## Environment Variables
 

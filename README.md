@@ -50,12 +50,11 @@ A comprehensive full-stack application for managing all aspects of personal life
 ## 📱 Application Features
 
 ### 🏠 Dashboard (`/dashboard`)
-Central hub providing an overview of all modules with quick stats, recent activity, and upcoming items.
+Central hub providing an overview of all modules with quick stats, upcoming items, and a module navigation grid.
 
 **Components:**
-* Module grid with 13 color-coded cards
+* Module grid with color-coded cards
 * QuickStats component for key metrics
-* RecentActivity feed
 * UpcomingItems timeline
 
 ---
@@ -376,68 +375,7 @@ Central hub providing an overview of all modules with quick stats, recent activi
 
 ---
 
-## 🟡 Frontend Complete (Mock Data Only)
-
-The following modules have fully functional UIs but are using mock data and need backend integration:
-
-### 7. Finance — **LIVE** ✅
-
-**Status:** Production-ready with automated CSV import pipeline
-
-**Features:**
-* ✅ Multi-account management:
-  - Add accounts via modal form (name, type, institution, currency)
-  - Support for checking, savings, credit, investment, and loan accounts
-  - Real-time account list with type icons
-* ✅ Automated CSV upload system:
-  - Support for 6 different CSV formats (Capital One 360 Checking/Savings, Savor, Venture X, Chase Amazon, Discover IT)
-  - Upload modal with account selection and source type dropdown
-  - Automatic normalization of different CSV formats into unified structure
-  - Database triggers for automatic processing (raw → normalized → transaction)
-  - No deduplication (imports all transactions as-is)
-* ✅ Transaction tracking with real-time API:
-  - Monthly filtering with accurate date range handling
-  - Category and account joins for rich transaction data
-  - Income/expense calculations in Quick Stats sidebar
-  - Spending breakdown by category
-* ✅ Three-tier data pipeline:
-  - **Raw tables**: Store original CSV data unchanged (6 separate tables for different sources)
-  - **finance_normalized**: Unified transaction format from all sources
-  - **transaction**: Final transaction table powering the UI
-* ✅ Upload batch tracking with metadata
-* ✅ Month selector with dynamic date calculations
-* ✅ Real-time transaction display with all data
-
-**Database:** `account`, `category`, `transaction`, `merchant`, `subscription`, `transfer`, `import_run`, `import_error`, `import_mapping_preset`, `csv_upload_batch`, `raw_capital_one_360_checking`, `raw_capital_one_360_savings`, `raw_capital_one_savor`, `raw_capital_one_venture_x`, `raw_chase_amazon`, `raw_discover_it`, `finance_normalized`
-
-**API Endpoints:**
-* `GET /api/finance/accounts` - List all accounts
-* `POST /api/finance/accounts` - Create new account
-* `GET /api/finance/transactions?month=YYYY-MM` - Get transactions by month
-* `GET /api/finance/categories` - List all categories
-* `POST /api/finance/csv-upload` - Upload and process CSV files
-
-**Views:** `v_spend_by_month`
-
-**Database Triggers:**
-* `normalize_capital_one_360_checking()` - Auto-normalize checking CSV
-* `normalize_capital_one_360_savings()` - Auto-normalize savings CSV
-* `normalize_capital_one_savor()` - Auto-normalize Savor credit card CSV
-* `normalize_capital_one_venture_x()` - Auto-normalize Venture X credit card CSV
-* `normalize_chase_amazon()` - Auto-normalize Chase Amazon CSV
-* `normalize_discover_it()` - Auto-normalize Discover IT CSV
-* `auto_import_to_transaction()` - Auto-import normalized data to transaction table
-
-**Remaining:**
-* [ ] Enable smart deduplication (currently disabled for testing)
-* [ ] Category auto-assignment based on merchant patterns
-* [ ] Budget tracking UI
-* [ ] Transaction editing/categorization
-* [ ] Export functionality
-
----
-
-### 8. House Tracker — **LIVE** ✅
+### 7. House Tracker — **LIVE** ✅
 
 **Status:** Production-ready with 1 property, 7 areas, 6 chore templates
 
@@ -490,66 +428,79 @@ The following modules have fully functional UIs but are using mock data and need
 
 ---
 
-### 9. Inventory — **UI COMPLETE** 🔴
+### 8. Inventory — **LIVE** ✅
 
-**Frontend Features:**
-* Item grid with images
-* Category and location filtering
-* Total value calculations
-* Purchase date and quantity tracking
-* Search functionality
+**Features:**
+* ✅ Item grid with images
+* ✅ Category and location filtering
+* ✅ Total value calculations
+* ✅ Purchase date and quantity tracking
+* ✅ Search functionality
 
-**Database Ready:** `inventory_item`
+**Database:** `inventory_item`
 
-**Backend Needed:**
-* [ ] API routes and Supabase integration
-* [ ] Value aggregation queries
+**API Endpoints:**
+* `GET/POST /api/inventory` - List and create items (supports `?search=*`, `?category=*`, `?location=*`)
+* `GET/PATCH/DELETE /api/inventory/[id]` - Individual item operations
+
+**Remaining:**
 * [ ] CSV import/export
 
 ---
 
-### 10. Notes / Knowledge Base — **UI COMPLETE** 🔴
+### 9. Notes / Knowledge Base — **LIVE** ✅
 
-**Frontend Features:**
-* Note list with grid view
-* Real-time search
-* Tag-based filtering
-* Markdown editor support
-* Created/updated timestamps
-* Favorite notes
+**Features:**
+* ✅ Note list with grid view
+* ✅ Real-time search
+* ✅ Tag-based filtering
+* ✅ Markdown editor support
+* ✅ Created/updated timestamps
+* ✅ Pinned notes
 
-**Database Ready:** `note` (with full-text search)
+**Database:** `note` (with full-text search)
 
-**Views Ready:** `note_search`
+**Views:** `note_search`
 
-**Backend Needed:**
-* [ ] API routes and Supabase integration
-* [ ] Full-text search integration
-* [ ] Tag management system
+**API Endpoints:**
+* `GET/POST /api/notes` - List and create notes (supports `?search=*`, `?category=*`)
+* `GET/PATCH/DELETE /api/notes/[id]` - Individual note operations
+
+**Remaining:**
 * [ ] Markdown/CSV import/export
 
 ---
 
-### 11. Travel Planner — **UI COMPLETE** 🔴
+### 10. Travel Planner — **LIVE** ✅
 
-**Frontend Features:**
-* Trip management with status (Planning, Upcoming, Active, Completed, Cancelled)
-* Itinerary timeline with event types
-* Journal entries with date tracking
-* Countdown to upcoming trips
-* Location and date range tracking
+**Features:**
+* ✅ Trip management with status (Planning, Upcoming, Active, Completed)
+* ✅ Itinerary timeline with event types
+* ✅ Packing checklist with progress tracking
+* ✅ Expense tracking
+* ✅ Document storage
+* ✅ Journal entries with date tracking
+* ✅ Location and date range tracking
 
-**Database Ready:** `trip`, `itinerary_item`, `trip_entry`
+**Database:** `trip`, `itinerary_item`, `trip_entry`, `trip_packing_item`, `trip_expense`, `trip_document`
 
-**Backend Needed:**
-* [ ] API routes for trips, itinerary, entries
-* [ ] Supabase client integration
-* [ ] Countdown calculations
+**Views:** `v_trip_expense_summary`, `v_trip_checklist_progress`
+
+**API Endpoints:**
+* `GET/POST /api/travel/trips` - List and create trips
+* `GET/PATCH/DELETE /api/travel/trips/[id]` - Individual trip operations
+* `GET/POST /api/travel/trips/[id]/itinerary` - Itinerary items
+* `GET/POST /api/travel/trips/[id]/packing` - Packing items
+* `GET/POST /api/travel/trips/[id]/expenses` - Expenses
+* `GET/POST /api/travel/trips/[id]/documents` - Documents
+* `GET/POST /api/travel/trips/[id]/entries` - Journal entries
+
+**Remaining:**
 * [ ] CSV import/export
 
 ---
 
-### 12. Nutrition Tracker — **COMPLETE** 🟢
+### 11. Nutrition Tracker — **COMPLETE** 🟢
 
 **Features:**
 * Daily macro tracking (Calories, Protein, Carbs, Fat) per entry
@@ -572,13 +523,12 @@ The following modules have fully functional UIs but are using mock data and need
 
 ### Navigation
 * **Responsive Sidebar** with:
-  - 6 grouped navigation sections:
+  - 5 grouped navigation sections:
     1. Overview (Dashboard)
     2. Shopping & Lists (Shopping, Wishlist)
-    3. Home & Assets (Car, House, Inventory)
-    4. Finance & Health (Finance, Nutrition)
-    5. Personal Growth (Habits, Reading, Media)
-    6. Planning (Travel, Notes)
+    3. Home & Assets (House, Inventory, Car)
+    4. Personal Growth (Library/Reading, Media, Habits & Goals, Recipes, Nutrition)
+    5. Planning (Travel, Notes)
   - Desktop: Hover to expand labels
   - Mobile: Swipeable drawer (left-edge swipe to open, swipe-left to close)
   - Active route highlighting with purple accent
@@ -628,13 +578,6 @@ All tables created and ready. 15 actively used, 15+ ready for future features.
 **Habits & Goals:**
 * `habit`, `habit_log`, `goal`
 
-**Finance:**
-* `account`, `category`, `transaction`, `merchant`, `subscription`, `transfer`
-* `import_run`, `import_error`, `import_mapping_preset`
-* `csv_upload_batch` (upload tracking)
-* `finance_normalized` (unified transaction format)
-* Raw CSV tables: `raw_capital_one_360_checking`, `raw_capital_one_360_savings`, `raw_capital_one_savor`, `raw_capital_one_venture_x`, `raw_chase_amazon`, `raw_discover_it`
-
 **Travel:**
 * `trip`, `itinerary_item`, `trip_entry`
 
@@ -657,7 +600,6 @@ Materialized views for optimized queries:
 * `v_reading_pace_week`
 * `v_habit_daily_totals`
 * `v_goal_progress`
-* `v_spend_by_month`
 * `v_home_maintenance_next_due`
 * `v_home_supply_usage_month`
 * `v_daily_macros`
@@ -674,7 +616,6 @@ Materialized views for optimized queries:
 * **Car Tracker**: 1 vehicle, 15 templates, 2 records, 1 odometer log
 * **Reading Tracker**: 2 books
 * **Habits**: Backend connected, needs data entry
-* **Finance**: 1 account (360 Checking), 37 transactions imported
 * **House Tracker**: 1 property (Brellon Townhome), 7 areas, 6 chore templates
 
 **Total Items Tracked**: 265+ across all modules
@@ -690,40 +631,27 @@ Materialized views for optimized queries:
 * [ ] Populate Habits & Goals with daily tracking
 * [ ] Implement CSV import/export for active modules
 
-### Priority 2: Expand Finance Module ✅ (In Progress)
-* [✅] CSV upload system with multi-source support
-* [✅] Automated normalization pipeline
-* [✅] Transaction display with category breakdown
-* [ ] Import remaining account CSVs (Savings, Credit Cards)
-* [ ] Enable smart deduplication
-* [ ] Category auto-assignment logic
-* [ ] Budget tracking UI
-* [ ] Transaction editing/categorization
-
-### Priority 3: Connect Next Backend Module
+### Priority 2: Connect Next Backend Module
 * [✅] **House** - Maintenance and supply tracking (COMPLETE)
 * [✅] **Nutrition** - Daily macro tracking (COMPLETE)
 
-### Priority 4: Import/Export Framework
-* [✅] Build CSV upload interface with account/source selection
-* [✅] Automated normalization with database triggers
-* [✅] Batch upload tracking with csv_upload_batch table
+### Priority 3: Import/Export Framework
 * [ ] Implement validation and preview before import
 * [ ] Create "Export All" functionality
 * [ ] Add detailed error handling and reporting
 
-### Priority 5: Dashboard Integration
+### Priority 4: Dashboard Integration
 * [ ] Connect dashboard stats to real data across modules
 * [ ] Build recent activity feed aggregation
 * [ ] Implement upcoming items timeline
 * [ ] Add global search across all modules
 
-### Priority 6: Advanced Features
+### Priority 5: Advanced Features
 * [ ] Real-time collaboration on shared lists
 * [ ] Mobile app with offline support
 * [ ] Barcode scanning for shopping/inventory
 * [ ] Recipe integration with shopping lists
-* [ ] Analytics dashboards for spending, habits, media consumption
+* [ ] Analytics dashboards for habits and media consumption
 * [ ] API integrations (delivery services, streaming platforms)
 
 ---
@@ -754,11 +682,10 @@ rosendohq/
 │   │   │   └── components/       # Tab components (Dashboard, Maintenance, Fuel, Tires, Incidents)
 │   │   ├── reading/              # Reading tracker module
 │   │   ├── habits/               # Habits & Goals module
-│   │   ├── finance/              # Finance module (UI only)
-│   │   ├── house/                # House tracker (UI only)
-│   │   ├── inventory/            # Inventory (UI only)
-│   │   ├── notes/                # Notes/KB (UI only)
-│   │   ├── travel/               # Travel planner (UI only)
+│   │   ├── house/                # House tracker module
+│   │   ├── inventory/            # Inventory module
+│   │   ├── notes/                # Notes/KB module
+│   │   ├── travel/               # Travel planner module
 │   │   ├── nutrition/            # Nutrition tracker
 │   │   ├── api/                  # API routes
 │   │   │   ├── shopping/         # Shopping API
@@ -767,7 +694,6 @@ rosendohq/
 │   │   │   ├── books/            # Books API
 │   │   │   ├── car/              # Car API
 │   │   │   ├── habits/           # Habits API
-│   │   │   ├── finance/          # Finance API
 │   │   │   └── house/            # House Tracker API
 │   │   ├── layout.tsx            # Root layout with sidebar
 │   │   └── page.tsx              # Home page
@@ -809,16 +735,6 @@ Sentry DSN is configured in Sentry config files.
 
 **Latest Features (Last 30 commits):**
 * **Habits & Goals Overhaul**: Full CRUD with Add/Edit/Delete modals, enhanced logging with mood/time/notes, goal status management with habit-linking
-* **Finance Module Launch**: Complete CSV import pipeline with automated normalization
-* Account management: Add accounts via modal form (checking, savings, credit, etc.)
-* Multi-source CSV support (6 different bank/card formats)
-* Database triggers for automatic raw → normalized → transaction flow
-* Upload modal with account and source selection
-* Month selector with dynamic date calculations
-* Transaction display with category breakdown and spending analysis
-* Quick Stats sidebar with monthly income, expenses, and net income
-* Fixed date range queries for all month lengths
-* Removed top summary badges for cleaner UI
 * Refined UI spacing and sizing for media and shopping pages
 * Removed stats sections for cleaner page layouts
 * Refactored BookCard action buttons UI
@@ -865,29 +781,6 @@ Sentry DSN is configured in Sentry config files.
 * **Logs**: `habit,logDate,value,note,timeOfDay,mood` (UNIQUE per habit per day)
 * **Goals**: `name,targetValue,currentValue,unit,startedAt,dueDate,completedAt,status,category,progressSource,habitId`
 
-### Finance
-**Note:** Finance now uses automated CSV upload. See supported formats below:
-
-**Capital One 360 Checking/Savings CSV Format:**
-* Headers: `Account Number,Transaction Description,Transaction Date,Transaction Type,Transaction Amount,Balance`
-* Date format: MM/DD/YY
-* Transaction Type: Credit or Debit
-
-**Capital One Savor/Venture X CSV Format:**
-* Headers: `Transaction Date,Posted Date,Card No.,Description,Category,Debit,Credit`
-* Date format: YYYY-MM-DD
-* Amounts in Debit or Credit columns (one will be empty)
-
-**Chase Amazon CSV Format:**
-* Headers: `Transaction Date,Post Date,Description,Category,Type,Amount,Memo`
-* Date format: MM/DD/YYYY
-* Amount is signed (negative for expenses)
-
-**Discover IT CSV Format:**
-* Headers: `Trans. Date,Post Date,Description,Amount,Category`
-* Date format: MM/DD/YYYY
-* Amount is signed (negative for expenses)
-
 ### House
 * **Properties**: `name,address1,city,state,postalCode,country`
 * **Areas**: `property,name,type,notes`
@@ -914,7 +807,7 @@ Sentry DSN is configured in Sentry config files.
 
 ## 🎯 Project Goals
 
-**Primary Objective**: Build a comprehensive personal life management system that consolidates shopping, media tracking, reading, habits, finances, and more into a single, unified platform.
+**Primary Objective**: Build a comprehensive personal life management system that consolidates shopping, media tracking, reading, habits, and more into a single, unified platform.
 
 **Core Principles**:
 * **Privacy-first**: Self-hosted with full data ownership
