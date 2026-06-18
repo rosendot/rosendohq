@@ -16,10 +16,10 @@ The Recipes module is a personal cooking library with structured ingredient trac
 
 ### Modals
 
-All modals are inline in their respective page files (no separate modal component files):
-- **Add Recipe** — in `page.tsx` (library). Title, category, difficulty, servings, prep/cook time, cuisine, status, source URL, description
-- **Log a Cook** — in `[recipeId]/page.tsx`. Date, star rating, servings made, free-text notes (the iteration journal)
-- **Add to Shopping List** — in `[recipeId]/page.tsx`. Dropdown of existing shopping lists; confirms before bulk-inserting all ingredients
+All modals live in `src/app/(app)/recipes/modals/`:
+- **Add Recipe** (`AddRecipeModal.tsx`) — opened from the library page. Title, category, difficulty, servings, prep/cook time, cuisine, status, source URL, description
+- **Log a Cook** (`CookLogModal.tsx`) — opened from the detail page. Date, star rating, servings made, free-text notes (the iteration journal)
+- **Add to Shopping List** (`SendToShoppingModal.tsx`) — opened from the detail page. Dropdown of existing shopping lists; confirms before bulk-inserting all ingredients
 
 ### API Routes
 

@@ -75,6 +75,6 @@ Defined in `src/types/reading.types.ts`:
 - Reading logs use nested route (`/api/books/[id]/logs/`) for creation but flat route (`/api/books/logs/[logId]/`) for update/delete
 - Sort options: date (asc/desc), title (asc/desc), author (asc), rating (asc/desc), progress (asc/desc)
 - Status filter triggers a re-fetch from API (server-side filter), but search is client-side only
-- `owner_id` hardcoded in log POST as a constant UUID
+- `owner_id` is set automatically via the DB default (`auth.uid()`) — not sent from the client
 - Book cards use gradient placeholder covers (blue-to-purple) since no cover image support
 - Similar carousel pattern to media module but without touch swipe support

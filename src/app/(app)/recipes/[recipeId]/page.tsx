@@ -36,6 +36,7 @@ import type {
 import DeleteConfirmationModal from "@/components/DeleteConfirmationModal";
 import CookLogModal from "../modals/CookLogModal";
 import SendToShoppingModal from "../modals/SendToShoppingModal";
+import { STATUS_COLORS } from "../shared";
 
 const CATEGORIES = ["breakfast", "lunch", "dinner", "snack", "dessert", "sauce", "marinade", "other"];
 const DIFFICULTIES: RecipeDifficulty[] = ["easy", "medium", "hard"];
@@ -49,11 +50,6 @@ const DIFFICULTY_COLORS: Record<RecipeDifficulty, string> = {
   easy: "bg-emerald-900/50 text-emerald-400",
   medium: "bg-amber-900/50 text-amber-400",
   hard: "bg-red-900/50 text-red-400",
-};
-const STATUS_COLORS: Record<RecipeStatus, string> = {
-  want_to_try: "bg-blue-900/50 text-blue-400",
-  tried: "bg-violet-900/50 text-violet-400",
-  regular_rotation: "bg-emerald-900/50 text-emerald-400",
 };
 
 function formatTime(minutes: number | null): string {

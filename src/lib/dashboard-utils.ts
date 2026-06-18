@@ -107,11 +107,3 @@ export const modules: ModuleCard[] = [
         description: 'Home maintenance'
     }
 ];
-
-export function getModuleStats() {
-    return {
-        total: modules.length,
-        completed: modules.length,
-        inProgress: 0
-    };
-}

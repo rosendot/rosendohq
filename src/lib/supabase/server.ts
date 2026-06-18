@@ -20,24 +20,3 @@ export async function createClient() {
     },
   });
 }
-
-/**
- * Returns the Supabase client and the authenticated user.
- * Throws a Response with 401 if the user is not authenticated.
- */
-export async function getAuthenticatedClient() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
-
-  if (error || !user) {
-    throw new Response(JSON.stringify({ error: "Unauthorized" }), {
-      status: 401,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-
-  return { supabase, user };
-}

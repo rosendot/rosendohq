@@ -66,7 +66,7 @@ Defined in `src/types/media.types.ts`:
 - Season tracking: `current_season`/`total_seasons` for multi-season shows, `episodes_in_season` for per-season progress bar
 - Optimistic-style updates: after PATCH/POST/DELETE, updates local state directly instead of refetching all items
 - `media_log` table exists but is not used in the frontend — no episode logging UI
-- `owner_id` is hardcoded in POST as a constant UUID
+- `owner_id` is set automatically via the DB default (`auth.uid()`) — not sent from the client
 - Touch swipe support on carousels for mobile (50px minimum swipe distance)
 - Cards are always visible on mobile (no hover-only actions), hover reveals edit/delete on desktop
 - **Discord watch reminders**: shows/anime cards have a Bell button that opens `ReminderModal` (`src/app/(app)/media/modals/ReminderModal.tsx`). Reminders are weekly (day_of_week + time_of_day + IANA timezone). Dispatch route `/api/media/reminders/dispatch` is POSTed by a GitHub Actions cron every 15 min (`.github/workflows/media-reminders.yml`) — protected by the `x-cron-secret` header. The dispatcher uses the Supabase service role key to read across users, computes each row's local time, posts to `DISCORD_REMINDER_WEBHOOK_URL`, and stamps `last_sent_on` to dedupe within the local day.

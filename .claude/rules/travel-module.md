@@ -82,4 +82,4 @@ Defined in `src/types/travel.types.ts`:
 - Emerald/green theme for most tabs, violet/purple for journal tab
 - Status badges color-coded: planning=blue, upcoming=emerald, active=violet, completed=gray
 - Itinerary types have Lucide icon components and color-coded backgrounds per type
-- `owner_id` hardcoded as constant in POST requests
+- `owner_id` is set automatically via the DB default (`auth.uid()`) — not sent from the client

@@ -101,7 +101,7 @@ All modules are live and backend-connected (Supabase + RLS). Finance is intentio
 - Path alias: `@/*` → `./src/*`
 - API routes are RESTful in `src/app/api/`
 - Supabase client: `src/lib/supabase/client.ts`
-- Database types auto-generated: `src/types/database.types.ts`
+- Types are hand-written per module in `src/types/<module>.types.ts` (no generated `database.types.ts`)
 - Use `"use client"` directive only where needed
 - Dark theme with `gray-950` background
 - Modal-based forms for add/edit, confirmation dialogs for destructive actions

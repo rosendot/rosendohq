@@ -9,7 +9,7 @@ The Inventory module tracks personal possessions with category, location, quanti
 ### Frontend
 
 - **Page**: `src/app/(app)/inventory/page.tsx` — Single page with stats cards, search/filter bar, item grid, and add/edit modal
-- **No components directory** — everything inline in `page.tsx` except `DeleteConfirmationModal` from `@/components/`
+- **Modal**: `src/app/(app)/inventory/modals/InventoryItemModal.tsx` — shared add/edit modal (create vs edit driven by an `editingItem` prop). Also uses `DeleteConfirmationModal` from `@/components/`
 
 ### Page Layout
 
