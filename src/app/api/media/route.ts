@@ -65,6 +65,7 @@ export async function POST(request: Request) {
             notes: body.notes?.trim() || null,
             started_at: body.started_at || null,
             completed_at: body.completed_at || null,
+            overview: body.overview || null,
             poster_url: body.poster_url || null,
             backdrop_url: body.backdrop_url || null,
             tmdb_id: body.tmdb_id ?? null,

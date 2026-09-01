@@ -48,6 +48,7 @@ export default function AddMediaSheet({
     backdrop_url: string | null;
     tmdb_id: number | null;
     anilist_id: number | null;
+    overview: string | null;
   } | null>(null);
   const [picked, setPicked] = useState<number | null>(null);
   const reqRef = useRef(0);
@@ -90,6 +91,7 @@ export default function AddMediaSheet({
       backdrop_url: r.backdrop_url,
       tmdb_id: r.source === "tmdb" ? r.external_id : null,
       anilist_id: r.source === "anilist" ? r.external_id : null,
+      overview: r.overview,
     });
     setDraft((d) => ({
       ...d,
@@ -129,6 +131,7 @@ export default function AddMediaSheet({
       poster_url: art?.poster_url ?? null,
       backdrop_url: art?.backdrop_url ?? null,
       tmdb_id: art?.tmdb_id ?? null,
+      overview: art?.overview ?? null,
       anilist_id: art?.anilist_id ?? null,
     });
     setSaving(false);

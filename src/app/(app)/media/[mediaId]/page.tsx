@@ -520,6 +520,16 @@ export default function MediaDetailPage({ params }: { params: Promise<{ mediaId:
         </div>
       </section>
 
+      {/* ============================ SYNOPSIS ============================ */}
+      {item.overview && (
+        <section className="px-5 pt-7">
+          <div className={LABEL}>Synopsis</div>
+          <p className="max-w-[80ch] whitespace-pre-line text-[14px] leading-relaxed text-[#c9ccda]">
+            {item.overview}
+          </p>
+        </section>
+      )}
+
       {/* ============================ STATUS ============================== */}
       <section className="px-5 pt-7">
         <div className={LABEL}>Status</div>
