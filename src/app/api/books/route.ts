@@ -61,6 +61,9 @@ export async function POST(request: Request) {
             notes: body.notes?.trim() || null,
             started_at: body.started_at || null,
             finished_at: body.finished_at || null,
+            description: body.description?.trim() || null,
+            cover_url: body.cover_url || null,
+            openlibrary_key: body.openlibrary_key || null,
         };
 
         const { data, error } = await supabase

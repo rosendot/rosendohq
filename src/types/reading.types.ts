@@ -16,6 +16,9 @@ export interface Book {
   format: BookFormat | null;
   notes: string | null;
   highlights: Array<{ location: string; text: string; created_at: string }> | null;
+  description: string | null; // jacket blurb from Open Library; distinct from `notes`
+  cover_url: string | null; // artwork URL; null falls back to a generated cover
+  openlibrary_key: string | null; // e.g. "/works/OL17930368W"
   created_at: string;
   updated_at: string;
 }

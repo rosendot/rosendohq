@@ -53,6 +53,20 @@ export function coverFor(title: string): string {
   return `repeating-linear-gradient(115deg, transparent, transparent 13px, ${stripe} 13px, ${stripe} 14px), linear-gradient(155deg, ${a}, ${b})`;
 }
 
+/**
+ * Real jacket art when we have it, else the stable typographic gradient.
+ * Books without a match keep working exactly as before.
+ */
+export function coverStyle(title: string, art: string | null): React.CSSProperties {
+  if (!art) return { background: coverFor(title) };
+  return {
+    backgroundImage: `url(${art})`,
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    backgroundColor: "#14141c",
+  };
+}
+
 export function alpha(hex: string, a: number): string {
   const n = hex.replace("#", "");
   const r = parseInt(n.slice(0, 2), 16);

@@ -20,7 +20,7 @@ import {
   STATUSES,
   GROUP_LABELS,
   FORMATS,
-  coverFor,
+  coverStyle,
   alpha,
   isReading,
   hasPages,
@@ -521,12 +521,15 @@ function HeroCard({
       <button
         onClick={onOpen}
         className="relative flex w-[116px] flex-none flex-col justify-between p-3 text-left"
-        style={{ background: coverFor(book.title) }}
+        style={coverStyle(book.title, book.cover_url)}
       >
         <div className="absolute inset-0 bg-gradient-to-b from-white/[0.07] via-transparent to-[#08080c]/50" />
-        <div className="relative line-clamp-5 font-serif text-[17px] font-semibold leading-[1.12] tracking-tight text-[#fdfaf3] [text-shadow:0_1px_8px_rgba(0,0,0,.4)]">
-          {book.title}
-        </div>
+        {/* The printed jacket already carries the title — only draw it on the gradient. */}
+        {!book.cover_url && (
+          <div className="relative line-clamp-5 font-serif text-[17px] font-semibold leading-[1.12] tracking-tight text-[#fdfaf3] [text-shadow:0_1px_8px_rgba(0,0,0,.4)]">
+            {book.title}
+          </div>
+        )}
         {book.author && (
           <div className="relative font-mono text-[9px] uppercase tracking-[0.06em] text-white/70">
             {book.author}
@@ -595,13 +598,15 @@ function PosterCard({
       <button
         onClick={onOpen}
         className="relative flex aspect-[2/3] w-full flex-col justify-between p-3.5 text-left"
-        style={{ background: coverFor(book.title) }}
+        style={coverStyle(book.title, book.cover_url)}
       >
         <div className="absolute inset-0 bg-gradient-to-b from-white/[0.08] via-transparent to-[#08080c]/[0.52]" />
         <div className="absolute bottom-0 left-0 top-0 w-[5px] bg-gradient-to-r from-black/30 to-transparent" />
-        <div className="relative line-clamp-4 font-serif text-[18px] font-semibold leading-[1.13] tracking-tight text-[#fdfaf3] [text-shadow:0_1px_8px_rgba(0,0,0,.4)]">
-          {book.title}
-        </div>
+        {!book.cover_url && (
+          <div className="relative line-clamp-4 font-serif text-[18px] font-semibold leading-[1.13] tracking-tight text-[#fdfaf3] [text-shadow:0_1px_8px_rgba(0,0,0,.4)]">
+            {book.title}
+          </div>
+        )}
         {book.author && (
           <div className="relative font-mono text-[9px] uppercase tracking-[0.05em] text-white/[0.72]">
             {book.author}

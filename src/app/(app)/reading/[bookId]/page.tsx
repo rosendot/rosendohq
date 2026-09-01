@@ -10,7 +10,7 @@ import {
   STATUSES,
   FORMAT_ORDER,
   FORMATS,
-  coverFor,
+  coverStyle,
   alpha,
   hasPages,
   pct,
@@ -292,16 +292,21 @@ export default function BookDetailPage({ params }: { params: Promise<{ bookId: s
         <section className="mb-3.5 flex flex-wrap gap-[18px]">
           <div
             className="relative flex aspect-[2/3] w-[150px] flex-none flex-col justify-between overflow-hidden rounded-[14px] p-4 shadow-[0_18px_40px_rgba(0,0,0,.45)]"
-            style={{ background: coverFor(draft.title || book.title) }}
+            style={coverStyle(draft.title || book.title, book.cover_url)}
           >
             <div className="absolute inset-0 bg-gradient-to-b from-white/[0.09] via-transparent to-[#08080c]/[0.55]" />
             <div className="absolute bottom-0 left-0 top-0 w-[6px] bg-gradient-to-r from-black/[0.34] to-transparent" />
-            <div className="relative font-serif text-[21px] font-semibold leading-[1.1] tracking-tight text-[#fdfaf3] [text-shadow:0_1px_10px_rgba(0,0,0,.45)]">
-              {draft.title || book.title}
-            </div>
-            <div className="relative font-mono text-[10px] uppercase tracking-[0.05em] text-white/[0.74]">
-              {(editing ? draft.author : book.author) || ""}
-            </div>
+            {/* Real jacket art already prints title + author. */}
+            {!book.cover_url && (
+              <>
+                <div className="relative font-serif text-[21px] font-semibold leading-[1.1] tracking-tight text-[#fdfaf3] [text-shadow:0_1px_10px_rgba(0,0,0,.45)]">
+                  {draft.title || book.title}
+                </div>
+                <div className="relative font-mono text-[10px] uppercase tracking-[0.05em] text-white/[0.74]">
+                  {(editing ? draft.author : book.author) || ""}
+                </div>
+              </>
+            )}
           </div>
 
           <div className="flex min-w-[230px] flex-1 flex-col">
@@ -540,6 +545,18 @@ export default function BookDetailPage({ params }: { params: Promise<{ bookId: s
             )}
           </div>
         </section>
+
+        {/* synopsis — publisher blurb from Open Library, read-only (notes stay yours) */}
+        {book.description && (
+          <section className="mb-3.5 rounded-[14px] border border-white/[0.06] bg-[#101019] px-4 py-[15px]">
+            <div className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-[#6b6e80]">
+              Synopsis
+            </div>
+            <p className="whitespace-pre-wrap text-[14.5px] leading-relaxed text-[#c9cddb]">
+              {book.description}
+            </p>
+          </section>
+        )}
 
         {/* notes */}
         {!editing ? (

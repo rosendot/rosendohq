@@ -54,13 +54,15 @@ All under `src/app/api/books/`:
 | `/` | GET, POST | `book` | GET filterable by `status` and `format`, ordered by `updated_at` desc |
 | `[id]/` | GET, PATCH, DELETE | `book` | Full CRUD. PATCH sets `updated_at` server-side |
 | `[id]/logs/` | GET, POST | `reading_log` | Logs nested under book. GET ordered by `log_date` desc |
+| `search/` | GET | — | Title lookup for the add sheet. `?q=`. Proxies **Open Library** (keyless). Scores candidates so summaries/workbooks/study guides rank below the real book. Returns `BookSearchResult[]` |
+| `search/describe/` | GET | — | `?key=/works/OL…W`. Open Library keeps descriptions on the *work* record, so this is a second call made only for the picked result. Scrubs librarian metadata, spam links, and jacket-quote residue |
 | `logs/[logId]/` | GET, PATCH, DELETE | `reading_log` | Individual log CRUD (not nested under book ID) |
 
 ### Database Tables (Supabase)
 
 | Table | Purpose |
 |-------|---------|
-| `book` | Books with title, author, status lifecycle, page progress, format, rating (0-5), dates, notes, and highlights (JSONB array) |
+| `book` | Books with title, author, status lifecycle, page progress, format, rating (0-5), dates, notes, highlights (JSONB array), plus artwork (`cover_url`), the publisher blurb (`description`), and the external id (`openlibrary_key`) |
 | `reading_log` | Per-session reading records with date, pages read, minutes spent, and optional note. FK to `book` |
 
 ### Database Views
@@ -74,13 +76,17 @@ All under `src/app/api/books/`:
 Defined in `src/types/reading.types.ts`:
 
 - **Enums**: `BookStatus` (planned, reading, finished, on_hold, dropped), `BookFormat` (physical, ebook, audiobook)
+- **Artwork fields** on `Book`: `cover_url`, `description`, `openlibrary_key` — all nullable
 - **Interfaces**: `Book`, `ReadingLog`, `Highlight` (JSONB sub-type with text, location, created_at)
 - **Insert/Update types**: `BookInsert` (omits id, created_at, updated_at), `BookUpdate` (partial, omits id, owner_id, created_at), `ReadingLogInsert` (omits id, created_at), `ReadingLogUpdate`
 
 ## Key Patterns
 
 - Books grouped by status into horizontal carousels (`CardRow`), not a table or grid. The Reading group renders as wide `HeroCard`s; the rest as `PosterCard`s.
-- Books have no cover image, so each card/hero/detail gets a stable typographic "book jacket" — a gradient + faint diagonal stripe derived from a hue hashed off the title (`coverFor`), with the title set in serif over it.
+- **Artwork**: `cover_url` holds an absolute Open Library CDN URL (`covers.openlibrary.org/b/id/<id>-L.jpg`) — no images are stored in Supabase. `coverStyle(title, art)` renders the real jacket when present and falls back to `coverFor(title)` — the stable hashed typographic gradient — when null, so unmatched books still look right.
+- When real jacket art exists the overlaid serif title/author is **hidden**, since the printed cover already carries them; the gradient fallback still draws them.
+- Books without a match keep the typographic "book jacket" — a gradient + faint diagonal stripe derived from a hue hashed off the title (`coverFor`), with the title set in serif over it.
+- **Synopsis** (`description`) is the publisher blurb from Open Library and is read-only on the detail page — deliberately separate from `notes`, which is your own commentary and drives the on-hold/dropped reason callout.
 - **Warm amber accent** (`#e0a449`) distinguishes Shelf from media's cool blue. Status colors: planned `#8b93a7`, reading `#e0a449`, finished `#3ad07f`, on_hold `#f4b740`, dropped `#f06a6a`.
 - **No new fonts** — the `font-serif` covers/quotes fall back to the system serif; the amber accent carries the identity. (The original design used Fraunces/Hanken/JetBrains/Space Grotesk; these were intentionally dropped to stay consistent with the rest of the app.)
 - **Optimistic updates everywhere**: list-page PATCH/POST/DELETE update local state directly and reconcile with the response, falling back to a refetch on error.

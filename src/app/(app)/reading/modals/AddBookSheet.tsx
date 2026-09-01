@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { X } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { X, Search, Loader2 } from "lucide-react";
 import type { BookStatus, BookFormat } from "@/types/reading.types";
+import type { BookSearchResult } from "@/app/api/books/search/route";
 import {
   STATUS_ORDER,
   STATUSES,
@@ -24,6 +25,7 @@ export default function AddBookSheet({
   const [format, setFormat] = useState<BookFormat>("physical");
   const [rating, setRating] = useState(0);
   const [saving, setSaving] = useState(false);
+
   const [draft, setDraft] = useState<BookDraft>({
     title: "",
     author: "",
@@ -34,6 +36,64 @@ export default function AddBookSheet({
     finished_at: "",
     notes: "",
   });
+
+  // --- Open Library lookup -------------------------------------------------
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<BookSearchResult[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [picked, setPicked] = useState<string | null>(null);
+  // Artwork carried from the picked result through to the POST body.
+  const [art, setArt] = useState<{
+    cover_url: string | null;
+    description: string | null;
+    openlibrary_key: string | null;
+  }>({ cover_url: null, description: null, openlibrary_key: null });
+  const reqRef = useRef(0);
+
+  useEffect(() => {
+    const q = query.trim();
+    if (q.length < 3) {
+      setResults([]);
+      setSearching(false);
+      return;
+    }
+    setSearching(true);
+    const seq = ++reqRef.current;
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/books/search?q=${encodeURIComponent(q)}`);
+        if (seq !== reqRef.current) return; // a newer keystroke won
+        setResults(res.ok ? await res.json() : []);
+      } catch {
+        if (seq === reqRef.current) setResults([]);
+      } finally {
+        if (seq === reqRef.current) setSearching(false);
+      }
+    }, 350);
+    return () => clearTimeout(t);
+  }, [query]);
+
+  const pick = async (r: BookSearchResult) => {
+    setPicked(r.key);
+    setDraft((d) => ({
+      ...d,
+      title: r.title,
+      author: r.author || d.author,
+      total_pages: r.total_pages ?? d.total_pages,
+    }));
+    setArt({ cover_url: r.cover_url, description: null, openlibrary_key: r.key });
+    // Descriptions live on the work record, so fetch once the pick is known.
+    try {
+      const res = await fetch(`/api/books/search/describe?key=${encodeURIComponent(r.key)}`);
+      if (res.ok) {
+        const { description } = await res.json();
+        setArt((a) => (a.openlibrary_key === r.key ? { ...a, description } : a));
+      }
+    } catch {
+      /* a missing blurb is not worth failing the add for */
+    }
+  };
+
 
   const numOrNull = (v: number | string) => {
     if (v === "" || v === null) return null;
@@ -55,6 +115,9 @@ export default function AddBookSheet({
       started_at: draft.started_at || null,
       finished_at: draft.finished_at || null,
       notes: draft.notes.trim() || null,
+      cover_url: art.cover_url,
+      description: art.description,
+      openlibrary_key: art.openlibrary_key,
     });
     setSaving(false);
   };
@@ -81,6 +144,64 @@ export default function AddBookSheet({
         </div>
 
         <div className="flex flex-col gap-4 px-5 pb-5 pt-5">
+          {/* find a title — prefills fields + attaches cover art */}
+          <div>
+            <SheetLabel>Find a title</SheetLabel>
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6b6e80]" />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search Open Library…"
+                className="w-full rounded-[11px] border border-white/[0.08] bg-[#16161f] py-2.5 pl-9 pr-9 text-[14px] text-[#f3f4f8] outline-none transition-colors placeholder:text-[#5d6071] focus:border-[#e0a449]/50"
+              />
+              {searching && (
+                <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-[#6b6e80]" />
+              )}
+            </div>
+
+            {results.length > 0 && (
+              <div className="mt-2 flex flex-col gap-1.5">
+                {results.map((r) => {
+                  const on = picked === r.key;
+                  return (
+                    <button
+                      key={r.key}
+                      onClick={() => pick(r)}
+                      className="flex items-center gap-2.5 rounded-[11px] border p-2 text-left transition-colors"
+                      style={{
+                        background: on ? "rgba(224,164,73,.12)" : "#16161f",
+                        borderColor: on ? "#e0a449" : "rgba(255,255,255,.08)",
+                      }}
+                    >
+                      <div
+                        className="h-[54px] w-[36px] flex-none rounded-[5px] bg-[#101019] bg-cover bg-center"
+                        style={
+                          r.cover_url ? { backgroundImage: `url(${r.cover_url})` } : undefined
+                        }
+                      />
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-[13.5px] font-semibold text-[#f3f4f8]">
+                          {r.title}
+                        </div>
+                        <div className="truncate font-mono text-[11px] text-[#8b8fa3]">
+                          {[r.author, r.year, r.total_pages ? `${r.total_pages}p` : null]
+                            .filter(Boolean)
+                            .join(" · ")}
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+            {!searching && query.trim().length >= 3 && results.length === 0 && (
+              <p className="mt-2 text-[12.5px] text-[#6b6e80]">
+                No matches — you can still type the details in by hand.
+              </p>
+            )}
+          </div>
+
           {/* format chips */}
           <div>
             <SheetLabel>Format</SheetLabel>
