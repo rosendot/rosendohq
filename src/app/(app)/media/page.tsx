@@ -8,7 +8,6 @@ import {
   Play,
   Tv,
   Bell,
-  MoreVertical,
   List as ListIcon,
   Check,
   AlertTriangle,
@@ -533,6 +532,7 @@ function CardRow({
   const [canRight, setCanRight] = useState(false);
   const touchStart = useRef<number | null>(null);
   const touchEnd = useRef<number | null>(null);
+  const dragged = useRef(false);
 
   const checkScroll = () => {
     const el = scrollRef.current;
@@ -557,6 +557,10 @@ function CardRow({
   const onTouchEnd = () => {
     if (touchStart.current === null || touchEnd.current === null) return;
     const dist = touchStart.current - touchEnd.current;
+    // A real drag should scroll the row, not count as a tap on the card under
+    // the finger. Cards open the sheet on click, so swallow the click that
+    // follows a swipe.
+    if (Math.abs(dist) > 8) dragged.current = true;
     if (dist > 50 && canRight) scroll("right");
     if (dist < -50 && canLeft) scroll("left");
     touchStart.current = null;
@@ -594,12 +598,19 @@ function CardRow({
         onScroll={checkScroll}
         onTouchStart={(e) => {
           touchEnd.current = null;
+          dragged.current = false;
           touchStart.current = e.targetTouches[0].clientX;
         }}
         onTouchMove={(e) => {
           touchEnd.current = e.targetTouches[0].clientX;
         }}
         onTouchEnd={onTouchEnd}
+        onClickCapture={(e) => {
+          if (!dragged.current) return;
+          e.preventDefault();
+          e.stopPropagation();
+          dragged.current = false;
+        }}
         className="flex gap-3.5 overflow-x-auto pb-2.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {children}
@@ -607,6 +618,15 @@ function CardRow({
     </section>
   );
 }
+
+// Hover/focus affordance for the whole-card click target. Border brightens to
+// the accent, a soft glow lifts the card, and it nudges up 1px. Touch devices
+// get the same treatment on :active since they have no hover state.
+const CARD_INTERACTIVE =
+  "border-white/[0.07] hover:-translate-y-px hover:border-[#4f8dff]/60 " +
+  "hover:shadow-[0_8px_28px_-6px_rgba(79,141,255,0.45)] " +
+  "focus-visible:border-[#4f8dff]/70 focus-visible:shadow-[0_8px_28px_-6px_rgba(79,141,255,0.45)] " +
+  "active:border-[#4f8dff]/60 active:shadow-[0_6px_20px_-6px_rgba(79,141,255,0.45)]";
 
 function ContinueCard({
   item,
@@ -619,7 +639,18 @@ function ContinueCard({
 }) {
   const pct = progressPct(item);
   return (
-    <article className="w-[300px] flex-none snap-start overflow-hidden rounded-2xl border border-white/[0.07] bg-[#101019]">
+    <article
+      onClick={onMenu}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onMenu();
+        }
+      }}
+      className={`group w-[300px] flex-none cursor-pointer snap-start overflow-hidden rounded-2xl border bg-[#101019] outline-none transition-all duration-200 ${CARD_INTERACTIVE}`}
+    >
       <div
         className="relative flex aspect-video w-full items-end p-3"
         style={coverStyle(item.title, item.backdrop_url || item.poster_url)}
@@ -656,22 +687,16 @@ function ContinueCard({
             style={{ width: `${pct}%`, background: "linear-gradient(90deg,#4f8dff,#73a6ff)" }}
           />
         </div>
-        <div className="flex gap-2">
-          <button
-            onClick={onResume}
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-[10px] bg-[#4f8dff] py-2.5 text-[13.5px] font-bold text-[#04122b] transition-transform active:scale-95"
-          >
-            <Play className="h-[15px] w-[15px] fill-[#04122b]" />
-            {isShow(item) ? "Next ep" : "Mark seen"}
-          </button>
-          <button
-            onClick={onMenu}
-            aria-label="Quick actions"
-            className="flex w-11 flex-none items-center justify-center rounded-[10px] border border-white/[0.08] bg-[#1a1a25] text-[#c9ccda] hover:bg-[#22222f]"
-          >
-            <MoreVertical className="h-[18px] w-[18px]" />
-          </button>
-        </div>
+        <button
+          onClick={(e) => {
+            e.stopPropagation(); // the card itself opens the sheet
+            onResume();
+          }}
+          className="flex w-full items-center justify-center gap-1.5 rounded-[10px] bg-[#4f8dff] py-2.5 text-[13.5px] font-bold text-[#04122b] transition-transform active:scale-95"
+        >
+          <Play className="h-[15px] w-[15px] fill-[#04122b]" />
+          {isShow(item) ? "Next ep" : "Mark seen"}
+        </button>
       </div>
     </article>
   );
@@ -707,7 +732,18 @@ function PosterCard({ item, onMenu, onBump }: { item: MediaItem; onMenu: () => v
   const show = isShow(item);
   const pct = progressPct(item);
   return (
-    <article className="flex w-[168px] flex-none flex-col overflow-hidden rounded-[14px] border border-white/[0.06] bg-[#101019]">
+    <article
+      onClick={onMenu}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onMenu();
+        }
+      }}
+      className={`group flex w-[168px] flex-none cursor-pointer flex-col overflow-hidden rounded-[14px] border bg-[#101019] outline-none transition-all duration-200 ${CARD_INTERACTIVE}`}
+    >
       <div
         className="relative flex aspect-[2/3] w-full items-end p-2.5"
         style={coverStyle(item.title, item.poster_url)}
@@ -747,26 +783,20 @@ function PosterCard({ item, onMenu, onBump }: { item: MediaItem; onMenu: () => v
           </div>
         )}
         <ReasonNote item={item} />
-        <div className="mt-auto flex gap-1.5">
-          {show && (
+        {show && (
+          <div className="mt-auto">
             <button
-              onClick={onBump}
+              onClick={(e) => {
+                e.stopPropagation(); // the card itself opens the sheet
+                onBump();
+              }}
               aria-label="Mark next episode"
-              className="flex min-h-[38px] flex-1 items-center justify-center gap-1.5 rounded-[9px] border border-[#4f8dff]/30 bg-[#4f8dff]/[0.14] font-mono text-[12px] font-bold text-[#4f8dff]"
+              className="flex min-h-[38px] w-full items-center justify-center gap-1.5 rounded-[9px] border border-[#4f8dff]/30 bg-[#4f8dff]/[0.14] font-mono text-[12px] font-bold text-[#4f8dff] transition-colors hover:bg-[#4f8dff]/[0.22]"
             >
               +1
             </button>
-          )}
-          <button
-            onClick={onMenu}
-            aria-label="Quick actions"
-            className={`flex min-h-[38px] items-center justify-center rounded-[9px] border border-white/[0.08] bg-[#1a1a25] text-[#c9ccda] hover:bg-[#22222f] ${
-              show ? "w-[42px] flex-none" : "flex-1 gap-1.5 text-[12.5px] font-semibold text-[#dfe2ee]"
-            }`}
-          >
-            {show ? <MoreVertical className="h-[17px] w-[17px]" /> : <><MoreVertical className="h-[15px] w-[15px]" />Actions</>}
-          </button>
-        </div>
+          </div>
+        )}
       </div>
     </article>
   );
