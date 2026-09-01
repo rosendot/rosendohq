@@ -8,7 +8,7 @@ import {
   STATUSES,
   TYPES,
   isShow,
-  coverFor,
+  coverStyle,
   episodeLabel,
   reminderLabel,
   PlatformBadge,
@@ -100,8 +100,8 @@ export default function EditMediaSheet({
 
         <div className="mb-5 flex items-start gap-3.5">
           <div
-            className="h-[84px] w-[58px] flex-none rounded-[10px]"
-            style={{ background: coverFor(draft.title || item.title) }}
+            className="h-[84px] w-[58px] flex-none overflow-hidden rounded-[10px]"
+            style={coverStyle(draft.title || item.title, item.poster_url)}
           />
           <div className="min-w-0 flex-1">
             <div className="text-[18px] font-bold leading-snug tracking-tight">

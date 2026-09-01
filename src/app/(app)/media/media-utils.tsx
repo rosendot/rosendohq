@@ -59,6 +59,19 @@ export function coverFor(title: string): string {
   return `repeating-linear-gradient(135deg, ${a}, ${a} 11px, ${b} 11px, ${b} 22px)`;
 }
 
+// Background style for a card cover: real artwork when we have it, otherwise the
+// generated gradient. `art` is a TMDB image URL (poster for tall cards, backdrop
+// for wide ones); pass null to force the gradient.
+export function coverStyle(title: string, art: string | null): React.CSSProperties {
+  if (!art) return { background: coverFor(title) };
+  return {
+    backgroundImage: `url(${art})`,
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    backgroundColor: "#101019",
+  };
+}
+
 export const isShow = (t: MediaItem) => t.type === "show" || t.type === "anime";
 
 // Approximate lifetime episodes watched from season + in-season progress.

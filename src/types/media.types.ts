@@ -19,6 +19,10 @@ export interface MediaItem {
   current_season: number | null;
   total_seasons: number | null;
   episodes_in_season: number | null;
+  poster_url: string | null; // artwork URL; null falls back to a generated cover
+  backdrop_url: string | null; // wide artwork (TMDB backdrop / AniList banner)
+  tmdb_id: number | null; // set for movies & shows
+  anilist_id: number | null; // set for anime
   created_at: string;
   updated_at: string;
 }

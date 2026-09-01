@@ -26,7 +26,7 @@ import DeleteConfirmationModal from "@/components/DeleteConfirmationModal";
 import {
   STATUSES,
   TYPES,
-  coverFor,
+  coverStyle,
   isShow,
   progressPct,
   episodeLabel,
@@ -611,13 +611,16 @@ function ContinueCard({
     <article className="w-[300px] flex-none snap-start overflow-hidden rounded-2xl border border-white/[0.07] bg-[#101019]">
       <div
         className="relative flex aspect-video w-full items-end p-3"
-        style={{ background: coverFor(item.title) }}
+        style={coverStyle(item.title, item.backdrop_url || item.poster_url)}
       >
         <div className="absolute inset-0 bg-gradient-to-t from-[#08080c]/[0.92] via-[#08080c]/10 to-transparent" />
-        <span className="absolute left-2.5 top-2.5 font-mono text-[10px] uppercase tracking-wider text-white/50">
+        {(item.backdrop_url || item.poster_url) && (
+          <div className="absolute inset-x-0 top-0 h-14 bg-gradient-to-b from-[#08080c]/60 to-transparent" />
+        )}
+        <span className="absolute left-2.5 top-2.5 z-[1] font-mono text-[10px] uppercase tracking-wider text-white/70">
           {TYPES[item.type].label}
         </span>
-        <span className="absolute right-2.5 top-2.5">
+        <span className="absolute right-2.5 top-2.5 z-[1]">
           <PlatformBadge platform={item.platform} />
         </span>
         <div className="relative z-[1]">
@@ -696,14 +699,17 @@ function PosterCard({ item, onMenu, onBump }: { item: MediaItem; onMenu: () => v
     <article className="flex w-[168px] flex-none flex-col overflow-hidden rounded-[14px] border border-white/[0.06] bg-[#101019]">
       <div
         className="relative flex aspect-[2/3] w-full items-end p-2.5"
-        style={{ background: coverFor(item.title) }}
+        style={coverStyle(item.title, item.poster_url)}
       >
         <div className="absolute inset-0 bg-gradient-to-t from-[#08080c]/70 to-transparent to-[45%]" />
-        <span className="absolute left-2.5 top-2.5 inline-flex items-center gap-1 rounded-[7px] bg-[#08080c]/60 px-1.5 py-1 font-mono text-[9.5px] font-semibold uppercase tracking-wide text-[#dfe2ee] backdrop-blur-sm">
+        {item.poster_url && (
+          <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-[#08080c]/65 to-transparent" />
+        )}
+        <span className="absolute left-2.5 top-2.5 z-[1] inline-flex items-center gap-1 rounded-[7px] bg-[#08080c]/60 px-1.5 py-1 font-mono text-[9.5px] font-semibold uppercase tracking-wide text-[#dfe2ee] backdrop-blur-sm">
           <Type.Icon className="h-2.5 w-2.5" />
           {Type.label}
         </span>
-        <span className="absolute right-2.5 top-2.5">
+        <span className="absolute right-2.5 top-2.5 z-[1]">
           <PlatformBadge platform={item.platform} />
         </span>
       </div>
