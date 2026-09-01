@@ -8,23 +8,26 @@ The Dashboard is the central hub that provides an overview of all modules with q
 
 ### Frontend
 
-- **Page**: `src/app/(app)/dashboard/page.tsx` — Server component with Suspense-wrapped client widgets
-- **Components** (in `src/components/dashboard/`):
-  - `QuickStats.tsx` — Client component. Fetches counts from shopping, wishlist, and habits APIs in parallel via `Promise.allSettled`. Displays stat cards with icon, value, and label.
-  - `UpcomingItems.tsx` — Client component. Fetches from car maintenance, house tasks, and travel trips APIs via `Promise.allSettled`. Aggregates upcoming due dates, sorts by date, shows top 5. Note: the API routes it calls (`/api/car/maintenance`, `/api/house/tasks`, `/api/travel/trips`) may not match actual route paths.
-  - `DashboardCard.tsx` — Server component. Renders a module navigation card with icon, name, description, optional stats count, and hover animation. Links to module page.
-- **Utilities**: `src/lib/dashboard-utils.ts` — Exports `modules` array (12 module definitions with id, name, icon, href, color, description) and `getModuleStats()` helper
+- **Page**: `src/app/(app)/dashboard/page.tsx` — Thin dark shell that renders `<DashboardHome />`
+- **Component**: `src/components/dashboard/DashboardHome.tsx` — The whole dashboard as one client component. Fetches `/api/dashboard/summary` once on mount and renders every widget from that single payload.
+- Module links are a local `MODULES` array inside `DashboardHome.tsx` (Lucide icons, mirroring the sidebar's grouping order).
 
 ### Page Layout
 
-1. **Header** — "Dashboard" title + welcome message
-2. **Quick Stats** — Horizontal stat cards grid (shopping lists count, wishlist items count, active habits count)
-3. **Upcoming Items** — Aggregated upcoming due dates from car, house, and travel
-4. **Module Grid** — 4-column responsive grid of all 12 module cards
+1. **Today hero** — Long-form date, a plain-language line ("22 of 28 habits done."), and a habit completion bar.
+2. **Stat row** — Four tappable cards, each linking to its module: habits left today, items to buy, shows in progress, books on the shelf.
+3. **Widget grid** (2-up on `lg`):
+   - **Habits left today** — the pending habits themselves, not just a count
+   - **Continue watching** — in-progress media with poster thumbnails, deep-linked to `/media/[id]`
+   - **On the shelf** — books with cover thumbnails and % read, deep-linked to `/reading/[bookId]`
+   - **Shopping** — per-list open counts
+4. **Everything else** — Compact 6-column link grid to all 12 modules.
 
 ### API Routes
 
-None — the dashboard has no dedicated API routes. It consumes APIs from other modules.
+| Route | Methods | Notes |
+|-------|---------|-------|
+| `/api/dashboard/summary` | GET | One round trip for the entire dashboard. Runs 8 Supabase selects in `Promise.all` and returns a single `DashboardSummary`. Replaced the old client-side fan-out to a dozen module endpoints, several of which did not exist. |
 
 ### Database Tables
 
@@ -36,15 +39,15 @@ None.
 
 ### Types
 
-- `ModuleCard` — defined in `src/lib/dashboard-utils.ts` (id, name, icon, href, color, description)
-- `Stat`, `UpcomingItem` — defined inline in their respective components
+- `DashboardSummary` — exported from `src/app/api/dashboard/summary/route.ts`; the single shape the whole page consumes.
 
 ## Key Patterns
 
-- Server component page with client widgets wrapped in `<Suspense>` for streaming
-- Each widget fetches data independently using `Promise.allSettled` (graceful degradation if any API fails)
-- UpcomingItems aggregates from car, house, and travel modules — may silently fail since API routes might not match (e.g., `/api/car/maintenance` vs actual `/api/car/maintenance/records/`)
-- Module grid is driven by the `modules` array in `dashboard-utils.ts` — adding/removing modules requires updating this array
-- DashboardCard supports optional `stats` prop but it's not currently passed from the page
-- Skeleton loading states for all widgets via animate-pulse placeholders
+- **One request, not a fan-out.** `/api/dashboard/summary` does all the querying server-side. The previous version fired ~5 client fetches, some at routes that never existed (`/api/house/tasks`), so those widgets silently rendered empty.
+- **Dark "Reel"/"Shelf" language**, matching the media and reading pages: `#08080c` page, `#101019` cards, `#16161f` rows, mono uppercase labels. The old emoji + `bg-*-500` chips on a light/dark hybrid were dropped.
+- **Widgets show rows, not just counts.** A count tells you there are 28 habits left; the panel tells you *which* ones. Poster and cover thumbnails come from the artwork columns backfilled for media and reading.
+- **Habit scheduling is duplicated deliberately.** `scheduledOn()` in the summary route mirrors `isHabitScheduledOn` on the habits page (`|D - anchor| % every_n_days === 0`). If one changes, change both.
+- Every widget degrades to a plain empty-state line rather than disappearing, so a module with no data yet still reads as intentional.
+- Skeleton mirrors the real layout's block sizes so the page does not jump on load.
 - Root page (`src/app/page.tsx`) redirects to `/dashboard`
+- `QuickStats.tsx`, `UpcomingItems.tsx`, `DashboardCard.tsx`, and `src/lib/dashboard-utils.ts` were **deleted** — all four were orphaned by the rewrite.

@@ -1,49 +1,11 @@
-// frontend/src/app/dashboard/page.tsx
-
-import { Suspense } from 'react';
-import { modules } from '@/lib/dashboard-utils';
-import DashboardCard from '@/components/dashboard/DashboardCard';
-import QuickStats from '@/components/dashboard/QuickStats';
-import UpcomingItems from '@/components/dashboard/UpcomingItems';
+import DashboardHome from "@/components/dashboard/DashboardHome";
 
 export default function DashboardPage() {
-    return (
-        <div className="min-h-screen bg-[#0a0a0a] p-8 pt-14 lg:pt-8">
-            {/* Header */}
-            <div className="mb-8">
-                <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-                    Dashboard
-                </h1>
-                <p className="text-gray-600 dark:text-gray-400">
-                    Welcome back! Here's your overview
-                </p>
-            </div>
-
-            {/* Quick Stats */}
-            <div className="mb-8">
-                <Suspense fallback={<div className="h-32 bg-gray-200 dark:bg-gray-800 rounded-xl animate-pulse" />}>
-                    <QuickStats />
-                </Suspense>
-            </div>
-
-            {/* Upcoming Items */}
-            <div className="mb-8">
-                <Suspense fallback={<div className="h-96 bg-gray-200 dark:bg-gray-800 rounded-xl animate-pulse" />}>
-                    <UpcomingItems />
-                </Suspense>
-            </div>
-
-            {/* Module Grid */}
-            <div className="mb-8">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-                    All Modules
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {modules.map((module) => (
-                        <DashboardCard key={module.id} module={module} />
-                    ))}
-                </div>
-            </div>
-        </div>
-    );
+  return (
+    <div className="min-h-screen bg-[#08080c] px-4 pb-10 pt-14 sm:px-6 lg:px-8 lg:pt-8">
+      <div className="w-full">
+        <DashboardHome />
+      </div>
+    </div>
+  );
 }
