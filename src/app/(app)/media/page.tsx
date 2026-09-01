@@ -260,7 +260,7 @@ export default function MediaTrackerPage() {
       }}
     >
       {/* ============ HEADER ============ */}
-      <header className="sticky top-0 z-40 flex items-center gap-3 border-b border-white/[0.06] bg-[#08080c]/80 px-4 py-3 backdrop-blur-xl sm:px-5">
+      <header className="sticky top-0 z-40 flex items-center gap-3 border-b border-white/[0.06] bg-[#08080c]/80 py-3 pl-[68px] pr-4 backdrop-blur-xl sm:pr-5 lg:px-5">
         <label className="flex min-w-0 flex-1 items-center gap-2.5 rounded-[11px] border border-white/[0.07] bg-[#13131b] px-3 py-2.5">
           <Search className="h-4 w-4 flex-none text-[#6b6e80]" />
           <input

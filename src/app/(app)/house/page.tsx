@@ -173,14 +173,14 @@ export default function HousePage() {
 
   if (loading && properties.length === 0) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-950 text-gray-100">
+      <div className="flex min-h-screen items-center justify-center bg-gray-950 text-gray-100 pt-14 lg:pt-0">
         <div className="text-gray-400">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-100">
+    <div className="min-h-screen bg-gray-950 text-gray-100 pt-14 lg:pt-0">
       <div className="w-full p-6">
         {/* Header */}
         <div className="mb-8 flex items-center justify-between">

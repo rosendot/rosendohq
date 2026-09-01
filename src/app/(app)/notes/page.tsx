@@ -301,7 +301,7 @@ export default function NotesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-950 p-8">
+      <div className="min-h-screen bg-gray-950 p-8 pt-14 lg:pt-8">
         <div className="w-full space-y-6">
           <div className="h-10 w-64 animate-pulse rounded bg-gray-800" />
           <div className="flex gap-2">
@@ -378,7 +378,7 @@ export default function NotesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 p-8">
+    <div className="min-h-screen bg-gray-950 p-8 pt-14 lg:pt-8">
       <div className="w-full">
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">

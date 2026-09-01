@@ -125,7 +125,7 @@ export default function NutritionPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-100">
+    <div className="min-h-screen bg-gray-950 text-gray-100 pt-14 lg:pt-0">
       <div className="w-full p-6">
         <div className="mb-8 flex items-center justify-between">
           <div>

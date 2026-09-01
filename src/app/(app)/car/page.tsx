@@ -178,7 +178,7 @@ export default function CarTrackerPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-950 text-gray-100 flex items-center justify-center">
+            <div className="min-h-screen bg-gray-950 text-gray-100 flex items-center justify-center pt-14 lg:pt-0">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
                     <p className="text-gray-400">Loading vehicles...</p>
@@ -188,7 +188,7 @@ export default function CarTrackerPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-950 text-gray-100">
+        <div className="min-h-screen bg-gray-950 text-gray-100 pt-14 lg:pt-0">
             <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
                 {/* Header */}
                 <div className="mb-8">

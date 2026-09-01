@@ -142,7 +142,7 @@ export default function TravelPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-950">
+      <div className="flex min-h-screen items-center justify-center bg-gray-950 pt-14 lg:pt-0">
         <div className="text-gray-400">Loading trips...</div>
       </div>
     );
@@ -151,7 +151,7 @@ export default function TravelPage() {
   // Trip Detail View
   if (selectedTrip) {
     return (
-      <div className="min-h-screen bg-gray-950 p-4 md:p-8">
+      <div className="min-h-screen bg-gray-950 p-4 md:p-8 pt-14 lg:pt-4">
         <div className="w-full space-y-6">
           {/* Trip Header */}
           <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
@@ -294,7 +294,7 @@ export default function TravelPage() {
 
   // Trip List View
   return (
-    <div className="min-h-screen bg-gray-950 p-4 md:p-8">
+    <div className="min-h-screen bg-gray-950 p-4 md:p-8 pt-14 lg:pt-4">
       <div className="w-full space-y-6">
         {/* Header */}
         <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">

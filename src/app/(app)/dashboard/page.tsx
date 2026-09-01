@@ -8,7 +8,7 @@ import UpcomingItems from '@/components/dashboard/UpcomingItems';
 
 export default function DashboardPage() {
     return (
-        <div className="min-h-screen bg-[#0a0a0a] p-8">
+        <div className="min-h-screen bg-[#0a0a0a] p-8 pt-14 lg:pt-8">
             {/* Header */}
             <div className="mb-8">
                 <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">

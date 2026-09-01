@@ -306,7 +306,7 @@ export default function HabitsPage() {
         <div className="min-h-screen bg-gray-950 text-white">
             {/* Sticky date header */}
             <div className="sticky top-0 z-20 bg-gray-950/90 backdrop-blur border-b border-gray-800">
-                <div className="w-full px-4 sm:px-6 lg:px-8 py-3">
+                <div className="w-full py-3 pl-[68px] pr-4 sm:pr-6 lg:px-8">
                     <div className="flex items-center justify-between gap-3">
                         <div className="min-w-0">
                             <p className="text-[10px] uppercase tracking-wider text-gray-500">Today</p>

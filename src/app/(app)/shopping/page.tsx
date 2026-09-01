@@ -588,7 +588,7 @@ export default function ShoppingPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-950 text-gray-100 flex items-center justify-center">
+            <div className="min-h-screen bg-gray-950 text-gray-100 flex items-center justify-center pt-14 lg:pt-0">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
                     <p className="text-gray-400">Loading shopping lists...</p>
@@ -599,7 +599,7 @@ export default function ShoppingPage() {
 
     if (error) {
         return (
-            <div className="min-h-screen bg-gray-950 text-gray-100 flex items-center justify-center">
+            <div className="min-h-screen bg-gray-950 text-gray-100 flex items-center justify-center pt-14 lg:pt-0">
                 <div className="text-center">
                     <p className="text-red-400 mb-4">Error: {error}</p>
                     <button
@@ -614,7 +614,7 @@ export default function ShoppingPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-950 text-gray-100">
+        <div className="min-h-screen bg-gray-950 text-gray-100 pt-14 lg:pt-0">
             <div className="w-full px-3 sm:px-4 lg:px-6 py-4">
                 {/* Header */}
                 <div className="mb-4">

@@ -205,7 +205,7 @@ export default function ReadingTracker() {
       }}
     >
       {/* header */}
-      <header className="sticky top-0 z-40 flex items-center gap-3 border-b border-white/[0.06] bg-[#08080c]/80 px-[18px] py-[13px] backdrop-blur-xl">
+      <header className="sticky top-0 z-40 flex items-center gap-3 border-b border-white/[0.06] bg-[#08080c]/80 py-[13px] pl-[68px] pr-[18px] backdrop-blur-xl lg:px-[18px]">
         <label className="mx-auto flex max-w-[520px] flex-1 items-center gap-2.5 rounded-[11px] border border-white/[0.07] bg-[#13131b] px-3.5 py-[9px]">
           <Search className="h-4 w-4 flex-none text-[#6b6e80]" />
           <input
