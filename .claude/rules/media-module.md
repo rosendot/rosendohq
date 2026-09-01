@@ -2,28 +2,40 @@
 
 ## Overview
 
-The Media Tracker module tracks movies, TV shows, and anime with episode/season progress, ratings, platform badges, and status lifecycle. The UI uses horizontal carousels grouped by status (watching, planned, completed, on hold, dropped) with inline quick actions for rating and episode increment.
+The Media Tracker module tracks movies, TV shows, and anime with episode/season progress, ratings, platform badges, and status lifecycle. The UI is the dark "Reel" redesign: status-grouped horizontal carousels (watching, planned, completed, on hold, dropped) with poster cards, a quick-action bottom sheet for inline edits, and bottom-sheet add/edit modals. See `.claude/rules/media-redesign-process.md` for how the redesign was done.
 
 ## Architecture
 
 ### Frontend
 
-- **Page**: `src/app/media/page.tsx` — Single page with search, type filter tabs, status-grouped carousels, add/edit modal
-- **No components directory** — `MediaCarousel` and `MediaCard` are defined as inline components in `page.tsx`
+- **Page**: `src/app/(app)/media/page.tsx` — Single page with search, type filter chips, sort dropdown, an "Up next" reminders rail, and status-grouped carousels
+- **Shared lib**: `src/app/(app)/media/media-utils.tsx` — constants (`STATUSES`, `TYPES`, `STATUS_ORDER`, `DAY_LABELS`), helpers (`coverFor`, `isShow`, `progressPct`, `episodeLabel`, `starString`, `recency`, `yearOf`, `reminderLabel`, `nextFireMs`, `platformBadge`), the `MediaDraft` type, and shared UI primitives (`PlatformBadge`, `SheetLabel`, `MediaFields`). Imported by both the page and the sheets.
+- **Modals** (`src/app/(app)/media/modals/`): `AddMediaSheet.tsx` (create), `EditMediaSheet.tsx` (the quick-action sheet — full inline editor), `ReminderModal.tsx` (weekly Discord reminders)
 - **Uses**: `DeleteConfirmationModal` from `@/components/`
 
 ### Page Layout
 
-1. **Header** — Title + Add Media button
-2. **Search** — Text search across title, notes, and platform
-3. **Type Filter Tabs** — All, Movies, Shows, Anime (with counts)
-4. **Status Carousels** — 5 horizontal carousels in order: Continue Watching, Plan to Watch, Completed, On Hold, Dropped
-5. **Add/Edit Modal** — Shared modal for create and edit
+1. **Header** — Sticky search bar (title/notes/platform) + Add button. No logo, no stats strip.
+2. **Up next** — Horizontal rail of the soonest-firing active reminders across the library, each opens the reminder modal.
+3. **Type filter chips + sort** — All / Movies / TV / Anime; custom theme-matched sort dropdown (recently updated, title, rating, progress).
+4. **Status carousels** — 5 scrollable rows in order: Continue Watching, Plan to Watch, Completed, On Hold, Dropped. Empty sections hide. Filter/search/sort apply across all rows.
+5. **Quick-action sheet** (`EditMediaSheet`) — opens from a card's ⋮/menu; full editor (see below).
+6. **Add sheet** (`AddMediaSheet`) — opens from the Add button.
 
-### Inline Components
+### Page-Inline Components (in `page.tsx`)
 
-- **`MediaCarousel`** — Horizontal scrollable card list with left/right buttons, touch swipe support, empty state message
-- **`MediaCard`** — 240px fixed-width card showing type icon, platform badge (brand-colored), title, star rating (clickable), progress bar (for shows/anime), dates, notes. Has quick actions: edit, delete, +1 episode (watching shows/anime only), quick rate
+- **`CardRow`** — Reel-styled carousel: heading (color dot + count), edge-aware left/right arrow buttons, horizontal `overflow-x-auto` row, 50px touch-swipe. Used for all 5 status sections.
+- **`ContinueCard`** — Wide 16:9 card for the Watching row, with Resume (next-ep for shows / mark-seen for movies) + menu.
+- **`PosterCard`** — Fixed-width (168px) 2:3 poster card for the other status rows. Shows type badge, brand-colored platform badge, title, year, rating, progress bar (shows/anime), and footer actions (+1 + ⋮). No per-card status badge (the row IS the status).
+- **`ReasonNote`** — On-hold/dropped cards surface their `notes` as a status-tinted callout (amber/red) explaining why.
+- **`Chip`**, **`SortMenu`** — filter chips and the custom dark sort dropdown (replaces a native `<select>`).
+
+### Add / Edit Sheets
+
+Both are Reel bottom sheets (slide up, `bg-[#040408]/70` blurred backdrop), sharing `MediaFields` from `media-utils` so their detail forms are identical. They replaced the old centered `MediaItemModal` (now orphaned/unused).
+
+- **`EditMediaSheet`** — Instant actions PATCH live (status chips, star rating, episode ±1 stepper). A draft-saved **Details** section (title, type, platform, season/episode totals, started/completed dates, notes) commits together via a dirty-aware "Save changes" button. Also surfaces the item's reminders with a "Manage" link to `ReminderModal`, and a delete button.
+- **`AddMediaSheet`** — Status chips + rating + the same shared `MediaFields`; POSTs to `/api/media` on "Add to library".
 
 ### API Routes
 
@@ -58,16 +70,17 @@ Defined in `src/types/media.types.ts`:
 
 ## Key Patterns
 
-- Items grouped by status into horizontal carousels, not a table or grid
-- Platform badges use brand colors via `getPlatformColor()` — maps platform name substrings to Tailwind classes (Netflix=red, Hulu=green, Disney+=blue, etc.)
-- Quick rate: click stars directly on the card to PATCH rating without opening modal
-- Quick +1 episode: button on watching shows/anime to increment `current_episode` via PATCH
-- Progress display varies by status: planned shows length overview, watching/on_hold shows current progress with bar, completed shows nothing
-- Season tracking: `current_season`/`total_seasons` for multi-season shows, `episodes_in_season` for per-season progress bar
+- Items grouped by status into horizontal carousels (`CardRow`), not a table or grid. The Watching group renders as wide `ContinueCard`s; the rest as `PosterCard`s.
+- Platform badges use brand colors via `platformBadge()` in `media-utils.tsx` — maps platform name substrings to hex bg/fg pairs (Netflix=red, Hulu=green, Disney+=blue, etc.); rendered by the shared `PlatformBadge` component
+- Cards have no image field, so each gets a stable gradient "cover" derived from a hue hashed off the title (`coverFor`)
+- Quick edits via the `EditMediaSheet` quick-action sheet: status/rating/episode ±1 PATCH instantly; the Details form (title/type/platform/totals/notes/dates) saves together with a dirty-aware button
+- `progressPct` estimates lifetime episodes watched as `(current_season - 1) * episodes_in_season + current_episode` when totals exist — approximate if season lengths vary
+- Season tracking: `current_season`/`total_seasons` for multi-season shows, `episodes_in_season` for per-season progress
 - Optimistic-style updates: after PATCH/POST/DELETE, updates local state directly instead of refetching all items
 - `media_log` table exists but is not used in the frontend — no episode logging UI
 - `owner_id` is set automatically via the DB default (`auth.uid()`) — not sent from the client
 - Touch swipe support on carousels for mobile (50px minimum swipe distance)
-- Cards are always visible on mobile (no hover-only actions), hover reveals edit/delete on desktop
+- On-hold/dropped cards surface their `notes` as a status-tinted "reason" callout (`ReasonNote`)
+- The old `MediaItemModal` (centered add/edit modal) is orphaned/unused — the bottom-sheet `AddMediaSheet`/`EditMediaSheet` replaced it
 - **Discord watch reminders**: shows/anime cards have a Bell button that opens `ReminderModal` (`src/app/(app)/media/modals/ReminderModal.tsx`). Reminders are weekly (day_of_week + time_of_day + IANA timezone). Dispatch route `/api/media/reminders/dispatch` is POSTed by a GitHub Actions cron every 15 min (`.github/workflows/media-reminders.yml`) — protected by the `x-cron-secret` header. The dispatcher uses the Supabase service role key to read across users, computes each row's local time, posts to `DISCORD_REMINDER_WEBHOOK_URL`, and stamps `last_sent_on` to dedupe within the local day.
 - Required env vars for reminders: `SUPABASE_SERVICE_ROLE_KEY`, `DISCORD_REMINDER_WEBHOOK_URL`, `CRON_SECRET` on the Vercel deployment; `APP_URL` and `CRON_SECRET` as GitHub Actions secrets.
