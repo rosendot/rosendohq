@@ -298,23 +298,30 @@ export default function MediaTrackerPage() {
         )}
 
         {/* ============ LOADING ============ */}
+        {/* Mirrors the loaded layout exactly — same section margins, same chip
+            and row metrics, same card widths/ratios — so nothing shifts when
+            the data lands. */}
         {loading && (
           <>
-            <div className="mb-7 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {[0, 1, 2, 3].map((i) => (
-                <div key={i} className="h-[78px] animate-pulse rounded-[14px] bg-[#13131c]" />
-              ))}
-            </div>
-            <div className="mb-3.5 h-5 w-44 animate-pulse rounded-md bg-[#13131c]" />
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-              {Array.from({ length: 10 }).map((_, i) => (
-                <div key={i}>
-                  <div className="aspect-[2/3] w-full animate-pulse rounded-[13px] bg-[#13131c]" />
-                  <div className="mt-2.5 h-3 w-4/5 animate-pulse rounded bg-[#13131c]" />
-                  <div className="mt-1.5 h-2.5 w-1/2 animate-pulse rounded bg-[#13131c]" />
-                </div>
-              ))}
-            </div>
+            {/* type filter + sort (matches the real controls section) */}
+            <section className="mb-6 flex flex-wrap items-center gap-2">
+              <div className="flex min-w-0 flex-1 gap-1.5">
+                {[46, 62, 44, 60].map((w, i) => (
+                  <div
+                    key={i}
+                    className="h-[30px] animate-pulse rounded-[9px] bg-[#13131c]"
+                    style={{ width: w }}
+                  />
+                ))}
+              </div>
+              <div className="h-[30px] w-[150px] animate-pulse rounded-[9px] bg-[#13131c]" />
+            </section>
+
+            {/* Continue watching: wide 300px / 16:9 cards */}
+            <SkeletonRow wide />
+            {/* Remaining status rows: 168px / 2:3 poster cards */}
+            <SkeletonRow />
+            <SkeletonRow />
           </>
         )}
 
@@ -512,6 +519,82 @@ export default function MediaTrackerPage() {
 }
 
 /* ============================== SUBCOMPONENTS ============================== */
+
+// Loading placeholder for one CardRow. Mirrors that component's section margin,
+// heading block, and gap, plus the internal metrics of the card it stands in for
+// (ContinueCard when `wide`, otherwise PosterCard) so the layout does not shift
+// once data arrives.
+function SkeletonRow({ wide = false }: { wide?: boolean }) {
+  const pulse = "animate-pulse bg-[#13131c]";
+  return (
+    <section className="mb-8">
+      {/* heading: dot + title + count, same mb-3 / gap-2.5 as CardRow */}
+      <div className="mb-3 flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
+          <span className={`h-2 w-2 rounded-full ${pulse}`} />
+          <span className={`h-[17px] w-40 rounded ${pulse}`} />
+        </div>
+        <span className={`h-[12px] w-6 rounded ${pulse}`} />
+      </div>
+
+      {/* row: same gap-3.5 / pb-2.5 as the real scroll container */}
+      <div className="flex gap-3.5 overflow-hidden pb-2.5">
+        {Array.from({ length: wide ? 5 : 8 }).map((_, i) =>
+          wide ? (
+            // ContinueCard: w-300 / aspect-video / rounded-2xl
+            <div
+              key={i}
+              className="w-[300px] flex-none overflow-hidden rounded-2xl border border-white/[0.07] bg-[#101019]"
+            >
+              <div className={`aspect-video w-full ${pulse}`} />
+              <div className="px-3.5 pb-3.5 pt-3">
+                {/* meta line + percentage */}
+                <div className="mb-2 flex items-center justify-between">
+                  <span className={`h-[11px] w-28 rounded ${pulse}`} />
+                  <span className={`h-[11px] w-8 rounded ${pulse}`} />
+                </div>
+                {/* progress bar (h-1.5, mb-3) */}
+                <div className={`mb-3 h-1.5 rounded-md ${pulse}`} />
+                {/* resume button (py-2.5 => 38px tall) */}
+                <div className={`h-[38px] rounded-[10px] ${pulse}`} />
+              </div>
+            </div>
+          ) : (
+            // PosterCard: w-168 / aspect-2/3 / rounded-[14px]
+            <div
+              key={i}
+              className="flex w-[168px] flex-none flex-col overflow-hidden rounded-[14px] border border-white/[0.06] bg-[#101019]"
+            >
+              <div className={`aspect-[2/3] w-full ${pulse}`} />
+              <div className="flex flex-1 flex-col px-3 pb-3 pt-2.5">
+                {/* title block (two lines, min-h-[36px]) */}
+                <div className="mb-1.5 min-h-[36px]">
+                  <div className={`h-[14px] w-full rounded ${pulse}`} />
+                  <div className={`mt-1 h-[14px] w-3/5 rounded ${pulse}`} />
+                </div>
+                {/* year + stars */}
+                <div className="mb-2 flex items-center justify-between">
+                  <span className={`h-[11px] w-9 rounded ${pulse}`} />
+                  <span className={`h-[11px] w-14 rounded ${pulse}`} />
+                </div>
+                {/* episode line + progress bar */}
+                <div className="mb-2.5">
+                  <div className="mb-1.5 flex items-center justify-between">
+                    <span className={`h-[10.5px] w-16 rounded ${pulse}`} />
+                    <span className={`h-[10.5px] w-7 rounded ${pulse}`} />
+                  </div>
+                  <div className={`h-[5px] rounded-md ${pulse}`} />
+                </div>
+                {/* +1 button (min-h-[38px]) */}
+                <div className={`mt-auto h-[38px] rounded-[9px] ${pulse}`} />
+              </div>
+            </div>
+          ),
+        )}
+      </div>
+    </section>
+  );
+}
 
 // Horizontal scrollable row: hover near an edge to auto-scroll that way
 // (speed ramps with proximity), plus touch swipe on mobile.
