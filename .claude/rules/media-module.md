@@ -2,7 +2,8 @@
 
 ## Overview
 
-The Media Tracker module tracks movies, TV shows, and anime with episode/season progress, ratings, platform badges, and status lifecycle. The UI is the dark "Reel" redesign: status-grouped horizontal carousels (watching, planned, completed, on hold, dropped) with poster cards, a quick-action bottom sheet for inline edits, and bottom-sheet add/edit modals. See `.claude/rules/media-redesign-process.md` for how the redesign was done.
+The Media Tracker module tracks movies, TV shows, and anime with episode/season progress, ratings, platform badges, and status lifecycle. The UI is the dark "Reel" redesign: status-grouped horizontal carousels (watching, planned, completed, on hold, dropped) with poster cards, a quick-action bottom sheet for inline edits, and bottom-sheet add/edit modals. See `.claude/rules/media-redesign-process.md` for how the redesign was done, and
+`.claude/rules/media-artwork-process.md` for how poster artwork was sourced and backfilled.
 
 ## Architecture
 
@@ -73,6 +74,7 @@ Defined in `src/types/media.types.ts`:
 
 - Items grouped by status into horizontal carousels (`CardRow`), not a table or grid. The Watching group renders as wide `ContinueCard`s; the rest as `PosterCard`s.
 - Platform badges use brand colors via `platformBadge()` in `media-utils.tsx` — maps platform name substrings to hex bg/fg pairs (Netflix=red, Hulu=green, Disney+=blue, etc.); rendered by the shared `PlatformBadge` component
+- **Artwork columns were added via two Supabase migrations** (`add_media_item_artwork_columns`, `add_media_item_anilist_id`) that exist only in the database, not the repo — a fresh clone has the UI code but needs them re-applied
 - **Artwork**: `poster_url` (tall 2:3) and `backdrop_url` (wide 16:9) hold absolute CDN URLs — no images are stored in Supabase. Movies/shows use TMDB (`image.tmdb.org`, w500/w780); anime uses AniList (`s4.anilist.co` cover/banner). `coverStyle(title, art)` renders the real image when present and falls back to `coverFor(title)` — the stable hashed gradient — when null, so rows without artwork still look right
 - Cards with real artwork get an extra top scrim so the type/platform badges stay legible over a photo; the badges sit at `z-[1]` above it
 - Quick edits via the `EditMediaSheet` quick-action sheet: status/rating/episode ±1 PATCH instantly; the Details form (title/type/platform/totals/notes/dates) saves together with a dirty-aware button

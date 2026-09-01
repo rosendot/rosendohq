@@ -85,7 +85,7 @@ All modules are live and backend-connected (Supabase + RLS). Finance is intentio
 
 - **Shopping Lists** — Multiple lists, category grouping, priority rating, bulk operations
 - **Wishlist** — Status tracking, quick actions, multi-currency pricing
-- **Media Tracker** — Movies, TV, Anime with episode/season tracking and platform badges
+- **Media Tracker** — Movies, TV, Anime with episode/season tracking, platform badges, and poster artwork from TMDB/AniList
 - **Car Tracker** — Tabbed: Dashboard, Maintenance, Fuel, Tires, Incidents
 - **Reading Tracker** — Book detail pages, reading logs, highlights
 - **Habits & Goals** — Daily tracking with mood/time, goal linking
@@ -112,6 +112,7 @@ All modules are live and backend-connected (Supabase + RLS). Finance is intentio
 - 34+ tables across all modules in Supabase (Postgres)
 - 14+ views for optimized queries
 - Shared infrastructure: `tag`/`tag_map` system, `file` table, import/export tables
+- Schema changes are applied directly in Supabase and are **not** tracked as migration files in this repo
 
 ## Design System
 
@@ -123,8 +124,16 @@ All modules are live and backend-connected (Supabase + RLS). Finance is intentio
 
 Required in `.env.local`:
 ```
-SUPABASE_URL=...
-SUPABASE_ANON_KEY=...
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+```
+
+Optional, per feature:
+```
+TMDB_READ_ACCESS_TOKEN=...        # media title lookup (movies/TV); anime uses AniList, no key
+SUPABASE_SERVICE_ROLE_KEY=...     # media Discord reminders (cron dispatch)
+DISCORD_REMINDER_WEBHOOK_URL=...  # media Discord reminders
+CRON_SECRET=...                   # media Discord reminders
 ```
 
 Sentry DSN configured in `sentry.*.config.ts` files.
