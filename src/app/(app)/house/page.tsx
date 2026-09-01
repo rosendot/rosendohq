@@ -181,7 +181,7 @@ export default function HousePage() {
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100">
-      <div className="mx-auto max-w-7xl p-6">
+      <div className="w-full p-6">
         {/* Header */}
         <div className="mb-8 flex items-center justify-between">
           <div>

@@ -615,7 +615,7 @@ export default function ShoppingPage() {
 
     return (
         <div className="min-h-screen bg-gray-950 text-gray-100">
-            <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4">
+            <div className="w-full px-3 sm:px-4 lg:px-6 py-4">
                 {/* Header */}
                 <div className="mb-4">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">

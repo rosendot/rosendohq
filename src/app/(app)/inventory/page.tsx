@@ -87,7 +87,7 @@ export default function InventoryPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-950 p-8 text-white">
-        <div className="mx-auto max-w-7xl">
+        <div className="w-full">
           <div className="mb-8 h-10 w-48 animate-pulse rounded bg-gray-800" />
           <div className="mb-6 h-20 animate-pulse rounded-lg border border-gray-800 bg-gray-900" />
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -102,7 +102,7 @@ export default function InventoryPage() {
 
   return (
     <div className="min-h-screen bg-gray-950 p-8 text-white">
-      <div className="mx-auto max-w-7xl">
+      <div className="w-full">
         {/* Header */}
         <div className="mb-8 flex items-center justify-between">
           <div>

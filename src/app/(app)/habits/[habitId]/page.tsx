@@ -228,7 +228,7 @@ export default function HabitDetailPage() {
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-950 text-white">
-                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
                     <div className="text-center py-12 text-gray-500">Loading...</div>
                 </div>
             </div>
@@ -238,7 +238,7 @@ export default function HabitDetailPage() {
     if (error || !habit) {
         return (
             <div className="min-h-screen bg-gray-950 text-white">
-                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
                     <Link
                         href="/habits"
                         className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-6"
@@ -260,7 +260,7 @@ export default function HabitDetailPage() {
 
     return (
         <div className="min-h-screen bg-gray-950 text-white">
-            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
                 {/* Back */}
                 <Link
                     href="/habits"

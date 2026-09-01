@@ -225,7 +225,7 @@ export default function ReadingTracker() {
         </button>
       </header>
 
-      <main className="mx-auto max-w-[1220px] pb-[120px]">
+      <main className="w-full pb-[120px]">
         {/* controls subbar */}
         {!loading && !libraryEmpty && (
           <div className="sticky top-[57px] z-30 flex items-center gap-2.5 border-b border-white/[0.05] bg-[#08080c]/[0.72] px-[18px] py-[11px] backdrop-blur-xl">

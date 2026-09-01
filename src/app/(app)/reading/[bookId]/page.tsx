@@ -279,7 +279,7 @@ export default function BookDetailPage({ params }: { params: Promise<{ bookId: s
           "radial-gradient(1200px 620px at 72% -12%, rgba(224,164,73,.06), transparent 58%), #08080c",
       }}
     >
-      <main className="mx-auto max-w-[780px] px-[18px] pb-[120px] pt-4">
+      <main className="w-full px-[18px] pb-[120px] pt-4">
         <button
           onClick={() => router.push("/reading")}
           className="mb-3.5 flex items-center gap-1.5 py-1.5 text-[13.5px] font-semibold text-[#9a9db0]"

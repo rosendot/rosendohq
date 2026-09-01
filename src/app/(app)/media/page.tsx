@@ -269,7 +269,7 @@ export default function MediaTrackerPage() {
         </button>
       </header>
 
-      <main className="mx-auto max-w-[1200px] px-4 pb-28 pt-5 sm:px-5">
+      <main className="w-full px-4 pb-28 pt-5 sm:px-5">
         {/* ============ ERROR ============ */}
         {error && !loading && (
           <div className="flex flex-col items-center justify-center gap-3.5 px-6 py-24 text-center">

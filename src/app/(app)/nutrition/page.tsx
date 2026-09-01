@@ -126,7 +126,7 @@ export default function NutritionPage() {
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100">
-      <div className="mx-auto max-w-7xl p-6">
+      <div className="w-full p-6">
         <div className="mb-8 flex items-center justify-between">
           <div>
             <h1 className="mb-2 text-3xl font-bold text-white">Nutrition Tracker</h1>
