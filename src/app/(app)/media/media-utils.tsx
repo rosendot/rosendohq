@@ -74,11 +74,20 @@ export function coverStyle(title: string, art: string | null): React.CSSProperti
 
 export const isShow = (t: MediaItem) => t.type === "show" || t.type === "anime";
 
+// `current_episode` is the episode *within the current season* (what the ±1
+// stepper maintains). Guard against legacy rows that stored a lifetime count by
+// clamping to the season length, so a label never reads "E16 / 8".
+export function episodeInSeason(t: MediaItem): number {
+  const ep = Math.max(0, t.current_episode || 0);
+  const perSeason = t.episodes_in_season || 0;
+  return perSeason > 0 ? Math.min(ep, perSeason) : ep;
+}
+
 // Approximate lifetime episodes watched from season + in-season progress.
 function lifetimeWatched(t: MediaItem): number {
   const perSeason = t.episodes_in_season || 0;
-  const season = t.current_season || 1;
-  const ep = t.current_episode || 0;
+  const season = Math.max(1, t.current_season || 1);
+  const ep = episodeInSeason(t);
   if (perSeason > 0 && season > 1) return (season - 1) * perSeason + ep;
   return ep;
 }
@@ -97,12 +106,24 @@ export function progressPct(t: MediaItem): number {
   return t.status === "completed" ? 100 : 0;
 }
 
+// Short progress label for cards, e.g. "S2 · E8 / 8" or "E12 / 26" for a
+// single-season show. The episode is always in-season, so both sides of the
+// slash are on the same scale.
 export function episodeLabel(t: MediaItem): string {
-  const parts: string[] = [];
-  if (t.current_season) parts.push(`S${t.current_season}`);
-  const ep = t.current_episode || 0;
-  parts.push(t.episodes_in_season ? `E${ep} / ${t.episodes_in_season}` : `E${ep}`);
-  return parts.join(" · ");
+  const ep = episodeInSeason(t);
+  const perSeason = t.episodes_in_season || 0;
+  const epPart = perSeason > 0 ? `E${ep} / ${perSeason}` : `E${ep}`;
+  // Only show the season when the show actually has more than one.
+  const multiSeason = (t.total_seasons || 1) > 1;
+  return multiSeason ? `S${t.current_season || 1} · ${epPart}` : epPart;
+}
+
+// Longer form for the edit sheet: adds the lifetime position across the run.
+export function progressDetail(t: MediaItem): string | null {
+  const total = t.total_episodes || 0;
+  if (total <= 0) return null;
+  const watched = Math.min(lifetimeWatched(t), total);
+  return `${watched} of ${total} episodes watched`;
 }
 
 export function starString(rating: number | null): string {

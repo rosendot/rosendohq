@@ -30,6 +30,7 @@ import {
   isShow,
   progressPct,
   episodeLabel,
+  episodeInSeason,
   starString,
   recency,
   yearOf,
@@ -136,15 +137,25 @@ export default function MediaTrackerPage() {
   const bump = (t: MediaItem, delta: number) => {
     if (!isShow(t)) return;
     const perSeason = t.episodes_in_season || 0;
-    let ep = (t.current_episode || 0) + delta;
-    let season = t.current_season || 1;
+    const lastSeason = t.total_seasons || 0;
+    let ep = episodeInSeason(t) + delta;
+    let season = Math.max(1, t.current_season || 1);
     if (perSeason > 0 && ep > perSeason) {
-      season += 1;
-      ep = 1;
+      // Roll into the next season, but never past the final one.
+      if (!lastSeason || season < lastSeason) {
+        season += 1;
+        ep = 1;
+      } else {
+        ep = perSeason; // already at the end of the run
+      }
     }
     if (ep < 1) {
-      season = Math.max(1, season - 1);
-      ep = perSeason || 1;
+      if (season > 1) {
+        season -= 1;
+        ep = perSeason || 1;
+      } else {
+        ep = 0; // back to "nothing watched" rather than a negative episode
+      }
     }
     const body: Partial<MediaItem> = { current_episode: ep, current_season: season };
     if (t.status === "planned") body.status = "watching";

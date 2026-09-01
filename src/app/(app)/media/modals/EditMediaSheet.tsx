@@ -10,6 +10,7 @@ import {
   isShow,
   coverStyle,
   episodeLabel,
+  progressDetail,
   reminderLabel,
   PlatformBadge,
   SheetLabel,
@@ -185,7 +186,7 @@ export default function EditMediaSheet({
               <div className="flex-1 text-center">
                 <div className="text-[18px] font-bold">{episodeLabel(item)}</div>
                 <div className="mt-0.5 font-mono text-[11px] text-[#6b6e80]">
-                  {item.total_episodes ? `of ${item.total_episodes} total eps` : "tracking"}
+                  {progressDetail(item) ?? "tracking"}
                 </div>
               </div>
               <button
