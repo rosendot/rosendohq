@@ -93,6 +93,10 @@ function lifetimeWatched(t: MediaItem): number {
 }
 
 export function progressPct(t: MediaItem): number {
+  // A completed title is 100% by definition. Checked first because
+  // `episodes_in_season` is a single number while real seasons vary in length,
+  // so the episode math can fall short of the run total even at the end.
+  if (t.status === "completed") return 100;
   if (isShow(t)) {
     if (t.total_episodes && t.total_episodes > 0) {
       // best signal: completed episodes across the whole run
@@ -100,10 +104,10 @@ export function progressPct(t: MediaItem): number {
       return Math.round(Math.min(100, (watched / t.total_episodes) * 100));
     }
     if (t.episodes_in_season && t.episodes_in_season > 0) {
-      return Math.round(Math.min(100, ((t.current_episode || 0) / t.episodes_in_season) * 100));
+      return Math.round(Math.min(100, (episodeInSeason(t) / t.episodes_in_season) * 100));
     }
   }
-  return t.status === "completed" ? 100 : 0;
+  return 0;
 }
 
 // Short progress label for cards, e.g. "S2 · E8 / 8" or "E12 / 26" for a

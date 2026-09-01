@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
+import { useRouter } from "next/navigation";
 import {
   Plus,
   Search,
@@ -10,6 +11,7 @@ import {
   Bell,
   List as ListIcon,
   Check,
+  CheckCheck,
   AlertTriangle,
   ChevronDown,
   PauseCircle,
@@ -17,9 +19,7 @@ import {
 } from "lucide-react";
 import type { MediaItem, MediaType, MediaStatus, MediaReminder } from "@/types/media.types";
 import ReminderModal from "./modals/ReminderModal";
-import EditMediaSheet from "./modals/EditMediaSheet";
 import AddMediaSheet from "./modals/AddMediaSheet";
-import DeleteConfirmationModal from "@/components/DeleteConfirmationModal";
 import {
   STATUSES,
   TYPES,
@@ -39,6 +39,7 @@ import {
 /* ================================== PAGE =================================== */
 
 export default function MediaTrackerPage() {
+  const router = useRouter();
   const [items, setItems] = useState<MediaItem[]>([]);
   const [reminders, setReminders] = useState<MediaReminder[]>([]);
   const [loading, setLoading] = useState(true);
@@ -48,10 +49,8 @@ export default function MediaTrackerPage() {
   const [typeFilter, setTypeFilter] = useState<MediaType | "all">("all");
   const [sort, setSort] = useState<"updated" | "title" | "rating" | "progress">("updated");
 
-  const [sheetId, setSheetId] = useState<string | null>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [reminderItem, setReminderItem] = useState<MediaItem | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<MediaItem | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
@@ -127,9 +126,7 @@ export default function MediaTrackerPage() {
     void patchItem(t.id, body, `Status → ${STATUSES[status].label}`);
   };
 
-  const setRating = (t: MediaItem, rating: number) => {
-    void patchItem(t.id, { rating: rating || null }, rating ? `Rated ${rating} ★` : "Rating cleared");
-  };
+
 
   const bump = (t: MediaItem, delta: number) => {
     if (!isShow(t)) return;
@@ -159,6 +156,23 @@ export default function MediaTrackerPage() {
     void patchItem(t.id, body, delta > 0 ? `Marked watched · S${season} · E${ep}` : undefined);
   };
 
+  // Mark a title fully watched: complete it and fill every progress field so
+  // the bar reads 100% instead of leaving stale mid-run numbers behind.
+  const markWatched = (t: MediaItem) => {
+    const body: Partial<MediaItem> = {
+      status: "completed",
+      completed_at: t.completed_at || new Date().toISOString().slice(0, 10),
+    };
+    if (isShow(t)) {
+      const lastSeason = t.total_seasons || t.current_season || 1;
+      body.current_season = lastSeason;
+      // Land on the final episode of the last season when we know its length;
+      // otherwise fall back to the run total so progress still reads complete.
+      body.current_episode = t.episodes_in_season || t.total_episodes || t.current_episode || 0;
+    }
+    void patchItem(t.id, body, `Marked watched · ${t.title}`);
+  };
+
   const createItem = async (body: Record<string, unknown>) => {
     try {
       const res = await fetch("/api/media", {
@@ -177,21 +191,7 @@ export default function MediaTrackerPage() {
     }
   };
 
-  const confirmDelete = async () => {
-    if (!deleteTarget) return;
-    const id = deleteTarget.id;
-    setItems((prev) => prev.filter((t) => t.id !== id));
-    setDeleteTarget(null);
-    setSheetId(null);
-    try {
-      const res = await fetch(`/api/media/${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("delete");
-      flash("Title removed");
-    } catch (e) {
-      console.error("Delete failed:", e);
-      void load();
-    }
-  };
+
 
   /* ------------------------------ derived data ---------------------------- */
 
@@ -241,7 +241,6 @@ export default function MediaTrackerPage() {
     };
   }, [items, query, typeFilter, sort]);
 
-  const sheetItem = sheetId ? items.find((t) => t.id === sheetId) || null : null;
 
   const openAdd = () => setShowAdd(true);
 
@@ -409,7 +408,8 @@ export default function MediaTrackerPage() {
                     key={t.id}
                     item={t}
                     onResume={() => (isShow(t) ? bump(t, 1) : setStatus(t, "completed"))}
-                    onMenu={() => setSheetId(t.id)}
+                    onOpen={() => router.push(`/media/${t.id}`)}
+                    onMarkWatched={() => markWatched(t)}
                   />
                 ))}
               </CardRow>
@@ -430,8 +430,9 @@ export default function MediaTrackerPage() {
                     <PosterCard
                       key={t.id}
                       item={t}
-                      onMenu={() => setSheetId(t.id)}
+                      onOpen={() => router.push(`/media/${t.id}`)}
                       onBump={() => bump(t, 1)}
+                      onMarkWatched={() => markWatched(t)}
                     />
                   ))}
                 </CardRow>
@@ -461,27 +462,6 @@ export default function MediaTrackerPage() {
         )}
       </main>
 
-      {/* ============ EDIT SHEET ============ */}
-      {sheetItem && (
-        <EditMediaSheet
-          item={sheetItem}
-          reminders={remindersByItem[sheetItem.id] || []}
-          onClose={() => setSheetId(null)}
-          onStatus={(s) => setStatus(sheetItem, s)}
-          onRate={(r) => setRating(sheetItem, r)}
-          onBump={(d) => bump(sheetItem, d)}
-          onManageReminders={() => {
-            setReminderItem(sheetItem);
-            setSheetId(null);
-          }}
-          onSaveDetails={async (body) => {
-            await patchItem(sheetItem.id, body, "Saved");
-            setSheetId(null);
-          }}
-          onDelete={() => setDeleteTarget(sheetItem)}
-        />
-      )}
-
       {/* ============ ADD SHEET ============ */}
       {showAdd && <AddMediaSheet onClose={() => setShowAdd(false)} onCreate={createItem} />}
 
@@ -497,12 +477,6 @@ export default function MediaTrackerPage() {
       />
 
       {/* ============ DELETE CONFIRM ============ */}
-      <DeleteConfirmationModal
-        isOpen={deleteTarget !== null}
-        onClose={() => setDeleteTarget(null)}
-        onConfirm={confirmDelete}
-        itemName={deleteTarget?.title}
-      />
 
       {/* ============ TOAST ============ */}
       {toast && (
@@ -768,22 +742,24 @@ const CARD_INTERACTIVE =
 function ContinueCard({
   item,
   onResume,
-  onMenu,
+  onOpen,
+  onMarkWatched,
 }: {
   item: MediaItem;
   onResume: () => void;
-  onMenu: () => void;
+  onOpen: () => void;
+  onMarkWatched: () => void;
 }) {
   const pct = progressPct(item);
   return (
     <article
-      onClick={onMenu}
+      onClick={onOpen}
       role="button"
       tabIndex={0}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          onMenu();
+          onOpen();
         }
       }}
       className={`group w-[300px] flex-none cursor-pointer snap-start overflow-hidden rounded-2xl border bg-[#101019] outline-none transition-all duration-200 ${CARD_INTERACTIVE}`}
@@ -824,16 +800,31 @@ function ContinueCard({
             style={{ width: `${pct}%`, background: "linear-gradient(90deg,#4f8dff,#73a6ff)" }}
           />
         </div>
-        <button
-          onClick={(e) => {
-            e.stopPropagation(); // the card itself opens the sheet
-            onResume();
-          }}
-          className="flex w-full items-center justify-center gap-1.5 rounded-[10px] bg-[#4f8dff] py-2.5 text-[13.5px] font-bold text-[#04122b] transition-transform active:scale-95"
-        >
-          <Play className="h-[15px] w-[15px] fill-[#04122b]" />
-          {isShow(item) ? "Next ep" : "Mark seen"}
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={(e) => {
+              e.stopPropagation(); // the card itself opens the sheet
+              onResume();
+            }}
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-[10px] bg-[#4f8dff] py-2.5 text-[13.5px] font-bold text-[#04122b] transition-transform active:scale-95"
+          >
+            <Play className="h-[15px] w-[15px] fill-[#04122b]" />
+            {isShow(item) ? "Next ep" : "Mark seen"}
+          </button>
+          {isShow(item) && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onMarkWatched();
+              }}
+              aria-label="Mark whole series watched"
+              title="Mark whole series watched"
+              className="flex w-11 flex-none items-center justify-center rounded-[10px] border border-[#3ad07f]/30 bg-[#3ad07f]/[0.14] text-[#3ad07f] transition-colors hover:bg-[#3ad07f]/[0.24]"
+            >
+              <CheckCheck className="h-[18px] w-[18px]" strokeWidth={2.2} />
+            </button>
+          )}
+        </div>
       </div>
     </article>
   );
@@ -864,19 +855,29 @@ function ReasonNote({ item }: { item: MediaItem }) {
   );
 }
 
-function PosterCard({ item, onMenu, onBump }: { item: MediaItem; onMenu: () => void; onBump: () => void }) {
+function PosterCard({
+  item,
+  onOpen,
+  onBump,
+  onMarkWatched,
+}: {
+  item: MediaItem;
+  onOpen: () => void;
+  onBump: () => void;
+  onMarkWatched: () => void;
+}) {
   const Type = TYPES[item.type];
   const show = isShow(item);
   const pct = progressPct(item);
   return (
     <article
-      onClick={onMenu}
+      onClick={onOpen}
       role="button"
       tabIndex={0}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          onMenu();
+          onOpen();
         }
       }}
       className={`group flex w-[168px] flex-none cursor-pointer flex-col overflow-hidden rounded-[14px] border bg-[#101019] outline-none transition-all duration-200 ${CARD_INTERACTIVE}`}
@@ -920,17 +921,33 @@ function PosterCard({ item, onMenu, onBump }: { item: MediaItem; onMenu: () => v
           </div>
         )}
         <ReasonNote item={item} />
-        {show && (
-          <div className="mt-auto">
+        {item.status !== "completed" && (
+          <div className="mt-auto flex gap-1.5">
+            {show && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation(); // the card itself opens the sheet
+                  onBump();
+                }}
+                aria-label="Mark next episode"
+                className="flex min-h-[38px] flex-1 items-center justify-center gap-1.5 rounded-[9px] border border-[#4f8dff]/30 bg-[#4f8dff]/[0.14] font-mono text-[12px] font-bold text-[#4f8dff] transition-colors hover:bg-[#4f8dff]/[0.22]"
+              >
+                +1
+              </button>
+            )}
             <button
               onClick={(e) => {
-                e.stopPropagation(); // the card itself opens the sheet
-                onBump();
+                e.stopPropagation();
+                onMarkWatched();
               }}
-              aria-label="Mark next episode"
-              className="flex min-h-[38px] w-full items-center justify-center gap-1.5 rounded-[9px] border border-[#4f8dff]/30 bg-[#4f8dff]/[0.14] font-mono text-[12px] font-bold text-[#4f8dff] transition-colors hover:bg-[#4f8dff]/[0.22]"
+              aria-label={show ? "Mark whole series watched" : "Mark watched"}
+              title={show ? "Mark whole series watched" : "Mark watched"}
+              className={`flex min-h-[38px] items-center justify-center gap-1.5 rounded-[9px] border border-[#3ad07f]/30 bg-[#3ad07f]/[0.14] text-[#3ad07f] transition-colors hover:bg-[#3ad07f]/[0.24] ${
+                show ? "w-[42px] flex-none" : "flex-1 text-[12.5px] font-semibold"
+              }`}
             >
-              +1
+              <CheckCheck className="h-[16px] w-[16px]" strokeWidth={2.2} />
+              {!show && "Watched"}
             </button>
           </div>
         )}
