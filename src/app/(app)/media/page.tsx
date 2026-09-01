@@ -12,8 +12,6 @@ import {
   Check,
   AlertTriangle,
   ChevronDown,
-  ChevronLeft,
-  ChevronRight,
   PauseCircle,
   CircleSlash,
 } from "lucide-react";
@@ -515,7 +513,8 @@ export default function MediaTrackerPage() {
 
 /* ============================== SUBCOMPONENTS ============================== */
 
-// Horizontal scrollable row with arrow buttons (edge-aware) + touch swipe.
+// Horizontal scrollable row: hover near an edge to auto-scroll that way
+// (speed ramps with proximity), plus touch swipe on mobile.
 function CardRow({
   label,
   count,
@@ -530,9 +529,6 @@ function CardRow({
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canLeft, setCanLeft] = useState(false);
   const [canRight, setCanRight] = useState(false);
-  // Which edge the pointer is hovering near — drives both the arrow fade-in
-  // and the auto-scroll direction.
-  const [edge, setEdge] = useState<"left" | "right" | null>(null);
   const touchStart = useRef<number | null>(null);
   const touchEnd = useRef<number | null>(null);
   const dragged = useRef(false);
@@ -603,22 +599,18 @@ function CardRow({
     if (fromLeft < HOT_ZONE && el.scrollLeft > 0) {
       const ramp = (HOT_ZONE - Math.max(0, fromLeft)) / HOT_ZONE; // 0..1
       velocity.current = -Math.max(1, ramp * ramp * MAX_SPEED); // ease-in
-      setEdge("left");
       startAuto();
     } else if (fromRight < HOT_ZONE && el.scrollLeft < el.scrollWidth - el.clientWidth - 1) {
       const ramp = (HOT_ZONE - Math.max(0, fromRight)) / HOT_ZONE;
       velocity.current = Math.max(1, ramp * ramp * MAX_SPEED);
-      setEdge("right");
       startAuto();
     } else {
       stopAuto();
-      setEdge(null);
     }
   };
 
   const onPointerLeave = () => {
     stopAuto();
-    setEdge(null);
   };
 
   const scroll = (dir: "left" | "right") => {
@@ -641,24 +633,6 @@ function CardRow({
     touchEnd.current = null;
   };
 
-  // Edge arrow: only mounted when that direction can scroll, and only visible
-  // while the pointer is in that edge's hot zone.
-  const edgeArrow = (dir: "left" | "right", enabled: boolean) => {
-    if (!enabled) return null;
-    const isLeft = dir === "left";
-    return (
-      <button
-        onClick={() => scroll(dir)}
-        aria-label={isLeft ? "Scroll left" : "Scroll right"}
-        className={`absolute top-1/2 z-[3] hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/[0.12] bg-[#13131b]/90 text-[#dfe2ee] shadow-lg backdrop-blur transition-opacity duration-200 hover:bg-[#22222f] md:flex ${
-          isLeft ? "left-1" : "right-1"
-        } ${edge === dir ? "opacity-100" : "pointer-events-none opacity-0"}`}
-      >
-        {isLeft ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
-      </button>
-    );
-  };
-
   return (
     <section className="mb-8">
       <div className="mb-3 flex items-baseline gap-2.5">
@@ -668,36 +642,32 @@ function CardRow({
         </h2>
         <span className="font-mono text-[12px] text-[#6b6e80]">{count}</span>
       </div>
-      <div className="relative">
-        {edgeArrow("left", canLeft)}
-        {edgeArrow("right", canRight)}
-        <div
-          ref={scrollRef}
-          onScroll={checkScroll}
-          onPointerMove={onPointerMove}
-          onPointerLeave={onPointerLeave}
-          onTouchStart={(e) => {
-            touchEnd.current = null;
-            dragged.current = false;
-            touchStart.current = e.targetTouches[0].clientX;
-          }}
-          onTouchMove={(e) => {
-            touchEnd.current = e.targetTouches[0].clientX;
-          }}
-          onTouchEnd={onTouchEnd}
-          onClickCapture={(e) => {
-            // Swallow the click after a swipe, and any click landing inside an
-            // edge hot zone while the row is auto-scrolling — the card under
-            // the cursor is moving, so a click there is never intentional.
-            if (!dragged.current && velocity.current === 0) return;
-            e.preventDefault();
-            e.stopPropagation();
-            dragged.current = false;
-          }}
-          className="flex gap-3.5 overflow-x-auto pb-2.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        >
-          {children}
-        </div>
+      <div
+        ref={scrollRef}
+        onScroll={checkScroll}
+        onPointerMove={onPointerMove}
+        onPointerLeave={onPointerLeave}
+        onTouchStart={(e) => {
+          touchEnd.current = null;
+          dragged.current = false;
+          touchStart.current = e.targetTouches[0].clientX;
+        }}
+        onTouchMove={(e) => {
+          touchEnd.current = e.targetTouches[0].clientX;
+        }}
+        onTouchEnd={onTouchEnd}
+        onClickCapture={(e) => {
+          // Swallow the click after a swipe, and any click landing inside an
+          // edge hot zone while the row is auto-scrolling — the card under
+          // the cursor is moving, so a click there is never intentional.
+          if (!dragged.current && velocity.current === 0) return;
+          e.preventDefault();
+          e.stopPropagation();
+          dragged.current = false;
+        }}
+        className="flex gap-3.5 overflow-x-auto pb-2.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
+        {children}
       </div>
     </section>
   );
