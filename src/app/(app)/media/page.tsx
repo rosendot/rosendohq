@@ -28,7 +28,7 @@ import {
   progressPct,
   episodeLabel,
   episodeInSeason,
-  starString,
+  StarRating,
   recency,
   yearOf,
   reminderLabel,
@@ -154,6 +154,10 @@ export default function MediaTrackerPage() {
     const body: Partial<MediaItem> = { current_episode: ep, current_season: season };
     if (t.status === "planned") body.status = "watching";
     void patchItem(t.id, body, delta > 0 ? `Marked watched · S${season} · E${ep}` : undefined);
+  };
+
+  const setRating = (t: MediaItem, rating: number) => {
+    void patchItem(t.id, { rating: rating || null }, rating ? `Rated ${rating} ★` : "Rating cleared");
   };
 
   // Mark a title fully watched: complete it and fill every progress field so
@@ -410,6 +414,7 @@ export default function MediaTrackerPage() {
                     onResume={() => (isShow(t) ? bump(t, 1) : setStatus(t, "completed"))}
                     onOpen={() => router.push(`/media/${t.id}`)}
                     onMarkWatched={() => markWatched(t)}
+                    onRate={(r) => setRating(t, r)}
                   />
                 ))}
               </CardRow>
@@ -433,6 +438,7 @@ export default function MediaTrackerPage() {
                       onOpen={() => router.push(`/media/${t.id}`)}
                       onBump={() => bump(t, 1)}
                       onMarkWatched={() => markWatched(t)}
+                      onRate={(r) => setRating(t, r)}
                     />
                   ))}
                 </CardRow>
@@ -744,11 +750,13 @@ function ContinueCard({
   onResume,
   onOpen,
   onMarkWatched,
+  onRate,
 }: {
   item: MediaItem;
   onResume: () => void;
   onOpen: () => void;
   onMarkWatched: () => void;
+  onRate: (r: number) => void;
 }) {
   const pct = progressPct(item);
   return (
@@ -788,11 +796,12 @@ function ContinueCard({
         </div>
       </div>
       <div className="px-3.5 pb-3.5 pt-3">
-        <div className="mb-2 flex items-center justify-between">
-          <span className="font-mono text-[11px] text-[#6b6e80]">
-            last watched {recency(item.updated_at)}
-          </span>
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <StarRating value={item.rating} onChange={onRate} size={16} />
           <span className="font-mono text-[11px] font-semibold text-[#4f8dff]">{pct}%</span>
+        </div>
+        <div className="mb-2 font-mono text-[11px] text-[#6b6e80]">
+          last watched {recency(item.updated_at)}
         </div>
         <div className="mb-3 h-1.5 overflow-hidden rounded-md bg-[#1d1d28]">
           <div
@@ -860,11 +869,13 @@ function PosterCard({
   onOpen,
   onBump,
   onMarkWatched,
+  onRate,
 }: {
   item: MediaItem;
   onOpen: () => void;
   onBump: () => void;
   onMarkWatched: () => void;
+  onRate: (r: number) => void;
 }) {
   const Type = TYPES[item.type];
   const show = isShow(item);
@@ -902,9 +913,9 @@ function PosterCard({
         <div className="mb-1.5 line-clamp-2 min-h-[36px] text-[14.5px] font-bold leading-tight tracking-tight">
           {item.title}
         </div>
-        <div className="mb-2 flex items-center justify-between">
+        <div className="mb-2 flex items-center justify-between gap-1">
           <span className="font-mono text-[11px] text-[#6b6e80]">{yearOf(item)}</span>
-          <span className="text-xs tracking-[1px] text-[#f4b740]">{starString(item.rating)}</span>
+          <StarRating value={item.rating} onChange={onRate} size={15} />
         </div>
         {show && (
           <div className="mb-2.5">

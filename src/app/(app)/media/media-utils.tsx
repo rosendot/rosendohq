@@ -209,6 +209,46 @@ export function PlatformBadge({
   );
 }
 
+// Clickable 1-5 star rating. Used on cards, where the parent is itself a click
+// target, so every button stops propagation. Clicking the current rating again
+// clears it.
+export function StarRating({
+  value,
+  onChange,
+  size = 14,
+  className = "",
+}: {
+  value: number | null;
+  onChange: (next: number) => void;
+  size?: number;
+  className?: string;
+}) {
+  const current = value || 0;
+  return (
+    <div className={`flex items-center gap-[3px] ${className}`}>
+      {[1, 2, 3, 4, 5].map((n) => {
+        const on = n <= current;
+        return (
+          <button
+            key={n}
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation(); // don't trigger the card behind it
+              e.preventDefault();
+              onChange(n === current ? 0 : n);
+            }}
+            aria-label={n === current ? "Clear rating" : `Rate ${n} of 5`}
+            className="leading-none transition-transform hover:scale-110 active:scale-95"
+            style={{ color: on ? "#f4b740" : "#4a4d5a", fontSize: size, lineHeight: 1 }}
+          >
+            {on ? "★" : "☆"}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export function SheetLabel({
   children,
   className = "",
